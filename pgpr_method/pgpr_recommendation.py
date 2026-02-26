@@ -1,6 +1,9 @@
 """
 PGPR (Policy-Guided Path Reasoning) for R&D Knowledge Graph Recommendations - IMPROVED VERSION
 
+Multi-Entity Explainable Recommendation Framework: Project, Expert, Funder, Enterprise
+(see MULTI_ENTITY_PGPR_FRAMEWORK.md for meta-paths and rationale per source/target pair).
+
 Improvements:
 - Thread-safe: No instance variable modification
 - Performance: Batch candidate queries, caching
@@ -91,7 +94,7 @@ class PGPRRecommender:
         self._env = None
         self._load_policy_if_available()
         
-        # Heuristic relation weights
+        # Heuristic relation weights (align with MULTI_ENTITY_PGPR_FRAMEWORK.md meta-paths)
         self.relation_weights = {
             'HAS_EXPERTISE_IN': 1.0,
             'HAS_SKILL': 0.9,
@@ -105,7 +108,7 @@ class PGPRRecommender:
             'PRODUCES': 0.7,
             'COMMERCIALIZES': 0.75,
             'HAS_APPLICATION_EXPERIENCE_IN': 0.85,
-            'UNDER_FIELD': 0.7,
+            'UNDER_FIELD': 0.7,   # MethodTechnique -> ResearchField
             'COLLABORATES_WITH': 0.85,
         }
     
@@ -218,7 +221,7 @@ class PGPRRecommender:
         # Find paths with timeout protection
         try:
             with self.driver.session() as session:
-                # Use transaction timeout
+                # Use transaction timeout; extract entity names for readable paths
                 result = session.run(f"""
                     MATCH path = (source:{source_type} {{
                         {source_type.lower()}_id: $source_id
@@ -229,6 +232,12 @@ class PGPRRecommender:
                     RETURN path,
                            [r in rels | type(r)] as relation_types,
                            [n in nodes | labels(n)[0]] as node_types,
+                           [n in nodes | coalesce(
+                               n.name, n.title,n.label,
+                               n.project_id, n.expert_id, n.funder_id, n.enterprise_id,
+                               n.field_id, n.industry_name, n.tech_id,
+                               toString(id(n))
+                           )] as entity_names,
                            length(path) as path_length
                     LIMIT {self.top_k_paths * 2}
                 """, source_id=source_id, target_id=target_id, timeout=timeout)
@@ -241,18 +250,21 @@ class PGPRRecommender:
         # Score and process paths
         paths = []
         for record in records:
+            entity_names = record.get("entity_names") or []
             path_info = self._score_path(
                 record["relation_types"],
                 record["node_types"],
-                record["path_length"]
+                record["path_length"],
+                entity_names=entity_names,
             )
             
             paths.append({
                 "relations": record["relation_types"],
                 "nodes": record["node_types"],
+                "entity_names": entity_names,
                 "length": record["path_length"],
                 "score": path_info["score"],
-                "explanation": path_info["explanation"]
+                "explanation": path_info["explanation"],
             })
         
         # Sort by score
@@ -281,7 +293,8 @@ class PGPRRecommender:
         self,
         relation_types: List[str],
         node_types: List[str],
-        path_length: int
+        path_length: int,
+        entity_names: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Score a reasoning path."""
         # Calculate base score from relation weights
@@ -300,8 +313,10 @@ class PGPRRecommender:
         # Final score
         final_score = relation_score * discount * length_penalty
         
-        # Generate explanation
-        explanation = self._generate_path_explanation(relation_types, node_types)
+        # Generate explanation (with entity names when available)
+        explanation = self._generate_path_explanation(
+            relation_types, node_types, entity_names=entity_names
+        )
         
         return {
             "score": final_score,
@@ -316,9 +331,13 @@ class PGPRRecommender:
     def _generate_path_explanation(
         self,
         relation_types: List[str],
-        node_types: List[str]
+        node_types: List[str],
+        entity_names: Optional[List[str]] = None,
     ) -> str:
-        """Generate human-readable explanation for a reasoning path."""
+        """
+        Generate human-readable explanation for a reasoning path.
+        Uses entity names (e.g. PRJ_0001, Nguyen Van A) when available for clearer paths.
+        """
         relation_descriptions = {
             'HAS_EXPERTISE_IN': 'has expertise in',
             'HAS_SKILL': 'has skill in',
@@ -332,7 +351,7 @@ class PGPRRecommender:
             'PRODUCES': 'produces',
             'COMMERCIALIZES': 'commercializes',
             'HAS_APPLICATION_EXPERIENCE_IN': 'has experience in',
-            'UNDER_FIELD': 'is under field',
+            'UNDER_FIELD': 'is under field',  # MethodTechnique -> ResearchField
             'COLLABORATES_WITH': 'collaborates with',
         }
         
@@ -340,7 +359,10 @@ class PGPRRecommender:
         for i, rel_type in enumerate(relation_types):
             desc = relation_descriptions.get(rel_type, rel_type.lower())
             if i < len(node_types) - 1:
-                steps.append(f"{desc} {node_types[i+1]}")
+                # Prefer entity name (e.g. "PRJ_0001", "Nguyen Van A") over node type
+                target = (entity_names[i + 1] if entity_names and i + 1 < len(entity_names)
+                          else node_types[i + 1])
+                steps.append(f"{desc} {target}")
         
         # Use ASCII arrow to avoid Windows console encoding issues (cp1252).
         return " -> ".join(steps)
@@ -943,7 +965,50 @@ class PGPRRecommender:
 
             recommendations.sort(key=lambda x: x["score"], reverse=True)
             return recommendations[:limit]
-    
+
+    def recommend_experts_for_expert_pgpr(
+        self,
+        expert_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend experts for collaboration (chuyên gia tiềm năng hợp tác nghiên cứu).
+        Meta-paths: same HAS_EXPERTISE_IN field; same PARTICIPATES_IN project; HAS_SKILL same MethodTechnique.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_experts_for_expert(session, expert_id)
+            recommendations: List[Dict[str, Any]] = []
+            for candidate in candidates:
+                other_id = candidate["expert_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=expert_id,
+                    source_type="Expert",
+                    target_id=other_id,
+                    target_type="Expert",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_expert_score(paths, candidate)
+                recommendations.append({
+                    "expert_id": other_id,
+                    "name": candidate.get("name"),
+                    "location": candidate.get("location"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                    "metrics": {
+                        "h_index": candidate.get("h_index"),
+                        "citations": candidate.get("citations"),
+                        "publications": candidate.get("publications"),
+                    },
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
     def _calculate_project_score(self, paths: List[Dict], project_info: Dict) -> float:
         """Calculate project recommendation score."""
         if not paths:
@@ -1074,6 +1139,90 @@ class PGPRRecommender:
             
             recommendations.sort(key=lambda x: x["score"], reverse=True)
             return recommendations[:limit]
+
+    def recommend_enterprises_for_project_pgpr(
+        self,
+        project_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend enterprises for a project (doanh nghiệp hợp tác/chuyển giao công nghệ).
+        Meta-paths: Project->Field->RelatedProject<-PARTNERS_WITH-Enterprise;
+                    Project->Expert->Industry<-OPERATES_IN-Enterprise.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_project(session, project_id)
+            recommendations = []
+            for candidate in candidates:
+                enterprise_id = candidate["enterprise_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=project_id,
+                    source_type="Project",
+                    target_id=enterprise_id,
+                    target_type="Enterprise",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_funder_score(paths, candidate)  # path+diversity
+                recommendations.append({
+                    "enterprise_id": enterprise_id,
+                    "name": candidate["name"],
+                    "location": candidate.get("location"),
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                    "partner_projects": candidate.get("partner_projects"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def recommend_projects_for_project_pgpr(
+        self,
+        project_id: str,
+        limit: int = 10,
+        status_filter: List[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend similar projects (dự án tương tự để tham khảo/hợp tác).
+        Meta-paths: same field, same funder, shared experts.
+        """
+        if status_filter is None:
+            status_filter = ["planning", "recruiting", "ongoing"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects_for_project(session, project_id, status_filter)
+            recommendations = []
+            for candidate in candidates:
+                other_id = candidate["project_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=project_id,
+                    source_type="Project",
+                    target_id=other_id,
+                    target_type="Project",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_project_score(paths, candidate)
+                recommendations.append({
+                    "project_id": other_id,
+                    "title": candidate["title"],
+                    "status": candidate["status"],
+                    "location": candidate.get("location"),
+                    "trl": candidate.get("trl"),
+                    "budget": candidate.get("budget"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
     
     def _calculate_funder_score(self, paths: List[Dict], funder_info: Dict) -> float:
         """Calculate funder recommendation score."""
@@ -1175,6 +1324,137 @@ class PGPRRecommender:
         except Exception as e:
             logger.debug("Candidate funders (FUNDS portfolio) query failed: %s", e)
         
+        return list(by_id.values())
+
+    def _find_candidate_enterprises_for_project(
+        self,
+        session,
+        project_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """
+        Candidate enterprises: PARTNERS_WITH projects in same/related field;
+        or OPERATES_IN industry linked via experts in project.
+        """
+        by_id: Dict[str, Dict[str, Any]] = {}
+        try:
+            result = session.run(
+                """
+                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p2:Project)
+                MATCH (en:Enterprise)-[:PARTNERS_WITH]->(p2)
+                WHERE p2.project_id <> $project_id
+                RETURN DISTINCT en.enterprise_id AS enterprise_id,
+                       en.name AS name,
+                       en.location AS location,
+                       count(DISTINCT p2) AS partner_projects
+                ORDER BY partner_projects DESC
+                LIMIT $limit
+                """,
+                project_id=project_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["related_partner_projects"]
+                by_id[d["enterprise_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate enterprises for project query failed: %s", e)
+        try:
+            result2 = session.run(
+                """
+                MATCH (p:Project {project_id: $project_id})<-[:PARTICIPATES_IN]-(e:Expert)
+                MATCH (e)-[:HAS_APPLICATION_EXPERIENCE_IN]->(i:Industry)<-[:OPERATES_IN]-(en:Enterprise)
+                RETURN DISTINCT en.enterprise_id AS enterprise_id,
+                       en.name AS name,
+                       en.location AS location,
+                       count(DISTINCT i) AS matched_industries
+                ORDER BY matched_industries DESC
+                LIMIT $limit
+                """,
+                project_id=project_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                eid = d["enterprise_id"]
+                if eid in by_id:
+                    src = set(by_id[eid].get("candidate_sources") or [])
+                    src.add("expert_industry")
+                    by_id[eid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["expert_industry"]
+                    by_id[eid] = d
+        except Exception as e:
+            logger.debug("Candidate enterprises for project (expert industry) failed: %s", e)
+        return list(by_id.values())
+
+    def _find_candidate_projects_for_project(
+        self,
+        session,
+        project_id: str,
+        status_filter: List[str],
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Similar projects: same/related field; same funder; shared experts."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+        try:
+            result = session.run(
+                """
+                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p2:Project)
+                WHERE p2.project_id <> $project_id AND p2.status IN $status_filter
+                RETURN DISTINCT p2.project_id AS project_id,
+                       p2.title AS title,
+                       p2.status AS status,
+                       p2.location AS location,
+                       p2.trl AS trl,
+                       p2.budget AS budget
+                LIMIT $limit
+                """,
+                project_id=project_id,
+                status_filter=status_filter,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["same_field"]
+                by_id[d["project_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate projects for project (field) failed: %s", e)
+        try:
+            result2 = session.run(
+                """
+                MATCH (p:Project {project_id: $project_id})<-[:FUNDS]-(f:Funder)-[:FUNDS]->(p2:Project)
+                WHERE p2.project_id <> $project_id AND p2.status IN $status_filter
+                RETURN DISTINCT p2.project_id AS project_id,
+                       p2.title AS title,
+                       p2.status AS status,
+                       p2.location AS location,
+                       p2.trl AS trl,
+                       p2.budget AS budget
+                LIMIT $limit
+                """,
+                project_id=project_id,
+                status_filter=status_filter,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                pid = d["project_id"]
+                if pid in by_id:
+                    src = set(by_id[pid].get("candidate_sources") or [])
+                    src.add("same_funder")
+                    by_id[pid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["same_funder"]
+                    by_id[pid] = d
+        except Exception as e:
+            logger.debug("Candidate projects for project (funder) failed: %s", e)
         return list(by_id.values())
 
     def _find_candidate_funders_for_expert(
@@ -1325,6 +1605,810 @@ class PGPRRecommender:
                 e,
             )
 
+        return list(by_id.values())
+
+    def _find_candidate_experts_for_expert(
+        self,
+        session,
+        expert_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """
+        Candidate experts for collaboration: same HAS_EXPERTISE_IN field (incl. hierarchy);
+        same PARTICIPATES_IN project; same HAS_SKILL MethodTechnique.
+        """
+        by_id: Dict[str, Dict[str, Any]] = {}
+        try:
+            result = session.run(
+                """
+                MATCH (e:Expert {expert_id: $expert_id})-[:HAS_EXPERTISE_IN]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:HAS_EXPERTISE_IN]-(e2:Expert)
+                WHERE e2.expert_id <> $expert_id
+                RETURN DISTINCT e2.expert_id AS expert_id,
+                       e2.name AS name,
+                       e2.location AS location,
+                       e2.h_index AS h_index,
+                       e2.citation_count AS citations,
+                       e2.publication_count AS publications
+                LIMIT $limit
+                """,
+                expert_id=expert_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["same_field"]
+                by_id[d["expert_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate experts for expert (field) query failed: %s", e)
+        try:
+            result2 = session.run(
+                """
+                MATCH (e:Expert {expert_id: $expert_id})-[:PARTICIPATES_IN]->(p:Project)<-[:PARTICIPATES_IN]-(e2:Expert)
+                WHERE e2.expert_id <> $expert_id
+                RETURN DISTINCT e2.expert_id AS expert_id,
+                       e2.name AS name,
+                       e2.location AS location,
+                       e2.h_index AS h_index,
+                       e2.citation_count AS citations,
+                       e2.publication_count AS publications,
+                       count(DISTINCT p) AS shared_projects
+                ORDER BY shared_projects DESC
+                LIMIT $limit
+                """,
+                expert_id=expert_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                eid = d["expert_id"]
+                if eid in by_id:
+                    src = set(by_id[eid].get("candidate_sources") or [])
+                    src.add("shared_projects")
+                    by_id[eid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["shared_projects"]
+                    by_id[eid] = d
+        except Exception as e:
+            logger.debug("Candidate experts for expert (shared projects) query failed: %s", e)
+        return list(by_id.values())
+
+    def recommend_experts_for_enterprise_pgpr(
+        self,
+        enterprise_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend experts for an enterprise (doanh nghiệp cần chuyên gia phù hợp).
+        - Chuyên gia có kinh nghiệm ứng dụng trong industry mà enterprise hoạt động.
+        - Chuyên gia từng tham gia các dự án mà enterprise đang hợp tác.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_experts_for_enterprise(session, enterprise_id)
+            recommendations: List[Dict[str, Any]] = []
+
+            for candidate in candidates:
+                expert_id = candidate["expert_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=enterprise_id,
+                    source_type="Enterprise",
+                    target_id=expert_id,
+                    target_type="Expert",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_expert_score(paths, candidate)
+                recommendations.append({
+                    "expert_id": expert_id,
+                    "name": candidate.get("name"),
+                    "location": candidate.get("location"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                    "metrics": {
+                        "h_index": candidate.get("h_index"),
+                        "citations": candidate.get("citations"),
+                        "publications": candidate.get("publications"),
+                    },
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def recommend_projects_for_enterprise_pgpr(
+        self,
+        enterprise_id: str,
+        limit: int = 10,
+        status_filter: List[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend projects for an enterprise (dự án phù hợp để doanh nghiệp hợp tác).
+        - Dự án cùng lĩnh vực/industry với enterprise.
+        - Dự án liên quan đến các dự án enterprise đã hợp tác.
+        """
+        if status_filter is None:
+            status_filter = ["planning", "recruiting", "ongoing"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects_for_enterprise(session, enterprise_id, status_filter)
+            recommendations: List[Dict[str, Any]] = []
+
+            for candidate in candidates:
+                project_id = candidate["project_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=enterprise_id,
+                    source_type="Enterprise",
+                    target_id=project_id,
+                    target_type="Project",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_project_score(paths, candidate)
+                recommendations.append({
+                    "project_id": project_id,
+                    "title": candidate["title"],
+                    "status": candidate["status"],
+                    "location": candidate.get("location"),
+                    "trl": candidate.get("trl"),
+                    "budget": candidate.get("budget"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def recommend_funders_for_enterprise_pgpr(
+        self,
+        enterprise_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend funders for an enterprise (quỹ tài trợ liên quan lĩnh vực doanh nghiệp).
+        Meta-paths: Enterprise-PARTNERS_WITH-Project-FUNDS-Funder; Enterprise-PARTNERS_WITH-Project-BELONGS_TO-Field-SUPPORTS-Funder.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_funders_for_enterprise(session, enterprise_id)
+            recommendations: List[Dict[str, Any]] = []
+            for candidate in candidates:
+                funder_id = candidate["funder_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=enterprise_id,
+                    source_type="Enterprise",
+                    target_id=funder_id,
+                    target_type="Funder",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_funder_score(paths, candidate)
+                recommendations.append({
+                    "funder_id": funder_id,
+                    "name": candidate["name"],
+                    "type": candidate.get("type"),
+                    "location": candidate.get("location"),
+                    "budget_capacity": candidate.get("budget_capacity"),
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def recommend_enterprises_for_enterprise_pgpr(
+        self,
+        enterprise_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend enterprises for collaboration (doanh nghiệp cùng lĩnh vực để hợp tác).
+        Meta-paths: same OPERATES_IN industry; same PARTNERS_WITH project; related field via partner projects.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_enterprise(session, enterprise_id)
+            recommendations: List[Dict[str, Any]] = []
+            for candidate in candidates:
+                other_id = candidate["enterprise_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=enterprise_id,
+                    source_type="Enterprise",
+                    target_id=other_id,
+                    target_type="Enterprise",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_funder_score(paths, candidate)
+                recommendations.append({
+                    "enterprise_id": other_id,
+                    "name": candidate["name"],
+                    "location": candidate.get("location"),
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                    "shared_projects": candidate.get("shared_projects"),
+                    "matched_industries": candidate.get("matched_industries"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def _find_candidate_experts_for_enterprise(
+        self,
+        session,
+        enterprise_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Experts: có HAS_APPLICATION_EXPERIENCE_IN industry mà enterprise OPERATES_IN; hoặc PARTICIPATES_IN project PARTNERS_WITH enterprise."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+
+        try:
+            result = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:OPERATES_IN]->(i:Industry)
+                MATCH (e:Expert)-[:HAS_APPLICATION_EXPERIENCE_IN]->(i)
+                RETURN DISTINCT e.expert_id AS expert_id,
+                       e.name AS name,
+                       e.location AS location,
+                       e.h_index AS h_index,
+                       e.citation_count AS citations,
+                       e.publication_count AS publications,
+                       count(DISTINCT i) AS matched_industries
+                ORDER BY matched_industries DESC
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["industry_match"]
+                by_id[d["expert_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate experts for enterprise (industry) query failed: %s", e)
+
+        try:
+            result2 = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p:Project)<-[:PARTICIPATES_IN]-(e:Expert)
+                RETURN DISTINCT e.expert_id AS expert_id,
+                       e.name AS name,
+                       e.location AS location,
+                       e.h_index AS h_index,
+                       e.citation_count AS citations,
+                       e.publication_count AS publications,
+                       count(DISTINCT p) AS partner_projects
+                ORDER BY partner_projects DESC
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                eid = d["expert_id"]
+                if eid in by_id:
+                    src = set(by_id[eid].get("candidate_sources") or [])
+                    src.add("partner_projects")
+                    by_id[eid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["partner_projects"]
+                    by_id[eid] = d
+        except Exception as e:
+            logger.debug("Candidate experts for enterprise (partner projects) query failed: %s", e)
+
+        return list(by_id.values())
+
+    def _find_candidate_projects_for_enterprise(
+        self,
+        session,
+        enterprise_id: str,
+        status_filter: List[str],
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Projects: cùng industry (BELONGS_TO field -> Industry?) hoặc liên quan project đã PARTNERS_WITH enterprise. KG có thể Project-BELONGS_TO-ResearchField; Enterprise-OPERATES_IN-Industry. Nếu không có link Field-Industry, dùng project đã partner làm nguồn."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+
+        try:
+            result = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p0:Project)-[:BELONGS_TO]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
+                WHERE p.status IN $status_filter
+                  AND NOT (en)-[:PARTNERS_WITH]->(p)
+                RETURN DISTINCT p.project_id AS project_id,
+                       p.title AS title,
+                       p.status AS status,
+                       p.location AS location,
+                       p.trl AS trl,
+                       p.budget AS budget
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                status_filter=status_filter,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["related_partner_projects"]
+                by_id[d["project_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate projects for enterprise query failed: %s", e)
+
+        return list(by_id.values())
+
+    def _find_candidate_funders_for_enterprise(
+        self,
+        session,
+        enterprise_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Funders: FUNDS projects that enterprise PARTNERS_WITH; or SUPPORTS field of those projects."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+        try:
+            result = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p:Project)<-[:FUNDS]-(f:Funder)
+                RETURN DISTINCT f.funder_id AS funder_id,
+                       f.name AS name,
+                       f.type AS type,
+                       f.location AS location,
+                       f.budget_capacity AS budget_capacity,
+                       count(DISTINCT p) AS funded_partner_projects
+                ORDER BY funded_partner_projects DESC
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["partner_project_funders"]
+                by_id[d["funder_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate funders for enterprise query failed: %s", e)
+        try:
+            result2 = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p:Project)-[:BELONGS_TO]->(rf:ResearchField)
+                MATCH (f:Funder)-[:SUPPORTS]->(rf)
+                RETURN DISTINCT f.funder_id AS funder_id,
+                       f.name AS name,
+                       f.type AS type,
+                       f.location AS location,
+                       f.budget_capacity AS budget_capacity
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                fid = d["funder_id"]
+                if fid in by_id:
+                    src = set(by_id[fid].get("candidate_sources") or [])
+                    src.add("supports_partner_field")
+                    by_id[fid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["supports_partner_field"]
+                    by_id[fid] = d
+        except Exception as e:
+            logger.debug("Candidate funders for enterprise (supports field) failed: %s", e)
+        return list(by_id.values())
+
+    def _find_candidate_enterprises_for_enterprise(
+        self,
+        session,
+        enterprise_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Other enterprises: same OPERATES_IN industry; or PARTNERS_WITH same project; or partner projects in same field."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+        try:
+            result = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:OPERATES_IN]->(i:Industry)<-[:OPERATES_IN]-(en2:Enterprise)
+                WHERE en2.enterprise_id <> $enterprise_id
+                RETURN DISTINCT en2.enterprise_id AS enterprise_id,
+                       en2.name AS name,
+                       en2.location AS location,
+                       count(DISTINCT i) AS matched_industries
+                ORDER BY matched_industries DESC
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["same_industry"]
+                by_id[d["enterprise_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate enterprises for enterprise (industry) failed: %s", e)
+        try:
+            result2 = session.run(
+                """
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p:Project)<-[:PARTNERS_WITH]-(en2:Enterprise)
+                WHERE en2.enterprise_id <> $enterprise_id
+                RETURN DISTINCT en2.enterprise_id AS enterprise_id,
+                       en2.name AS name,
+                       en2.location AS location,
+                       count(DISTINCT p) AS shared_projects
+                ORDER BY shared_projects DESC
+                LIMIT $limit
+                """,
+                enterprise_id=enterprise_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                eid = d["enterprise_id"]
+                if eid in by_id:
+                    src = set(by_id[eid].get("candidate_sources") or [])
+                    src.add("shared_projects")
+                    by_id[eid]["candidate_sources"] = sorted(src)
+                    by_id[eid]["shared_projects"] = max(
+                        by_id[eid].get("shared_projects", 0) or 0,
+                        d.get("shared_projects", 0) or 0,
+                    )
+                else:
+                    d["candidate_sources"] = ["shared_projects"]
+                    by_id[eid] = d
+        except Exception as e:
+            logger.debug("Candidate enterprises for enterprise (shared projects) failed: %s", e)
+        return list(by_id.values())
+
+    def recommend_experts_for_funder_pgpr(
+        self,
+        funder_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend experts for a funder (chuyên gia phù hợp với danh mục/quỹ).
+        - Chuyên gia tham gia các dự án mà funder tài trợ.
+        - Chuyên gia có chuyên môn trong lĩnh vực funder hỗ trợ.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_experts_for_funder(session, funder_id)
+            recommendations: List[Dict[str, Any]] = []
+
+            for candidate in candidates:
+                expert_id = candidate["expert_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=funder_id,
+                    source_type="Funder",
+                    target_id=expert_id,
+                    target_type="Expert",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_expert_score(paths, candidate)
+                recommendations.append({
+                    "expert_id": expert_id,
+                    "name": candidate.get("name"),
+                    "location": candidate.get("location"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                    "metrics": {
+                        "h_index": candidate.get("h_index"),
+                        "citations": candidate.get("citations"),
+                        "publications": candidate.get("publications"),
+                    },
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def recommend_projects_for_funder_pgpr(
+        self,
+        funder_id: str,
+        limit: int = 10,
+        status_filter: List[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend projects for a funder (dự án phù hợp để quỹ tài trợ).
+        - Dự án thuộc lĩnh vực funder SUPPORT.
+        - Dự án liên quan (cùng field) với các dự án funder đã FUNDS.
+        """
+        if status_filter is None:
+            status_filter = ["planning", "recruiting", "ongoing"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects_for_funder(session, funder_id, status_filter)
+            recommendations: List[Dict[str, Any]] = []
+
+            for candidate in candidates:
+                project_id = candidate["project_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=funder_id,
+                    source_type="Funder",
+                    target_id=project_id,
+                    target_type="Project",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_project_score(paths, candidate)
+                recommendations.append({
+                    "project_id": project_id,
+                    "title": candidate["title"],
+                    "status": candidate["status"],
+                    "location": candidate.get("location"),
+                    "trl": candidate.get("trl"),
+                    "budget": candidate.get("budget"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def recommend_enterprises_for_funder_pgpr(
+        self,
+        funder_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Recommend enterprises for a funder (doanh nghiệp chiến lược đồng hành cùng dự án).
+        Meta-paths: Funder-FUNDS-Project-PARTNERS_WITH-Enterprise; Funder-SUPPORTS-Field-BELONGS_TO-Project-PARTNERS_WITH-Enterprise.
+        """
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_funder(session, funder_id)
+            recommendations: List[Dict[str, Any]] = []
+            for candidate in candidates:
+                enterprise_id = candidate["enterprise_id"]
+                paths = self.find_reasoning_paths(
+                    source_id=funder_id,
+                    source_type="Funder",
+                    target_id=enterprise_id,
+                    target_type="Enterprise",
+                )
+                if not paths:
+                    continue
+                score = self._calculate_funder_score(paths, candidate)
+                recommendations.append({
+                    "enterprise_id": enterprise_id,
+                    "name": candidate["name"],
+                    "location": candidate.get("location"),
+                    "candidate_sources": candidate.get("candidate_sources", []),
+                    "partner_projects": candidate.get("partner_projects"),
+                    "score": round(score, 3),
+                    "reasoning_paths": [
+                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
+                        for p in paths[:3]
+                    ],
+                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
+                })
+            recommendations.sort(key=lambda x: x["score"], reverse=True)
+            return recommendations[:limit]
+
+    def _find_candidate_experts_for_funder(
+        self,
+        session,
+        funder_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Experts: PARTICIPATES_IN project FUNDS by funder; hoặc HAS_EXPERTISE_IN field SUPPORTED by funder."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+
+        try:
+            result = session.run(
+                """
+                MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(p:Project)<-[:PARTICIPATES_IN]-(e:Expert)
+                RETURN DISTINCT e.expert_id AS expert_id,
+                       e.name AS name,
+                       e.location AS location,
+                       e.h_index AS h_index,
+                       e.citation_count AS citations,
+                       e.publication_count AS publications,
+                       count(DISTINCT p) AS funded_projects
+                ORDER BY funded_projects DESC
+                LIMIT $limit
+                """,
+                funder_id=funder_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["funded_projects"]
+                by_id[d["expert_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate experts for funder (funded projects) query failed: %s", e)
+
+        try:
+            result2 = session.run(
+                """
+                MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(rf:ResearchField)
+                MATCH (e:Expert)-[:HAS_EXPERTISE_IN]->(rf)
+                RETURN DISTINCT e.expert_id AS expert_id,
+                       e.name AS name,
+                       e.location AS location,
+                       e.h_index AS h_index,
+                       e.citation_count AS citations,
+                       e.publication_count AS publications
+                LIMIT $limit
+                """,
+                funder_id=funder_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                eid = d["expert_id"]
+                if eid in by_id:
+                    src = set(by_id[eid].get("candidate_sources") or [])
+                    src.add("supports_field")
+                    by_id[eid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["supports_field"]
+                    by_id[eid] = d
+        except Exception as e:
+            logger.debug("Candidate experts for funder (supports field) query failed: %s", e)
+
+        return list(by_id.values())
+
+    def _find_candidate_projects_for_funder(
+        self,
+        session,
+        funder_id: str,
+        status_filter: List[str],
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Projects: trong field funder SUPPORT; hoặc cùng field với project funder đã FUNDS (chưa tài trợ dự án này)."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+
+        try:
+            result = session.run(
+                """
+                MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
+                WHERE p.status IN $status_filter
+                  AND NOT (f)-[:FUNDS]->(p)
+                RETURN DISTINCT p.project_id AS project_id,
+                       p.title AS title,
+                       p.status AS status,
+                       p.location AS location,
+                       p.trl AS trl,
+                       p.budget AS budget
+                LIMIT $limit
+                """,
+                funder_id=funder_id,
+                status_filter=status_filter,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["supports_field"]
+                by_id[d["project_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate projects for funder (supports) query failed: %s", e)
+
+        try:
+            result2 = session.run(
+                """
+                MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(p0:Project)-[:BELONGS_TO]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
+                WHERE p.status IN $status_filter
+                  AND p.project_id <> p0.project_id
+                  AND NOT (f)-[:FUNDS]->(p)
+                RETURN DISTINCT p.project_id AS project_id,
+                       p.title AS title,
+                       p.status AS status,
+                       p.location AS location,
+                       p.trl AS trl,
+                       p.budget AS budget
+                LIMIT $limit
+                """,
+                funder_id=funder_id,
+                status_filter=status_filter,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                pid = d["project_id"]
+                if pid in by_id:
+                    src = set(by_id[pid].get("candidate_sources") or [])
+                    src.add("funded_related")
+                    by_id[pid]["candidate_sources"] = sorted(src)
+                else:
+                    d["candidate_sources"] = ["funded_related"]
+                    by_id[pid] = d
+        except Exception as e:
+            logger.debug("Candidate projects for funder (funded related) query failed: %s", e)
+
+        return list(by_id.values())
+
+    def _find_candidate_enterprises_for_funder(
+        self,
+        session,
+        funder_id: str,
+        limit: int = 80,
+    ) -> List[Dict[str, Any]]:
+        """Enterprises: PARTNERS_WITH projects that funder FUNDS; or projects in field funder SUPPORTS."""
+        by_id: Dict[str, Dict[str, Any]] = {}
+        try:
+            result = session.run(
+                """
+                MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(p:Project)<-[:PARTNERS_WITH]-(en:Enterprise)
+                RETURN DISTINCT en.enterprise_id AS enterprise_id,
+                       en.name AS name,
+                       en.location AS location,
+                       count(DISTINCT p) AS partner_projects
+                ORDER BY partner_projects DESC
+                LIMIT $limit
+                """,
+                funder_id=funder_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result:
+                d = dict(record)
+                d["candidate_sources"] = ["funded_project_partners"]
+                by_id[d["enterprise_id"]] = d
+        except Exception as e:
+            logger.debug("Candidate enterprises for funder query failed: %s", e)
+        try:
+            result2 = session.run(
+                """
+                MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(rf:ResearchField)
+                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
+                MATCH (en:Enterprise)-[:PARTNERS_WITH]->(p)
+                RETURN DISTINCT en.enterprise_id AS enterprise_id,
+                       en.name AS name,
+                       en.location AS location,
+                       count(DISTINCT p) AS partner_projects
+                ORDER BY partner_projects DESC
+                LIMIT $limit
+                """,
+                funder_id=funder_id,
+                limit=limit,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
+            for record in result2:
+                d = dict(record)
+                eid = d["enterprise_id"]
+                if eid in by_id:
+                    src = set(by_id[eid].get("candidate_sources") or [])
+                    src.add("supports_field_partners")
+                    by_id[eid]["candidate_sources"] = sorted(src)
+                    by_id[eid]["partner_projects"] = max(
+                        by_id[eid].get("partner_projects", 0) or 0,
+                        d.get("partner_projects", 0) or 0,
+                    )
+                else:
+                    d["candidate_sources"] = ["supports_field_partners"]
+                    by_id[eid] = d
+        except Exception as e:
+            logger.debug("Candidate enterprises for funder (supports field) failed: %s", e)
         return list(by_id.values())
     
     # ==========================================

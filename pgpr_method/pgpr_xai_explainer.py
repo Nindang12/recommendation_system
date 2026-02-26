@@ -3,24 +3,172 @@ XAI (Explainable AI) Module for PGPR Recommendations
 
 Provides human-readable explanations for why recommendations were made,
 including visualizations, natural language generation, and interactive exploration.
-Optionally connects to Neo4j to fetch concrete evidence (fields, projects, funders)
-for more detailed explanations.
+Explanations are built directly từ các reasoning paths do PGPR tạo ra.
 """
 
 from typing import List, Dict, Any, Optional
 import json
 from collections import defaultdict
 import os
+import urllib.request
+import urllib.error
 
-from neo4j import GraphDatabase, Driver
 from dotenv import load_dotenv
 
 
 load_dotenv()
 
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+
+def build_prompt_from_paths(
+    recommendation: Dict[str, Any],
+    rec_type: str,
+    source_context: Optional[Dict[str, Any]] = None,
+    top_k: int = 5,
+    language: str = "vi",
+) -> str:
+    """
+    Build a prompt for LLM to explain recommendation reasoning paths.
+
+    Ý tưởng: bắt LLM phải giải thích TỪNG đường dẫn một
+    (path-level), sau đó tổng kết lại lý do chung.
+    """
+    name = recommendation.get("name") or recommendation.get("title", "Unknown")
+    score = recommendation.get("score", 0.0)
+    paths = recommendation.get("reasoning_paths", [])[:top_k]
+    metrics = recommendation.get("metrics") or {}
+
+    rec_labels = {
+        "expert": ("chuyên gia", "expert"),
+        "funder": ("quỹ tài trợ", "funder"),
+        "project": ("dự án", "project"),
+        "enterprise": ("doanh nghiệp", "enterprise"),
+    }
+    label_vi, label_en = rec_labels.get(rec_type, ("đề xuất", "recommendation"))
+
+    # Source description (project / expert / funder / enterprise phía nguồn)
+    source_desc_vi = ""
+    source_desc_en = ""
+    if source_context:
+        st = source_context.get("source_type", "")
+        sid = source_context.get("source_id", "")
+        sn = source_context.get("source_name", sid)
+        if st == "Project":
+            source_desc_vi = f" cho dự án {sn}"
+            source_desc_en = f" for project {sn}"
+        elif st == "Expert":
+            source_desc_vi = f" cho chuyên gia {sn}"
+            source_desc_en = f" for expert {sn}"
+        elif st == "Funder":
+            source_desc_vi = f" cho quỹ {sn}"
+            source_desc_en = f" for funder {sn}"
+        elif st == "Enterprise":
+            source_desc_vi = f" cho doanh nghiệp {sn}"
+            source_desc_en = f" for enterprise {sn}"
+
+    # Chuẩn bị block đường dẫn
+    path_lines_vi: List[str] = []
+    for i, p in enumerate(paths, 1):
+        path_str = p.get("path", "") or p.get("explanation", "")
+        sc = p.get("score", 0.0)
+        length = p.get("length", 0)
+        if path_str:
+            path_lines_vi.append(
+                f"{i}. Đường dẫn (score {sc:.2f}, length {length}): {path_str}"
+            )
+    paths_block_vi = "\n".join(path_lines_vi) if path_lines_vi else "(không có đường dẫn)"
+
+    # Thêm metrics cho expert nếu có
+    metrics_vi = ""
+    metrics_en = ""
+    if rec_type == "expert" and metrics:
+        h = metrics.get("h_index")
+        c = metrics.get("citations")
+        pcount = metrics.get("publications")
+        m_parts_vi = []
+        m_parts_en = []
+        if h is not None:
+            m_parts_vi.append(f"h-index: {h}")
+            m_parts_en.append(f"h-index: {h}")
+        if c is not None:
+            m_parts_vi.append(f"số trích dẫn: {c}")
+            m_parts_en.append(f"citations: {c}")
+        if pcount is not None:
+            m_parts_vi.append(f"số công bố: {pcount}")
+            m_parts_en.append(f"publications: {pcount}")
+        if m_parts_vi:
+            metrics_vi = "Chỉ số chuyên gia: " + ", ".join(m_parts_vi)
+            metrics_en = "Expert metrics: " + ", ".join(m_parts_en)
+
+    if language == "vi":
+        prompt = f"""Bạn là trợ lý giải thích gợi ý trong hệ thống đề xuất dựa trên đồ thị tri thức.
+
+Gợi ý: {label_vi} **{name}**{source_desc_vi}
+Độ phù hợp tổng thể: khoảng {score:.0%}
+{metrics_vi if metrics_vi else ""}
+
+Các đường dẫn lý luận (từ dự án/nguồn tới {label_vi} này):
+{paths_block_vi}
+
+YÊU CẦU:
+1. Với MỖI đường dẫn ở trên, hãy viết 1–2 câu tiếng Việt, dễ hiểu, giải thích cụ thể đường dẫn đó có ý nghĩa gì.
+   - Nói rõ mối quan hệ giữa lĩnh vực, dự án, chuyên gia/quỹ/doanh nghiệp.
+   - Sử dụng lại tên thực thể trong đường dẫn (ví dụ: Thị giác máy tính, Trí tuệ nhân tạo, Quỹ NAFOSTED, PGS.TS. Nguyễn Thị Huyền...).
+2. Sau đó, viết 1–2 câu tổng kết tại sao {label_vi} **{name}** phù hợp với nguồn (dự án/chuyên gia/quỹ/doanh nghiệp), dựa trên TẤT CẢ các đường dẫn trên.
+3. Không dùng thuật ngữ kỹ thuật như "node", "edge", "KG", "đồ thị tri thức". Không liệt kê lại nguyên văn đường dẫn, mà diễn giải bằng ngôn ngữ tự nhiên.
+4. Viết dưới dạng đoạn văn hoàn chỉnh, không cần đánh số lại các đường dẫn."""
+    else:
+        prompt = f"""You are an assistant explaining a recommendation in a knowledge-graph-based system.
+
+Recommendation: {label_en} **{name}**{source_desc_en}
+Overall relevance score: about {score:.0%}
+{metrics_en if metrics_en else ""}
+
+Reasoning paths (from source to this {label_en}):
+{paths_block_vi}
+
+TASK:
+1. For EACH path above, write 1–2 clear sentences explaining what this path means in practice (how the fields, projects, experts, funders, or enterprises are connected).
+2. Then write 1–2 summary sentences explaining why {label_en} **{name}** is a good match for the source, based on ALL these paths.
+3. Do NOT use technical terms like node, edge, KG, knowledge graph. Do not repeat the paths verbatim; paraphrase them into natural language.
+4. Answer as a coherent paragraph (or a few short paragraphs), without re-numbering the paths."""
+
+    return prompt
+
+
+def llm_explain_paths_ollama(
+    prompt: str,
+    model: str = "llama3",
+    ollama_url: str = OLLAMA_URL,
+    timeout: int = 30,
+) -> Optional[str]:
+    """
+    Call Ollama API to generate natural language explanation.
+
+    Args:
+        prompt: The prompt for the LLM
+        model: Ollama model name (e.g. llama3, mistral, phi)
+        ollama_url: Base URL (e.g. http://localhost:11434)
+        timeout: Request timeout in seconds
+
+    Returns:
+        Generated text or None on error
+    """
+    url = f"{ollama_url.rstrip('/')}/api/generate"
+    body = json.dumps({"model": model, "prompt": prompt, "stream": False}).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return (data.get("response") or "").strip()
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError):
+        return None
 
 
 class PGPRExplainer:
@@ -37,34 +185,24 @@ class PGPRExplainer:
     def __init__(
         self,
         language: str = "vi",
-        enable_neo4j: bool = True,
-        neo4j_uri: str = NEO4J_URI,
-        neo4j_user: str = NEO4J_USER,
-        neo4j_password: str = NEO4J_PASSWORD,
+        use_llm: bool = False,
+        ollama_model: str = "llama3",
+        ollama_url: str = OLLAMA_URL,
     ):
         """
         Initialize explainer.
-        
+
         Args:
             language: "vi" for Vietnamese, "en" for English
-            enable_neo4j: whether to connect to Neo4j for detailed evidence
-            neo4j_uri, neo4j_user, neo4j_password: Neo4j connection settings
+            use_llm: if True, use Ollama LLM for natural language explanations
+            ollama_model: Ollama model name (e.g. llama3, mistral)
+            ollama_url: Ollama base URL
         """
         self.language = language
+        self.use_llm = use_llm
+        self.ollama_model = ollama_model
+        self.ollama_url = ollama_url
         self._load_templates()
-
-        self.enable_neo4j = enable_neo4j
-        self._driver: Optional[Driver] = None
-
-        if self.enable_neo4j:
-            try:
-                self._driver = GraphDatabase.driver(
-                    neo4j_uri,
-                    auth=(neo4j_user, neo4j_password),
-                )
-            except Exception:
-                # If connection fails, silently fall back to non-DB mode
-                self.enable_neo4j = False
     
     def _load_templates(self):
         """Load language templates for explanations."""
@@ -191,28 +329,42 @@ class PGPRExplainer:
         diversity = recommendation.get("path_diversity", 0)
         reasoning_paths = recommendation.get("reasoning_paths", [])
 
-        # Optional: fetch detailed evidence from Neo4j (fields, projects, funders)
-        detailed_evidence: Optional[Dict[str, Any]] = None
-        if self.enable_neo4j and self._driver and source_context:
-            try:
-                detailed_evidence = self._build_detailed_neo4j_evidence(
-                    recommendation=recommendation,
-                    rec_type=rec_type,
-                    source_context=source_context,
+        # Generate natural language explanation (LLM or template)
+        nl_explanation: str
+        if self.use_llm:
+            prompt = build_prompt_from_paths(
+                recommendation=recommendation,
+                rec_type=rec_type,
+                source_context=source_context,
+                top_k=5,
+                language=self.language,
+            )
+            llm_text = llm_explain_paths_ollama(
+                prompt=prompt,
+                model=self.ollama_model,
+                ollama_url=self.ollama_url,
+                timeout=30,
+            )
+            if llm_text:
+                nl_explanation = self._wrap_llm_explanation(
+                    llm_text, name, score, diversity, rec_type
                 )
-            except Exception:
-                # Never let XAI queries break main flow
-                detailed_evidence = None
-        
-        # Generate natural language explanation
-        nl_explanation = self._generate_natural_language(
-            name=name,
-            score=score,
-            diversity=diversity,
-            reasoning_paths=reasoning_paths,
-            rec_type=rec_type,
-            detailed=detailed_evidence,
-        )
+            else:
+                nl_explanation = self._generate_natural_language(
+                    name=name,
+                    score=score,
+                    diversity=diversity,
+                    reasoning_paths=reasoning_paths,
+                    rec_type=rec_type,
+                )
+        else:
+            nl_explanation = self._generate_natural_language(
+                name=name,
+                score=score,
+                diversity=diversity,
+                reasoning_paths=reasoning_paths,
+                rec_type=rec_type,
+            )
         
         # Analyze path patterns
         path_analysis = self._analyze_paths(reasoning_paths)
@@ -228,7 +380,6 @@ class PGPRExplainer:
             "path_analysis": path_analysis,
             "visualization": visual,
             "confidence": confidence,
-            "neo4j_details": detailed_evidence,
             "metadata": {
                 "score": score,
                 "diversity": diversity,
@@ -243,7 +394,6 @@ class PGPRExplainer:
         diversity: int,
         reasoning_paths: List[Dict],
         rec_type: str,
-        detailed: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Generate human-readable explanation in natural language."""
         templates = self.templates[rec_type]
@@ -260,7 +410,9 @@ class PGPRExplainer:
         
         # Main reasoning paths
         path_intro = templates["path_intro"]
-        path_explanations = self._explain_paths(reasoning_paths[:3], rec_type)
+        path_explanations = self._explain_paths(
+            reasoning_paths[:3], rec_type, target_name=name
+        )
         
         # Combine core parts
         explanation = f"""
@@ -275,639 +427,210 @@ class PGPRExplainer:
 {path_explanations}
         """.strip()
 
-        # Optionally append detailed evidence from Neo4j
-        if detailed:
-            extra = self._render_detailed_evidence(detailed, rec_type)
-            if extra:
-                explanation = f"{explanation}\n\n{extra}"
-        
         return explanation
 
-    # =========================================================
-    # DETAILED EVIDENCE FROM NEO4J
-    # =========================================================
-
-    def _build_detailed_neo4j_evidence(
+    def _wrap_llm_explanation(
         self,
-        recommendation: Dict[str, Any],
-        rec_type: str,
-        source_context: Dict[str, Any],
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Query Neo4j to get concrete evidence:
-        - For expert: matched fields, related projects, shared funders
-        - For funder: matched fields, funded related projects
-        - For project: matched fields, shared funders
-        """
-        source_id = source_context.get("source_id")
-        source_type = source_context.get("source_type")
-
-        if not source_id or not source_type or not self._driver:
-            return None
-
-        if rec_type == "expert":
-            return self._explain_expert_with_neo4j(recommendation, source_id, source_type)
-        if rec_type == "funder":
-            return self._explain_funder_with_neo4j(recommendation, source_id, source_type)
-        if rec_type == "project":
-            return self._explain_project_with_neo4j(recommendation, source_id, source_type)
-        if rec_type == "enterprise":
-            return self._explain_enterprise_with_neo4j(recommendation, source_id, source_type)
-
-        return None
-
-    def _explain_expert_with_neo4j(
-        self,
-        recommendation: Dict[str, Any],
-        source_id: str,
-        source_type: str,
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Detailed explanation for: recommend Expert for Project.
-        
-        Assumes:
-        - source_type == "Project"
-        - recommendation contains "expert_id"
-        """
-        expert_id = recommendation.get("expert_id")
-        if not expert_id or source_type != "Project":
-            return None
-
-        with self._driver.session() as session:
-            # Basic project info + fields
-            proj_row = session.run(
-                """
-                MATCH (p:Project {project_id: $project_id})
-                OPTIONAL MATCH (p)-[:BELONGS_TO]->(pf:ResearchField)
-                RETURN p.project_id AS project_id,
-                       p.title AS title,
-                       collect(DISTINCT pf.name) AS fields
-                """,
-                project_id=source_id,
-            ).single()
-
-            # Basic expert info + expertise fields + past projects
-            expert_row = session.run(
-                """
-                MATCH (e:Expert {expert_id: $expert_id})
-                OPTIONAL MATCH (e)-[:HAS_EXPERTISE_IN]->(ef:ResearchField)
-                OPTIONAL MATCH (e)-[:PARTICIPATES_IN]->(ep:Project)
-                RETURN e.expert_id AS expert_id,
-                       e.name AS name,
-                       collect(DISTINCT ef.name) AS expertise_fields,
-                       collect(DISTINCT ep.title) AS past_projects
-                """,
-                expert_id=expert_id,
-            ).single()
-
-            # Fields that directly match between project and expert
-            matched_fields = list(
-                session.run(
-                    """
-                    MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(pf:ResearchField)
-                    MATCH (e:Expert {expert_id: $expert_id})-[:HAS_EXPERTISE_IN]->(ef:ResearchField)
-                    WHERE pf = ef
-                    RETURN DISTINCT pf.name AS field_name
-                    """,
-                    project_id=source_id,
-                    expert_id=expert_id,
-                )
-            )
-
-            # Related projects expert worked on that share fields with the current project
-            related_projects = list(
-                session.run(
-                    """
-                    MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(pf:ResearchField)
-                    MATCH (e:Expert {expert_id: $expert_id})-[:PARTICIPATES_IN]->(ep:Project)
-                    MATCH (ep)-[:BELONGS_TO]->(ef:ResearchField)
-                    WHERE pf = ef AND ep.project_id <> $project_id
-                    RETURN DISTINCT ep.project_id AS project_id,
-                           ep.title AS title
-                    LIMIT 5
-                    """,
-                    project_id=source_id,
-                    expert_id=expert_id,
-                )
-            )
-
-            # Shared funders between current project and expert's past projects
-            shared_funders = list(
-                session.run(
-                    """
-                    MATCH (p:Project {project_id: $project_id})<-[:FUNDS]-(f:Funder)
-                    MATCH (e:Expert {expert_id: $expert_id})-[:PARTICIPATES_IN]->(ep:Project)<-[:FUNDS]-(f)
-                    WHERE ep.project_id <> $project_id
-                    RETURN DISTINCT f.funder_id AS funder_id,
-                           f.name AS name
-                    LIMIT 5
-                    """,
-                    project_id=source_id,
-                    expert_id=expert_id,
-                )
-            )
-
-        return {
-            "source": dict(proj_row) if proj_row else {},
-            "target": dict(expert_row) if expert_row else {},
-            "matched_fields": [r["field_name"] for r in matched_fields if r.get("field_name")] if matched_fields else [],
-            "related_projects": [dict(r) for r in related_projects],
-            "shared_funders": [dict(r) for r in shared_funders],
-        }
-
-    def _explain_funder_with_neo4j(
-        self,
-        recommendation: Dict[str, Any],
-        source_id: str,
-        source_type: str,
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Detailed explanation for: recommend Funder for Project or Expert.
-        """
-        funder_id = recommendation.get("funder_id")
-        if not funder_id:
-            return None
-
-        # Case 1: recommend Funder for Project
-        if source_type == "Project":
-            with self._driver.session() as session:
-                proj_row = session.run(
-                    """
-                    MATCH (p:Project {project_id: $project_id})
-                    OPTIONAL MATCH (p)-[:BELONGS_TO]->(pf:ResearchField)
-                    RETURN p.project_id AS project_id,
-                           p.title AS title,
-                           collect(DISTINCT pf.name) AS fields
-                    """,
-                    project_id=source_id,
-                ).single()
-
-                funder_row = session.run(
-                    """
-                    MATCH (f:Funder {funder_id: $funder_id})
-                    OPTIONAL MATCH (f)-[:SUPPORTS]->(ff:ResearchField)
-                    RETURN f.funder_id AS funder_id,
-                           f.name AS name,
-                           collect(DISTINCT ff.name) AS support_fields
-                    """,
-                    funder_id=funder_id,
-                ).single()
-
-                matched_fields = list(
-                    session.run(
-                        """
-                        MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(pf:ResearchField)
-                        MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(ff:ResearchField)
-                        WHERE pf = ff
-                        RETURN DISTINCT pf.name AS field_name
-                        """,
-                        project_id=source_id,
-                        funder_id=funder_id,
-                    )
-                )
-
-                funded_related_projects = list(
-                    session.run(
-                        """
-                        MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(pf:ResearchField)
-                        MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(fp:Project)-[:BELONGS_TO]->(ff:ResearchField)
-                        WHERE pf = ff AND fp.project_id <> $project_id
-                        RETURN DISTINCT fp.project_id AS project_id,
-                               fp.title AS title
-                        LIMIT 5
-                        """,
-                        project_id=source_id,
-                        funder_id=funder_id,
-                    )
-                )
-
-            return {
-                "source": dict(proj_row) if proj_row else {},
-                "target": dict(funder_row) if funder_row else {},
-                "matched_fields": [r["field_name"] for r in matched_fields if r.get("field_name")] if matched_fields else [],
-                "funded_related_projects": [dict(r) for r in funded_related_projects],
-            }
-
-        # Case 2: recommend Funder/Enterprise for Expert
-        if source_type == "Expert":
-            with self._driver.session() as session:
-                expert_row = session.run(
-                    """
-                    MATCH (e:Expert {expert_id: $expert_id})
-                    OPTIONAL MATCH (e)-[:HAS_EXPERTISE_IN]->(ef:ResearchField)
-                    OPTIONAL MATCH (e)-[:PARTICIPATES_IN]->(ep:Project)
-                    RETURN e.expert_id AS expert_id,
-                           e.name AS name,
-                           collect(DISTINCT ef.name) AS expertise_fields,
-                           collect(DISTINCT ep.title) AS past_projects
-                    """,
-                    expert_id=source_id,
-                ).single()
-
-                funder_row = session.run(
-                    """
-                    MATCH (f:Funder {funder_id: $funder_id})
-                    OPTIONAL MATCH (f)-[:SUPPORTS]->(ff:ResearchField)
-                    RETURN f.funder_id AS funder_id,
-                           f.name AS name,
-                           collect(DISTINCT ff.name) AS support_fields
-                    """,
-                    funder_id=funder_id,
-                ).single()
-
-                matched_fields = list(
-                    session.run(
-                        """
-                        MATCH (e:Expert {expert_id: $expert_id})-[:HAS_EXPERTISE_IN]->(ef:ResearchField)
-                        MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(ff:ResearchField)
-                        WHERE ef = ff
-                        RETURN DISTINCT ef.name AS field_name
-                        """,
-                        expert_id=source_id,
-                        funder_id=funder_id,
-                    )
-                )
-
-                funded_related_projects = list(
-                    session.run(
-                        """
-                        MATCH (e:Expert {expert_id: $expert_id})-[:PARTICIPATES_IN]->(p:Project)<-[:FUNDS]-(f:Funder {funder_id: $funder_id})
-                        RETURN DISTINCT p.project_id AS project_id,
-                               p.title AS title
-                        LIMIT 5
-                        """,
-                        expert_id=source_id,
-                        funder_id=funder_id,
-                    )
-                )
-
-            return {
-                "source": dict(expert_row) if expert_row else {},
-                "target": dict(funder_row) if funder_row else {},
-                "matched_fields": [r["field_name"] for r in matched_fields if r.get("field_name")] if matched_fields else [],
-                # tái sử dụng key funded_related_projects để renderer dùng chung
-                "funded_related_projects": [dict(r) for r in funded_related_projects],
-            }
-
-        return None
-
-    def _explain_enterprise_with_neo4j(
-        self,
-        recommendation: Dict[str, Any],
-        source_id: str,
-        source_type: str,
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Detailed explanation for: recommend Enterprise for Expert.
-        """
-        enterprise_id = recommendation.get("enterprise_id")
-        if not enterprise_id or source_type != "Expert":
-            return None
-
-        with self._driver.session() as session:
-            expert_row = session.run(
-                """
-                MATCH (e:Expert {expert_id: $expert_id})
-                OPTIONAL MATCH (e)-[:HAS_APPLICATION_EXPERIENCE_IN]->(i:Industry)
-                RETURN e.expert_id AS expert_id,
-                       e.name AS name,
-                       collect(DISTINCT i.name) AS industries
-                """,
-                expert_id=source_id,
-            ).single()
-
-            enterprise_row = session.run(
-                """
-                MATCH (en:Enterprise {enterprise_id: $enterprise_id})
-                OPTIONAL MATCH (en)-[:OPERATES_IN]->(i:Industry)
-                OPTIONAL MATCH (en)-[:PARTNERS_WITH]->(p:Project)
-                RETURN en.enterprise_id AS enterprise_id,
-                       en.name AS name,
-                       collect(DISTINCT i.name) AS industries,
-                       collect(DISTINCT p.title) AS partner_projects
-                """,
-                enterprise_id=enterprise_id,
-            ).single()
-
-            matched_industries = list(
-                session.run(
-                    """
-                    MATCH (e:Expert {expert_id: $expert_id})-[:HAS_APPLICATION_EXPERIENCE_IN]->(ei:Industry)
-                    MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:OPERATES_IN]->(ii:Industry)
-                    WHERE ei = ii
-                    RETURN DISTINCT ei.name AS industry_name
-                    """,
-                    expert_id=source_id,
-                    enterprise_id=enterprise_id,
-                )
-            )
-
-            partner_projects = list(
-                session.run(
-                    """
-                    MATCH (e:Expert {expert_id: $expert_id})-[:PARTICIPATES_IN]->(p:Project)<-[:PARTNERS_WITH]-(en:Enterprise {enterprise_id: $enterprise_id})
-                    RETURN DISTINCT p.project_id AS project_id,
-                           p.title AS title
-                    LIMIT 5
-                    """,
-                    expert_id=source_id,
-                    enterprise_id=enterprise_id,
-                )
-            )
-
-        return {
-            "source": dict(expert_row) if expert_row else {},
-            "target": dict(enterprise_row) if enterprise_row else {},
-            "matched_industries": [r["industry_name"] for r in matched_industries if r.get("industry_name")] if matched_industries else [],
-            "partner_projects": [dict(r) for r in partner_projects],
-        }
-
-    def _explain_project_with_neo4j(
-        self,
-        recommendation: Dict[str, Any],
-        source_id: str,
-        source_type: str,
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Detailed explanation for: recommend Project for Expert.
-        """
-        target_project_id = recommendation.get("project_id")
-        if not target_project_id or source_type != "Expert":
-            return None
-
-        with self._driver.session() as session:
-            expert_row = session.run(
-                """
-                MATCH (e:Expert {expert_id: $expert_id})
-                OPTIONAL MATCH (e)-[:HAS_EXPERTISE_IN]->(ef:ResearchField)
-                RETURN e.expert_id AS expert_id,
-                       e.name AS name,
-                       collect(DISTINCT ef.name) AS expertise_fields
-                """,
-                expert_id=source_id,
-            ).single()
-
-            proj_row = session.run(
-                """
-                MATCH (p:Project {project_id: $project_id})
-                OPTIONAL MATCH (p)-[:BELONGS_TO]->(pf:ResearchField)
-                RETURN p.project_id AS project_id,
-                       p.title AS title,
-                       collect(DISTINCT pf.name) AS fields
-                """,
-                project_id=target_project_id,
-            ).single()
-
-            matched_fields = list(
-                session.run(
-                    """
-                    MATCH (e:Expert {expert_id: $expert_id})-[:HAS_EXPERTISE_IN]->(ef:ResearchField)
-                    MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(pf:ResearchField)
-                    WHERE ef = pf
-                    RETURN DISTINCT pf.name AS field_name
-                    """,
-                    expert_id=source_id,
-                    project_id=target_project_id,
-                )
-            )
-
-            shared_funders = list(
-                session.run(
-                    """
-                    MATCH (e:Expert {expert_id: $expert_id})-[:PARTICIPATES_IN]->(ep:Project)<-[:FUNDS]-(f:Funder)
-                    MATCH (p:Project {project_id: $project_id})<-[:FUNDS]-(f)
-                    WHERE ep.project_id <> $project_id
-                    RETURN DISTINCT f.funder_id AS funder_id,
-                           f.name AS name
-                    LIMIT 5
-                    """,
-                    expert_id=source_id,
-                    project_id=target_project_id,
-                )
-            )
-
-        return {
-            "source": dict(expert_row) if expert_row else {},
-            "target": dict(proj_row) if proj_row else {},
-            "matched_fields": [r["field_name"] for r in matched_fields if r.get("field_name")] if matched_fields else [],
-            "shared_funders": [dict(r) for r in shared_funders],
-        }
-
-    def _render_detailed_evidence(
-        self,
-        detailed: Dict[str, Any],
+        llm_text: str,
+        name: str,
+        score: float,
+        diversity: int,
         rec_type: str,
     ) -> str:
-        """Turn structured Neo4j evidence into user-friendly text."""
-        if self.language == "vi":
-            header = "Chi tiết từ đồ thị tri thức:"
-        else:
-            header = "Detailed evidence from the knowledge graph:"
+        """Wrap LLM-generated explanation with intro, score, diversity."""
+        templates = self.templates.get(rec_type, self.templates.get("expert", {}))
+        intro = templates.get("intro", "Chúng tôi gợi ý **{name}**:").format(name=name)
+        score_level = self._get_score_level(score)
+        score_text = templates.get("score", "Độ phù hợp: **{score:.1%}** ({level})").format(
+            score=score, level=score_level
+        )
+        diversity_text = templates.get(
+            "diversity", "Tìm thấy **{count}** cách kết nối"
+        ).format(count=diversity)
+        return f"""{intro}
 
-        lines: List[str] = []
+{score_text}
+{diversity_text}
 
-        if rec_type == "expert":
-            src = detailed.get("source", {})
-            tgt = detailed.get("target", {})
-            matched_fields = detailed.get("matched_fields") or []
-            related_projects = detailed.get("related_projects") or []
-            shared_funders = detailed.get("shared_funders") or []
+**Giải thích chi tiết:**
+{llm_text}"""
 
-            if self.language == "vi":
-                if src.get("title"):
-                    lines.append(f"- Dự án hiện tại: {src['title']}")
-                if tgt.get("name"):
-                    lines.append(f"- Chuyên gia được đề xuất: {tgt['name']}")
-                if matched_fields:
-                    lines.append(
-                        "- Lĩnh vực trùng khớp giữa chuyên gia và dự án: "
-                        + ", ".join(matched_fields)
-                    )
-                if related_projects:
-                    names = [p.get("title") or p.get("project_id") for p in related_projects]
-                    lines.append(
-                        "- Chuyên gia từng tham gia các dự án có cùng lĩnh vực: "
-                        + ", ".join([n for n in names if n])
-                    )
-                if shared_funders:
-                    fnames = [f.get("name") or f.get("funder_id") for f in shared_funders]
-                    lines.append(
-                        "- Quỹ tài trợ chung giữa dự án hiện tại và các dự án trước đây của chuyên gia: "
-                        + ", ".join([n for n in fnames if n])
-                    )
-            else:
-                if src.get("title"):
-                    lines.append(f"- Current project: {src['title']}")
-                if tgt.get("name"):
-                    lines.append(f"- Recommended expert: {tgt['name']}")
-                if matched_fields:
-                    lines.append(
-                        "- Overlapping fields between expert and project: "
-                        + ", ".join(matched_fields)
-                    )
-                if related_projects:
-                    names = [p.get("title") or p.get("project_id") for p in related_projects]
-                    lines.append(
-                        "- Expert has worked on related projects in the same fields: "
-                        + ", ".join([n for n in names if n])
-                    )
-                if shared_funders:
-                    fnames = [f.get("name") or f.get("funder_id") for f in shared_funders]
-                    lines.append(
-                        "- Shared funders between this project and expert's past projects: "
-                        + ", ".join([n for n in fnames if n])
-                    )
-
-        elif rec_type == "funder":
-            src = detailed.get("source", {})
-            tgt = detailed.get("target", {})
-            matched_fields = detailed.get("matched_fields") or []
-            funded_projects = detailed.get("funded_related_projects") or []
-
-            if self.language == "vi":
-                if src.get("title"):
-                    lines.append(f"- Dự án: {src['title']}")
-                if tgt.get("name"):
-                    lines.append(f"- Quỹ tài trợ đề xuất: {tgt['name']}")
-                if matched_fields:
-                    lines.append(
-                        "- Lĩnh vực quỹ đang hỗ trợ trùng với lĩnh vực của dự án: "
-                        + ", ".join(matched_fields)
-                    )
-                if funded_projects:
-                    names = [p.get("title") or p.get("project_id") for p in funded_projects]
-                    lines.append(
-                        "- Quỹ đã từng tài trợ các dự án tương tự: "
-                        + ", ".join([n for n in names if n])
-                    )
-            else:
-                if src.get("title"):
-                    lines.append(f"- Project: {src['title']}")
-                if tgt.get("name"):
-                    lines.append(f"- Recommended funder: {tgt['name']}")
-                if matched_fields:
-                    lines.append(
-                        "- Funder's supported fields match the project's field(s): "
-                        + ", ".join(matched_fields)
-                    )
-                if funded_projects:
-                    names = [p.get("title") or p.get("project_id") for p in funded_projects]
-                    lines.append(
-                        "- Funder has previously funded similar projects: "
-                        + ", ".join([n for n in names if n])
-                    )
-
-        elif rec_type == "project":
-            src = detailed.get("source", {})
-            tgt = detailed.get("target", {})
-            matched_fields = detailed.get("matched_fields") or []
-            shared_funders = detailed.get("shared_funders") or []
-
-            if self.language == "vi":
-                if src.get("name"):
-                    lines.append(f"- Chuyên gia hiện tại: {src['name']}")
-                if tgt.get("title"):
-                    lines.append(f"- Dự án được gợi ý: {tgt['title']}")
-                if matched_fields:
-                    lines.append(
-                        "- Lĩnh vực dự án trùng với chuyên môn của chuyên gia: "
-                        + ", ".join(matched_fields)
-                    )
-                if shared_funders:
-                    fnames = [f.get("name") or f.get("funder_id") for f in shared_funders]
-                    lines.append(
-                        "- Có quỹ tài trợ chung giữa dự án này và các dự án chuyên gia từng tham gia: "
-                        + ", ".join([n for n in fnames if n])
-                    )
-            else:
-                if src.get("name"):
-                    lines.append(f"- Current expert: {src['name']}")
-                if tgt.get("title"):
-                    lines.append(f"- Recommended project: {tgt['title']}")
-                if matched_fields:
-                    lines.append(
-                        "- Project fields match expert's expertise: "
-                        + ", ".join(matched_fields)
-                    )
-                if shared_funders:
-                    fnames = [f.get("name") or f.get("funder_id") for f in shared_funders]
-                    lines.append(
-                        "- Shared funders between this project and expert's previous projects: "
-                        + ", ".join([n for n in fnames if n])
-                    )
-
-        elif rec_type == "enterprise":
-            src = detailed.get("source", {})
-            tgt = detailed.get("target", {})
-            matched_industries = detailed.get("matched_industries") or []
-            partner_projects = detailed.get("partner_projects") or []
-
-            if self.language == "vi":
-                if src.get("name"):
-                    lines.append(f"- Chuyên gia hiện tại: {src['name']}")
-                if tgt.get("name"):
-                    lines.append(f"- Doanh nghiệp/đối tác được đề xuất: {tgt['name']}")
-                if matched_industries:
-                    lines.append(
-                        "- Lĩnh vực/industry mà chuyên gia có kinh nghiệm trùng với lĩnh vực doanh nghiệp đang hoạt động: "
-                        + ", ".join(matched_industries)
-                    )
-                if partner_projects:
-                    names = [p.get("title") or p.get("project_id") for p in partner_projects]
-                    lines.append(
-                        "- Các dự án doanh nghiệp đang hợp tác và phù hợp để chuyên gia tham gia: "
-                        + ", ".join([n for n in names if n])
-                    )
-            else:
-                if src.get("name"):
-                    lines.append(f"- Current expert: {src['name']}")
-                if tgt.get("name"):
-                    lines.append(f"- Recommended enterprise/partner: {tgt['name']}")
-                if matched_industries:
-                    lines.append(
-                        "- Industries where the expert has application experience that match the enterprise's operations: "
-                        + ", ".join(matched_industries)
-                    )
-                if partner_projects:
-                    names = [p.get("title") or p.get("project_id") for p in partner_projects]
-                    lines.append(
-                        "- Projects where this enterprise partners and the expert has worked on: "
-                        + ", ".join([n for n in names if n])
-                    )
-
-        if not lines:
-            return ""
-
-        return header + "\n" + "\n".join(lines)
     
     def _explain_paths(
         self,
         paths: List[Dict],
         rec_type: str,
+        target_name: Optional[str] = None,
     ) -> str:
-        """Explain reasoning paths in simple language."""
+        """Explain reasoning paths in natural Vietnamese narrative."""
         explanations = []
-        
         for i, path in enumerate(paths, 1):
-            path_text = path.get("path", "")
+            path_text = path.get("path", "") or path.get("explanation", "")
             score = path.get("score", 0.0)
-            length = path.get("length", 0)
-            
-            # Parse path into simple explanation
-            simple_explanation = self._simplify_path(path_text, rec_type)
-            
-            # Format with confidence
-            confidence_emoji = self._get_confidence_emoji(score)
-            
-            explanation = f"""
-**{i}. {simple_explanation}** {confidence_emoji}
-   - Độ tin cậy: {score:.1%}
-   - Độ dài: {length} bước kết nối
-            """.strip()
-            
-            explanations.append(explanation)
-        
+            label = "mạnh nhất" if i == 1 else f"độ tin cậy {score:.0%}"
+            narrative = self._narrate_path(path_text, rec_type, target_name)
+            explanations.append(
+                f"**Đường dẫn {i} ({label} – score {score:.2f})**\n{narrative}"
+            )
         return "\n\n".join(explanations)
+
+    def _parse_path_steps(self, path_text: str) -> List[tuple]:
+        """
+        Parse path string into (relation_key, entity) steps.
+        E.g. "belongs to field X -> is sub-field of Y -> has expertise in Z"
+        -> [("belongs_to_field", "X"), ("sub_field_of", "Y"), ("has_expertise_in", "Z")]
+        """
+        import re
+        steps = []
+        parts = [p.strip() for p in path_text.split("->") if p.strip()]
+        rel_patterns = [
+            (r"^belongs to field (.+)$", "belongs_to_field"),
+            (r"^is sub-field of (.+)$", "sub_field_of"),
+            (r"^is under field (.+)$", "under_field"),
+            (r"^has expertise in (.+)$", "has_expertise_in"),
+            (r"^has skill in (.+)$", "has_skill_in"),
+            (r"^participates in (.+)$", "participates_in"),
+            (r"^funds (.+)$", "funds"),
+            (r"^supports (.+)$", "supports"),
+            (r"^operates in industry (.+)$", "operates_in"),
+            (r"^partners with (.+)$", "partners_with"),
+            (r"^has experience in (.+)$", "has_experience_in"),
+            (r"^collaborates with (.+)$", "collaborates_with"),
+            (r"^produces (.+)$", "produces"),
+            (r"^commercializes (.+)$", "commercializes"),
+        ]
+        for part in parts:
+            for pat, key in rel_patterns:
+                m = re.match(pat, part, re.IGNORECASE)
+                if m:
+                    steps.append((key, m.group(1).strip()))
+                    break
+            else:
+                steps.append(("unknown", part))
+        return steps
+
+    def _narrate_path(
+        self, path_text: str, rec_type: str, target_name: Optional[str] = None
+    ) -> str:
+        """
+        Convert path to natural Vietnamese narrative.
+        E.g. "belongs to field Thị giác máy tính -> is sub-field of Trí tuệ nhân tạo -> has expertise in PGS.TS. Nguyễn Thị Huyền"
+        -> "Dự án nằm trong lĩnh vực Thị giác máy tính, đây là một nhánh thuộc Trí tuệ nhân tạo.
+            PGS.TS. Nguyễn Thị Huyền có chuyên môn đúng trong lĩnh vực này, vì vậy hệ thống đánh giá chuyên gia này phù hợp với dự án."
+        """
+        steps = self._parse_path_steps(path_text)
+        if not steps:
+            return self._simplify_path(path_text, rec_type)
+
+        if rec_type == "expert":
+            return self._narrate_path_expert(steps, target_name)
+        if rec_type == "funder":
+            return self._narrate_path_funder(steps, target_name)
+        if rec_type == "enterprise":
+            return self._narrate_path_enterprise(steps, target_name)
+        if rec_type == "project":
+            return self._narrate_path_project(steps, target_name)
+        return self._generic_simplification(path_text)
+
+    def _narrate_path_expert(
+        self, steps: List[tuple], target_name: Optional[str]
+    ) -> str:
+        """Narrate path for expert recommendation.
+        Last step is the recommended expert; earlier steps build context.
+        """
+        intro_parts = []
+        expert_name = None
+        for key, entity in steps:
+            if key == "belongs_to_field":
+                intro_parts.append(f"Dự án nằm trong lĩnh vực {entity}")
+            elif key == "sub_field_of":
+                intro_parts.append(f"đây là một nhánh thuộc {entity}")
+            elif key == "under_field":
+                intro_parts.append(f"liên quan tới kỹ thuật {entity}")
+            elif key == "has_expertise_in":
+                expert_name = entity
+            elif key == "has_skill_in":
+                expert_name = entity
+            elif key == "participates_in":
+                intro_parts.append(f"thông qua chuyên gia {entity} (đã tham gia dự án liên quan)")
+            elif key == "funds":
+                intro_parts.append(f"quỹ {entity}")
+            elif key == "supports":
+                intro_parts.append(f"lĩnh vực {entity} được hỗ trợ")
+        if expert_name:
+            intro = ", ".join(intro_parts) + "." if intro_parts else "Dự án có liên quan đến chuyên môn."
+            return f"{intro} {expert_name} có chuyên môn đúng trong lĩnh vực này, vì vậy hệ thống đánh giá chuyên gia này phù hợp với dự án."
+        if intro_parts:
+            return "Dự án kết nối qua: " + " → ".join(intro_parts) + "."
+        return self._generic_simplification(
+            " -> ".join(f"{k}: {v}" for k, v in steps)
+        )
+
+    def _narrate_path_funder(
+        self, steps: List[tuple], target_name: Optional[str]
+    ) -> str:
+        """Narrate path for funder recommendation."""
+        parts = []
+        for key, entity in steps:
+            if key == "belongs_to_field":
+                parts.append(f"Dự án thuộc lĩnh vực {entity}.")
+            elif key == "sub_field_of":
+                parts.append(f"Đây là nhánh thuộc {entity}.")
+            elif key == "supports":
+                parts.append(f"Quỹ tài trợ đang hỗ trợ lĩnh vực {entity}.")
+            elif key == "funds":
+                parts.append(f"Quỹ đã tài trợ dự án/chuyên gia liên quan ({entity}).")
+            elif key == "participates_in":
+                parts.append(f"Thông qua mạng lưới chuyên gia {entity} đã tham gia các dự án được quỹ tài trợ.")
+        if parts:
+            return " ".join(parts) + " Vì vậy quỹ này phù hợp để tài trợ dự án."
+        return self._generic_simplification(
+            " -> ".join(f"{k}: {v}" for k, v in steps)
+        )
+
+    def _narrate_path_enterprise(
+        self, steps: List[tuple], target_name: Optional[str]
+    ) -> str:
+        """Narrate path for enterprise recommendation."""
+        parts = []
+        for key, entity in steps:
+            if key == "belongs_to_field":
+                parts.append(f"Dự án thuộc lĩnh vực {entity}.")
+            elif key == "operates_in":
+                parts.append(f"Doanh nghiệp hoạt động trong lĩnh vực {entity}.")
+            elif key == "partners_with":
+                parts.append(f"Doanh nghiệp hợp tác với {entity}.")
+            elif key == "has_expertise_in":
+                parts.append(f"Chuyên gia {entity} có chuyên môn phù hợp với doanh nghiệp.")
+            elif key == "participates_in":
+                parts.append(f"Qua dự án {entity} mà doanh nghiệp quan tâm.")
+        if parts:
+            return " ".join(parts) + " Hệ thống đánh giá doanh nghiệp này phù hợp để hợp tác."
+        return self._generic_simplification(
+            " -> ".join(f"{k}: {v}" for k, v in steps)
+        )
+
+    def _narrate_path_project(
+        self, steps: List[tuple], target_name: Optional[str]
+    ) -> str:
+        """Narrate path for similar project recommendation."""
+        parts = []
+        for key, entity in steps:
+            if key == "belongs_to_field":
+                parts.append(f"Cả hai dự án đều thuộc lĩnh vực {entity}.")
+            elif key == "sub_field_of":
+                parts.append(f"Lĩnh vực này là nhánh của {entity}.")
+            elif key == "participates_in":
+                parts.append(f"Cùng có chuyên gia {entity} tham gia.")
+            elif key == "funds":
+                parts.append(f"Cùng được quỹ {entity} tài trợ.")
+            elif key == "supports":
+                parts.append(f"Lĩnh vực {entity} liên quan đến cả hai dự án.")
+        if parts:
+            return " ".join(parts) + " Vì vậy đây là dự án tương tự để tham khảo."
+        return self._generic_simplification(
+            " -> ".join(f"{k}: {v}" for k, v in steps)
+        )
     
     def _simplify_path(self, path_text: str, rec_type: str) -> str:
         """

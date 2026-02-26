@@ -1,7 +1,19 @@
 """
 Integration script: PGPR Recommender + XAI Explainer
 
-Usage example showing how to use XAI to explain PGPR recommendations.
+Xem tất cả đề xuất theo Project (multi-entity):
+  python pgpr_xai_integration.py PRJ_0001
+  -> In ra console + tạo file HTML (project_multi_PRJ_0001_recommendations.html) để mở trình duyệt xem.
+
+Giải thích XAI bằng Ollama LLM (cần chạy `ollama serve` và `ollama pull llama3`):
+  python pgpr_xai_integration.py PRJ_0001 --llm
+  python pgpr_xai_integration.py PRJ_0001 --llm --model mistral
+
+Trong code:
+  from pgpr_xai_integration import generate_project_multi_recommendations, print_project_multi_recommendations, save_project_multi_html
+  result = generate_project_multi_recommendations("PRJ_0001", limit_experts=5, limit_funders=5, limit_enterprises=5, limit_similar_projects=5)
+  print_project_multi_recommendations(result)
+  save_project_multi_html(result, "my_project_recommendations.html")
 """
 
 from pgpr_recommendation import PGPRRecommender
@@ -35,7 +47,7 @@ def generate_explained_recommendations(
         enable_cache=True,
     )
     
-    # Initialize XAI explainer
+    # Initialize XAI explainer (use reasoning paths từ recommender, không truy vấn Neo4j)
     explainer = PGPRExplainer(language=language)
     
     try:
@@ -125,13 +137,24 @@ def generate_project_multi_recommendations(
     project_id: str,
     limit_funders: int = 5,
     limit_experts: int = 5,
+    limit_enterprises: int = 5,
+    limit_similar_projects: int = 5,
     language: str = "vi",
+    include_xai: bool = True,
+    use_llm: bool = False,
+    ollama_model: str = "llama3",
 ) -> dict:
     """
-    Generate recommendations cho 1 Project, bao gồm cả:
-    - Funders (doanh nghiệp/quỹ tài trợ)
-    - Experts (chuyên gia)
-    Chỉ chạy PGPR 1 lần (chung 1 engine, 1 explainer).
+    Multi-entity: Tất cả đề xuất cho 1 Project (xem MULTI_ENTITY_PGPR_FRAMEWORK.md).
+
+    Trả về:
+    - experts: Chuyên gia phù hợp tham gia dự án
+    - funders: Quỹ tài trợ phù hợp
+    - enterprises: Doanh nghiệp hợp tác/chuyển giao công nghệ
+    - similar_projects: Dự án tương tự để tham khảo/hợp tác
+
+    Nếu include_xai=True (mặc định), mỗi đề xuất có thêm explanation từ XAI Explainer.
+    use_llm=True: dùng Ollama LLM để tạo giải thích (cần chạy ollama serve + pull model).
     """
     pgpr = PGPRRecommender(
         max_path_length=5,
@@ -139,48 +162,92 @@ def generate_project_multi_recommendations(
         top_k_paths=10,
         enable_cache=True,
     )
-    explainer = PGPRExplainer(language=language)
+    explainer = (
+        PGPRExplainer(
+            language=language,
+            use_llm=use_llm,
+            ollama_model=ollama_model,
+        )
+        if include_xai
+        else None
+    )
 
     try:
-        # 1) Funders cho project
-        funder_recs = pgpr.recommend_funders_for_project_pgpr(
-            project_id=project_id,
-            limit=limit_funders,
-        )
+        out = {"project_id": project_id}
 
-        explained_funders = []
-        for rec in funder_recs:
-            explanation = explainer.explain_recommendation(
-                rec,
-                rec_type="funder",
-                source_context={"source_id": project_id, "source_type": "Project"},
-            )
-            explained_funders.append(
-                {"recommendation": rec, "explanation": explanation}
-            )
-
-        # 2) Experts cho project
+        # 1) Experts cho project
         expert_recs = pgpr.recommend_experts_for_project_pgpr(
             project_id=project_id,
             limit=limit_experts,
         )
-
         explained_experts = []
         for rec in expert_recs:
-            explanation = explainer.explain_recommendation(
-                rec,
-                rec_type="expert",
-                source_context={"source_id": project_id, "source_type": "Project"},
-            )
-            explained_experts.append(
-                {"recommendation": rec, "explanation": explanation}
-            )
+            if explainer:
+                explanation = explainer.explain_recommendation(
+                    rec,
+                    rec_type="expert",
+                    source_context={"source_id": project_id, "source_type": "Project"},
+                )
+                explained_experts.append({"recommendation": rec, "explanation": explanation})
+            else:
+                explained_experts.append({"recommendation": rec, "explanation": None})
+        out["experts"] = explained_experts
 
-        return {
-            "project_id": project_id,
-            "funders": explained_funders,
-            "experts": explained_experts,
-        }
+        # 2) Funders cho project
+        funder_recs = pgpr.recommend_funders_for_project_pgpr(
+            project_id=project_id,
+            limit=limit_funders,
+        )
+        explained_funders = []
+        for rec in funder_recs:
+            if explainer:
+                explanation = explainer.explain_recommendation(
+                    rec,
+                    rec_type="funder",
+                    source_context={"source_id": project_id, "source_type": "Project"},
+                )
+                explained_funders.append({"recommendation": rec, "explanation": explanation})
+            else:
+                explained_funders.append({"recommendation": rec, "explanation": None})
+        out["funders"] = explained_funders
+
+        # 3) Enterprises cho project (hợp tác / chuyển giao công nghệ)
+        enterprise_recs = pgpr.recommend_enterprises_for_project_pgpr(
+            project_id=project_id,
+            limit=limit_enterprises,
+        )
+        explained_enterprises = []
+        for rec in enterprise_recs:
+            if explainer:
+                explanation = explainer.explain_recommendation(
+                    rec,
+                    rec_type="enterprise",
+                    source_context={"source_id": project_id, "source_type": "Project"},
+                )
+                explained_enterprises.append({"recommendation": rec, "explanation": explanation})
+            else:
+                explained_enterprises.append({"recommendation": rec, "explanation": None})
+        out["enterprises"] = explained_enterprises
+
+        # 4) Dự án tương tự
+        similar_recs = pgpr.recommend_projects_for_project_pgpr(
+            project_id=project_id,
+            limit=limit_similar_projects,
+        )
+        explained_similar = []
+        for rec in similar_recs:
+            if explainer:
+                explanation = explainer.explain_recommendation(
+                    rec,
+                    rec_type="project",
+                    source_context={"source_id": project_id, "source_type": "Project"},
+                )
+                explained_similar.append({"recommendation": rec, "explanation": explanation})
+            else:
+                explained_similar.append({"recommendation": rec, "explanation": None})
+        out["similar_projects"] = explained_similar
+
+        return out
     finally:
         pgpr.close()
 
@@ -268,6 +335,110 @@ def generate_expert_multi_recommendations(
         pgpr.close()
 
 
+def generate_enterprise_multi_recommendations(
+    enterprise_id: str,
+    limit_experts: int = 5,
+    limit_projects: int = 5,
+    language: str = "vi",
+) -> dict:
+    """
+    Đề xuất cho 1 Enterprise (doanh nghiệp), gồm:
+    - Experts (chuyên gia phù hợp)
+    - Projects (dự án phù hợp để hợp tác)
+    """
+    pgpr = PGPRRecommender(
+        max_path_length=5,
+        gamma=0.99,
+        top_k_paths=10,
+        enable_cache=True,
+    )
+    explainer = PGPRExplainer(language=language, enable_neo4j=False)
+    source_context = {"source_id": enterprise_id, "source_type": "Enterprise"}
+
+    try:
+        expert_recs = pgpr.recommend_experts_for_enterprise_pgpr(
+            enterprise_id=enterprise_id,
+            limit=limit_experts,
+        )
+        explained_experts = []
+        for rec in expert_recs:
+            explanation = explainer.explain_recommendation(
+                rec, rec_type="expert", source_context=source_context
+            )
+            explained_experts.append({"recommendation": rec, "explanation": explanation})
+
+        project_recs = pgpr.recommend_projects_for_enterprise_pgpr(
+            enterprise_id=enterprise_id,
+            limit=limit_projects,
+        )
+        explained_projects = []
+        for rec in project_recs:
+            explanation = explainer.explain_recommendation(
+                rec, rec_type="project", source_context=source_context
+            )
+            explained_projects.append({"recommendation": rec, "explanation": explanation})
+
+        return {
+            "enterprise_id": enterprise_id,
+            "experts": explained_experts,
+            "projects": explained_projects,
+        }
+    finally:
+        pgpr.close()
+
+
+def generate_funder_multi_recommendations(
+    funder_id: str,
+    limit_experts: int = 5,
+    limit_projects: int = 5,
+    language: str = "vi",
+) -> dict:
+    """
+    Đề xuất cho 1 Funder (quỹ tài trợ), gồm:
+    - Experts (chuyên gia phù hợp với danh mục quỹ)
+    - Projects (dự án phù hợp để tài trợ)
+    """
+    pgpr = PGPRRecommender(
+        max_path_length=5,
+        gamma=0.99,
+        top_k_paths=10,
+        enable_cache=True,
+    )
+    explainer = PGPRExplainer(language=language, enable_neo4j=False)
+    source_context = {"source_id": funder_id, "source_type": "Funder"}
+
+    try:
+        expert_recs = pgpr.recommend_experts_for_funder_pgpr(
+            funder_id=funder_id,
+            limit=limit_experts,
+        )
+        explained_experts = []
+        for rec in expert_recs:
+            explanation = explainer.explain_recommendation(
+                rec, rec_type="expert", source_context=source_context
+            )
+            explained_experts.append({"recommendation": rec, "explanation": explanation})
+
+        project_recs = pgpr.recommend_projects_for_funder_pgpr(
+            funder_id=funder_id,
+            limit=limit_projects,
+        )
+        explained_projects = []
+        for rec in project_recs:
+            explanation = explainer.explain_recommendation(
+                rec, rec_type="project", source_context=source_context
+            )
+            explained_projects.append({"recommendation": rec, "explanation": explanation})
+
+        return {
+            "funder_id": funder_id,
+            "experts": explained_experts,
+            "projects": explained_projects,
+        }
+    finally:
+        pgpr.close()
+
+
 def print_explained_recommendations(result: dict):
     """Pretty print explained recommendations."""
     print("\n" + "="*80)
@@ -318,6 +489,42 @@ def print_explained_recommendations(result: dict):
         print("COMPARISON OF TOP RECOMMENDATIONS")
         print("="*80)
         print(result["comparison"])
+
+
+def print_project_multi_recommendations(multi_result: dict):
+    """
+    In ra console tất cả đề xuất multi cho 1 Project (experts, funders, enterprises, similar_projects).
+    Dùng sau khi gọi generate_project_multi_recommendations(project_id).
+    """
+    pid = multi_result.get("project_id", "?")
+    print("\n" + "="*80)
+    print(f"  MULTI-ENTITY ĐỀ XUẤT CHO DỰ ÁN: {pid}")
+    print("="*80)
+
+    def _section(title: str, items: list, name_key: str = "name", score_key: str = "score"):
+        print(f"\n--- {title} ---")
+        if not items:
+            print("  (Không có đề xuất)")
+            return
+        for i, item in enumerate(items, 1):
+            rec = item.get("recommendation", item)
+            name = rec.get(name_key) or rec.get("title") or rec.get("enterprise_id") or rec.get("project_id", "N/A")
+            score = rec.get(score_key, 0)
+            print(f"  {i}. {name}  (score: {score})")
+            exp = item.get("explanation") or {}
+            if exp.get("natural_language"):
+                txt = (exp["natural_language"] or "")[:120]
+                print(f"     -> {txt}..." if len((exp["natural_language"] or "")) > 120 else f"     -> {txt}")
+            elif rec.get("reasoning_paths"):
+                p = rec["reasoning_paths"][0].get("path", "")[:80]
+                print(f"     Path: {p}...")
+
+    _section("Chuyên gia đề xuất (Experts)", multi_result.get("experts", []))
+    _section("Quỹ tài trợ đề xuất (Funders)", multi_result.get("funders", []))
+    _section("Doanh nghiệp đề xuất (Enterprises)", multi_result.get("enterprises", []))
+    _section("Dự án tương tự (Similar Projects)", multi_result.get("similar_projects", []), name_key="title")
+
+    print("\n" + "="*80)
 
 
 def save_explained_recommendations_html(
@@ -447,32 +654,131 @@ def save_explained_recommendations_html(
     print(f"\n✅ Saved explained recommendations to: {output_file}")
 
 
+def save_project_multi_html(multi_result: dict, output_file: str = "project_multi_recommendations.html"):
+    """
+    Lưu tất cả đề xuất multi cho 1 Project ra file HTML để mở trình duyệt xem.
+    """
+    pid = multi_result.get("project_id", "?")
+    sections = [
+        ("Chuyên gia đề xuất", "experts", "name"),
+        ("Quỹ tài trợ đề xuất", "funders", "name"),
+        ("Doanh nghiệp đề xuất", "enterprises", "name"),
+        ("Dự án tương tự", "similar_projects", "title"),
+    ]
+
+    blocks = []
+    for title, key, name_key in sections:
+        items = multi_result.get(key, [])
+        if not items:
+            blocks.append(f"<h2>{title}</h2><p>Không có đề xuất.</p>")
+            continue
+        cards = []
+        for i, item in enumerate(items, 1):
+            rec = item.get("recommendation", item)
+            name = rec.get(name_key) or rec.get("name") or rec.get("title", "N/A")
+            score = (rec.get("score") or 0) * 100
+            exp = item.get("explanation") or {}
+            nl = (exp.get("natural_language") or "").replace("<", "&lt;").replace(">", "&gt;")
+            path = (rec.get("reasoning_paths") or [{}])[0].get("path", "")
+            cards.append(f"""
+            <div class="recommendation-card">
+                <div class="rec-title">#{i}: {name} (Score: {score:.1f}%)</div>
+                <div class="explanation"><pre>{nl or path}</pre></div>
+            </div>""")
+        blocks.append(f"<h2>{title}</h2>" + "\n".join(cards))
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đề xuất Multi cho Project {pid}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }}
+        .container {{ max-width: 1000px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }}
+        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; text-align: center; }}
+        .content {{ padding: 24px; }}
+        h2 {{ margin: 24px 0 12px; color: #2c3e50; font-size: 1.25em; }}
+        .recommendation-card {{ background: #f8f9fa; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #667eea; }}
+        .rec-title {{ font-weight: bold; color: #1a202c; margin-bottom: 8px; }}
+        .explanation {{ font-size: 0.9em; color: #4a5568; }}
+        pre {{ white-space: pre-wrap; font-family: inherit; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Đề xuất Multi cho Dự án: {pid}</h1>
+            <p>Chuyên gia · Quỹ tài trợ · Doanh nghiệp · Dự án tương tự</p>
+        </div>
+        <div class="content">
+            {"".join(blocks)}
+        </div>
+    </div>
+</body>
+</html>"""
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"Đã lưu: {output_file}")
+
+
 # ==========================================
 # EXAMPLE USAGE
 # ==========================================
 
 if __name__ == "__main__":
-    # Example: Get funder recommendations with XAI explanations
-    print("Generating PGPR recommendations with XAI explanations...")
-    
-    result = generate_explained_recommendations(
-        project_id="PRJ_0004",
-        rec_type="funder",
-        limit=5,
-        language="vi"
+    import sys
+
+    # Mặc định: chạy multi cho 1 project và xem đề xuất
+    # Cách dùng: python pgpr_xai_integration.py PRJ_0001 [--llm] [--model llama3]
+    project_id = "PRJ_0001"
+    use_llm = "--llm" in sys.argv
+    ollama_model = "llama3"
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if len(args) >= 1 and not args[0].startswith("--"):
+        project_id = args[0]
+    if "--model" in sys.argv:
+        idx = sys.argv.index("--model")
+        if idx + 1 < len(sys.argv):
+            ollama_model = sys.argv[idx + 1]
+
+    print("Chạy Multi-Entity đề xuất cho Project (Experts, Funders, Enterprises, Similar Projects)...")
+    print(f"Project ID: {project_id}")
+    if use_llm:
+        print(f"Chế độ XAI: Ollama LLM (model: {ollama_model})")
+    print()
+
+    # Multi: tất cả đề xuất với project
+    multi_result = generate_project_multi_recommendations(
+        project_id=project_id,
+        limit_experts=5,
+        limit_funders=5,
+        limit_enterprises=5,
+        limit_similar_projects=5,
+        language="vi",
+        include_xai=True,
+        use_llm=use_llm,
+        ollama_model=ollama_model,
     )
-    
-    # Print to console
-    print_explained_recommendations(result)
-    
-    # Save as HTML
-    save_explained_recommendations_html(result, "funder_recommendations_explained.html")
-    
-    # Save as JSON
-    with open("recommendations_with_explanations.json", "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
-    
-    print("\n✅ All outputs generated successfully!")
-    print("   - Console output: Above")
-    print("   - HTML visualization: funder_recommendations_explained.html")
-    print("   - JSON data: recommendations_with_explanations.json")
+
+    # In ra console để xem
+    print_project_multi_recommendations(multi_result)
+
+    # Lưu HTML để mở trình duyệt xem
+    html_file = f"project_multi_{project_id}_recommendations.html"
+    save_project_multi_html(multi_result, html_file)
+
+    # Lưu JSON
+    json_file = f"project_multi_{project_id}.json"
+    with open(json_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "project_id": multi_result["project_id"],
+            "experts": [x["recommendation"] for x in multi_result["experts"]],
+            "funders": [x["recommendation"] for x in multi_result["funders"]],
+            "enterprises": [x["recommendation"] for x in multi_result["enterprises"]],
+            "similar_projects": [x["recommendation"] for x in multi_result["similar_projects"]],
+        }, f, ensure_ascii=False, indent=2)
+    print(f"Đã lưu JSON: {json_file}")
+
+    print("\nĐể xem đề xuất: mở file HTML trong trình duyệt:", html_file)

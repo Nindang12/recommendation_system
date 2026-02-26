@@ -1,6 +1,8 @@
 from neo4j import GraphDatabase
 from pymongo import MongoClient
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
 import logging
 from datetime import datetime
@@ -9,18 +11,29 @@ from collections import defaultdict
 
 load_dotenv()
 
+# Thư mục chứa script (để lưu log)
+SCRIPT_DIR = Path(__file__).resolve().parent
+LOGS_DIR = SCRIPT_DIR / "logs"
+
 # ==========================================
 # LOGGING CONFIGURATION
 # ==========================================
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(f'sync_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+def setup_logging():
+    """Configure logging: file in logs/ folder + console."""
+    LOGS_DIR.mkdir(exist_ok=True)
+    log_file = LOGS_DIR / f"sync_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(log_file, encoding="utf-8"),
+            logging.StreamHandler(sys.stdout),
+        ],
+        force=True,
+    )
+    return logging.getLogger(__name__)
+
+logger = setup_logging()
 
 # ==========================================
 # DATABASE CONNECTIONS
@@ -99,17 +112,26 @@ def clean_params(**params) -> Dict[str, Any]:
                 cleaned[key] = value
     return cleaned
 
-def batch_execute(session, query: str, items: List[Dict], batch_size: int = 100):
-    """Execute query in batches for better performance"""
-    total = len(items)
-    for i in range(0, total, batch_size):
-        batch = items[i:i + batch_size]
-        try:
-            session.run(query, batch=batch)
-            logger.debug(f"Processed batch {i//batch_size + 1}/{(total + batch_size - 1)//batch_size}")
-        except Exception as e:
-            logger.error(f"Error in batch {i//batch_size + 1}: {e}")
-            raise
+def build_dynamic_set_clause(base_params: Dict[str, Any], optional_params: Dict[str, Any]) -> tuple:
+    """
+    Build dynamic SET clause for Cypher queries to avoid parameter missing errors
+    
+    Args:
+        base_params: Always required parameters
+        optional_params: Parameters that may be None
+    
+    Returns:
+        (query_params, set_clauses) tuple
+    """
+    query_params = base_params.copy()
+    set_clauses = []
+    
+    for key, value in optional_params.items():
+        if value is not None:
+            query_params[key] = value
+            set_clauses.append(f"o.{key} = ${key}")
+    
+    return query_params, set_clauses
 
 # ==========================================
 # NEO4J CONSTRAINTS AND INDEXES
@@ -450,6 +472,29 @@ def sync_experts(session):
                     level=sm.get("proficiency_level")
                 )
             
+            # Expert -> Expert (COLLABORATES_WITH) khi collaborator có expert_id
+            collaborators = safe_get(ex, "activities_and_outputs", "collaborators") or []
+            for collab in collaborators:
+                collab_expert_id = collab.get("expert_id")
+                if not collab_expert_id or collab_expert_id == expert_id:
+                    continue
+                try:
+                    session.run(
+                        """
+                        MATCH (e:Expert {expert_id: $expert_id})
+                        MATCH (other:Expert {expert_id: $other_id})
+                        MERGE (e)-[r:COLLABORATES_WITH]->(other)
+                        SET r.relation_type = $relation_type,
+                            r.duration = $duration
+                        """,
+                        expert_id=expert_id,
+                        other_id=collab_expert_id,
+                        relation_type=collab.get("relation_type"),
+                        duration=collab.get("duration"),
+                    )
+                except Exception as collab_err:
+                    logger.debug(f"Collaborator link {expert_id} -> {collab_expert_id}: {collab_err}")
+            
             stats.record_success("Expert")
             
             if idx % 10 == 0 or idx == total:
@@ -481,7 +526,9 @@ def sync_enterprises(session):
             basic = ent.get("basic_info", {})
             metrics = basic.get("organization_metrics", {})
             
-            # Create Enterprise node
+            # Create Enterprise node (incl. rd_focus_fields for recommendation engine)
+            rd_profile = ent.get("rd_profile") or {}
+            rd_focus_fields = rd_profile.get("rd_focus_fields") or []
             session.run(
                 """
                 MERGE (en:Enterprise {enterprise_id: $enterprise_id})
@@ -492,6 +539,7 @@ def sync_enterprises(session):
                     en.size = $size,
                     en.income = $income,
                     en.employees = $employees,
+                    en.rd_focus_fields = $rd_focus_fields,
                     en.updated_at = datetime()
                 """,
                 **clean_params(
@@ -502,7 +550,8 @@ def sync_enterprises(session):
                     location=basic.get("location"),
                     size=metrics.get("size"),
                     income=metrics.get("income"),
-                    employees=metrics.get("employees")
+                    employees=metrics.get("employees"),
+                    rd_focus_fields=rd_focus_fields
                 )
             )
             
@@ -551,7 +600,8 @@ def sync_funders(session):
         try:
             basic = fu.get("basic_info", {})
             
-            # Create Funder node
+            # Create Funder node (incl. trl_range_focus for recommendation engine)
+            strategy = fu.get("funding_strategy") or {}
             session.run(
                 """
                 MERGE (f:Funder {funder_id: $funder_id})
@@ -559,6 +609,7 @@ def sync_funders(session):
                     f.type = $type,
                     f.location = $location,
                     f.budget_capacity = $budget_capacity,
+                    f.trl_range_focus = $trl_range_focus,
                     f.updated_at = datetime()
                 """,
                 **clean_params(
@@ -566,7 +617,8 @@ def sync_funders(session):
                     name=basic.get("name"),
                     type=basic.get("type"),
                     location=basic.get("location"),
-                    budget_capacity=basic.get("budget_capacity")
+                    budget_capacity=basic.get("budget_capacity"),
+                    trl_range_focus=strategy.get("trl_range_focus")
                 )
             )
             
@@ -615,7 +667,8 @@ def sync_projects(session):
             basic = pr.get("basic_info", {})
             req = pr.get("requirements_and_timeline", {})
             
-            # Create Project node
+            # Create Project node (incl. required_skills for recommendation engine)
+            required_skills = req.get("required_skills") or []
             session.run(
                 """
                 MERGE (p:Project {project_id: $project_id})
@@ -626,6 +679,7 @@ def sync_projects(session):
                     p.research_domain = $research_domain,
                     p.trl = $trl,
                     p.budget = $budget,
+                    p.required_skills = $required_skills,
                     p.updated_at = datetime()
                 """,
                 **clean_params(
@@ -636,7 +690,8 @@ def sync_projects(session):
                     location=basic.get("location"),
                     research_domain=basic.get("research_domain"),
                     trl=req.get("technology_readiness_level"),
-                    budget=req.get("budget")
+                    budget=req.get("budget"),
+                    required_skills=required_skills
                 )
             )
             
@@ -724,7 +779,7 @@ def sync_projects(session):
             logger.error(f"Error syncing Project {project_id}: {e}")
 
 # ==========================================
-# SYNC: OUTPUT ASSETS
+# SYNC: OUTPUT ASSETS (FIXED)
 # ==========================================
 def sync_output_assets(session):
     """Create OutputAsset nodes and relationships"""
@@ -745,26 +800,37 @@ def sync_output_assets(session):
             meta = oa.get("metadata", {})
             links = oa.get("links", {})
             
-            # Create OutputAsset node
-            session.run(
-                """
-                MERGE (o:OutputAsset {asset_id: $asset_id})
-                SET o.title = $title,
-                    o.type = $type,
-                    o.publisher = $publisher,
-                    o.year = $year,
-                    o.status = $status,
-                    o.updated_at = datetime()
-                """,
-                **clean_params(
-                    asset_id=asset_id,
-                    title=oa.get("title"),
-                    type=oa.get("type"),
-                    publisher=meta.get("publisher"),
-                    year=meta.get("year"),
-                    status=meta.get("status")
-                )
-            )
+            # Create OutputAsset node with dynamic SET clause
+            # Base params (always present)
+            base_params = {
+                "asset_id": asset_id,
+            }
+            
+            # Optional params
+            optional_params = {
+                "title": oa.get("title"),
+                "type": oa.get("type"),
+                "publisher": meta.get("publisher"),
+                "year": meta.get("year"),
+                "status": meta.get("status"),
+            }
+            
+            # Build SET clauses
+            set_clauses = ["o.updated_at = datetime()"]
+            query_params = base_params.copy()
+            
+            for key, value in optional_params.items():
+                if value is not None:
+                    query_params[key] = value
+                    set_clauses.append(f"o.{key} = ${key}")
+            
+            # Execute query with dynamic SET
+            query = f"""
+                MERGE (o:OutputAsset {{asset_id: $asset_id}})
+                SET {', '.join(set_clauses)}
+            """
+            
+            session.run(query, **query_params)
             
             # Project -> OutputAsset (PRODUCES)
             produced_by = links.get("produced_by_project")
@@ -837,77 +903,103 @@ def verify_sync(session):
 # ==========================================
 # MAIN FUNCTION
 # ==========================================
-def main():
-    """Main sync function with proper error handling and rollback"""
+def main(clear_graph: bool = False, skip_verify: bool = False, skip_indexes: bool = False):
+    """
+    Đồng bộ dữ liệu từ MongoDB sang Neo4j.
+    :param clear_graph: Xóa toàn bộ graph trong Neo4j trước khi sync (dùng sau khi seed_data.py --force).
+    :param skip_verify: Bỏ qua bước kiểm tra số node/relationship cuối.
+    :param skip_indexes: Không tạo constraints/indexes (chạy nhanh hơn khi re-sync).
+    """
     start_time = datetime.now()
     logger.info("="*60)
     logger.info("STARTING MONGODB -> NEO4J SYNC")
     logger.info(f"Start time: {start_time}")
+    logger.info(f"MongoDB: {MONGO_URI} / {MONGO_DB_NAME}")
+    logger.info(f"Neo4j: {NEO4J_URI}")
     logger.info("="*60)
-    
+
     try:
         with driver.session() as session:
-            # Optional: Clear existing graph (uncomment if needed)
-            # logger.warning("CLEARING EXISTING GRAPH...")
-            # session.run("MATCH (n) DETACH DELETE n")
-            # logger.info("Graph cleared")
-            
-            # Create constraints and indexes
-            create_neo4j_constraints_and_indexes(session)
-            
+            if clear_graph:
+                logger.warning("CLEARING EXISTING NEO4J GRAPH...")
+                session.run("MATCH (n) DETACH DELETE n")
+                logger.info("Graph cleared.")
+
+            if not skip_indexes:
+                create_neo4j_constraints_and_indexes(session)
+            else:
+                logger.info("Skipping constraints/indexes (--no-indexes).")
+
             # Sync ontology entities first (order matters!)
             logger.info("\n" + "="*60)
             logger.info("PHASE 1: SYNCING ONTOLOGY ENTITIES")
             logger.info("="*60)
-            
-            # Phase 1: Create ResearchField nodes
+
             sync_research_fields_nodes(session)
-            # Phase 2: Create ResearchField hierarchy
             sync_research_field_hierarchy(session)
-            
             sync_industries(session)
             sync_method_techniques(session)
-            
-            # Sync main entities
+
             logger.info("\n" + "="*60)
             logger.info("PHASE 2: SYNCING MAIN ENTITIES")
             logger.info("="*60)
-            
+
             sync_experts(session)
             sync_enterprises(session)
             sync_funders(session)
             sync_projects(session)
-            
-            # Sync output assets last (depends on Projects)
+
             logger.info("\n" + "="*60)
             logger.info("PHASE 3: SYNCING OUTPUT ASSETS")
             logger.info("="*60)
-            
+
             sync_output_assets(session)
-            
-            # Verify sync
-            verify_sync(session)
-            
+
+            if not skip_verify:
+                verify_sync(session)
+            else:
+                logger.info("Verification skipped (--skip-verify).")
+
     except Exception as e:
         logger.error(f"CRITICAL ERROR during sync: {e}", exc_info=True)
         raise
-    
+
     finally:
-        # Print statistics
         stats.print_summary()
-        
-        # Close connections
         driver.close()
         mongo_client.close()
-        
         end_time = datetime.now()
         duration = end_time - start_time
-        
         logger.info("\n" + "="*60)
         logger.info("SYNC COMPLETED")
         logger.info(f"End time: {end_time}")
         logger.info(f"Duration: {duration}")
         logger.info("="*60)
 
+
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Đồng bộ dữ liệu từ MongoDB sang Neo4j (sau khi chạy seed_data.py)."
+    )
+    parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="Xóa toàn bộ graph Neo4j trước khi sync (khuyến nghị sau khi seed_data.py --force).",
+    )
+    parser.add_argument(
+        "--skip-verify",
+        action="store_true",
+        help="Bỏ qua bước kiểm tra số node/relationship cuối.",
+    )
+    parser.add_argument(
+        "--no-indexes",
+        action="store_true",
+        help="Không tạo constraints/indexes (re-sync nhanh hơn).",
+    )
+    args = parser.parse_args()
+    main(
+        clear_graph=args.clear,
+        skip_verify=args.skip_verify,
+        skip_indexes=args.no_indexes,
+    )

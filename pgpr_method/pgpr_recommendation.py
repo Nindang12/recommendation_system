@@ -233,10 +233,10 @@ class PGPRRecommender:
                            [r in rels | type(r)] as relation_types,
                            [n in nodes | labels(n)[0]] as node_types,
                            [n in nodes | coalesce(
-                               n.name, n.title,n.label,
+                               n.name, n.title, n.label,
                                n.project_id, n.expert_id, n.funder_id, n.enterprise_id,
                                n.field_id, n.industry_name, n.tech_id,
-                               toString(id(n))
+                               elementId(n)
                            )] as entity_names,
                            length(path) as path_length
                     LIMIT {self.top_k_paths * 2}

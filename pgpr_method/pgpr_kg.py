@@ -28,10 +28,13 @@ LABEL_TO_ID_PROP = {
     "Project": "project_id",
     "Funder": "funder_id",
     "Enterprise": "enterprise_id",
-    "ResearchField": "field_id",
-    "Industry": "industry_id",
-    "OutputAsset": "asset_id",
-    "MethodTechnique": "name",  # MethodTechnique uses name as identifier
+    "Product": "product_id",       # Đã cập nhật
+    "Dataset": "dataset_id",       # Đã cập nhật
+    "Industry": "code",            # Đổi từ id sang code
+    "Skill": "name",               # Thay cho MethodTechnique
+    "ResearchDirection": "name",   # Đã cập nhật
+    "ResearchTopic": "name",
+    "Location": "location_id",
 }
 
 
@@ -53,9 +56,18 @@ class KG:
         self.relation2id: Dict[str, int] = {}
         self.id2relation: Dict[int, str] = {}
         self.triples: List[Tuple[int, int, int]] = []  # (h, r, t)
+        self.adj_list: Dict[int, List[Tuple[int, int]]] = defaultdict(list)  # h -> [(r, t), ...]
         self._triples_set: Optional[set] = None  # (h,r,t) for fast lookup
         self.entity_emb = None  # numpy or torch; set by train_transe or load
         self.relation_emb = None
+
+    def _build_adj_list(self, bidirectional: bool = True) -> None:
+        """Build adjacency list from self.triples for fast in-memory neighbor lookup."""
+        self.adj_list = defaultdict(list)
+        for h, r, t in self.triples:
+            self.adj_list[h].append((r, t))
+            if bidirectional:
+                self.adj_list[t].append((r, h))
 
     def export_from_neo4j(self, driver=None) -> None:
         """Export all (head, relation, tail) triples from Neo4j and build vocabs."""
@@ -109,12 +121,14 @@ class KG:
             (entity2id[h], relation2id[r], entity2id[t])
             for h, r, t in triples_raw
         ]
+        self._build_adj_list(bidirectional=True)
         self._triples_set = set(self.triples)
         logger.info(
-            "Exported KG: %d entities, %d relations, %d triples",
+            "Exported KG: %d entities, %d relations, %d triples, %d adjacency heads",
             len(self.entity2id),
             len(self.relation2id),
             len(self.triples),
+            len(self.adj_list),
         )
 
     def get_entity_id(self, label: str, id_val: str) -> int:
@@ -177,8 +191,9 @@ class KG:
                 parts = line.strip().split("\t")
                 if len(parts) == 3:
                     self.triples.append((int(parts[0]), int(parts[1]), int(parts[2])))
+        self._build_adj_list(bidirectional=True)
         self._triples_set = set(self.triples)
-        logger.info("Loaded %d triples", len(self.triples))
+        logger.info("Loaded %d triples and built %d adjacency heads", len(self.triples), len(self.adj_list))
 
     def train_transe(self, dim: int = 64, n_epoch: int = 100, lr: float = 0.01, margin: float = 1.0) -> None:
         """Simple TransE-style training: minimize ||h + r - t||. Uses numpy for no-torch dependency in KG."""

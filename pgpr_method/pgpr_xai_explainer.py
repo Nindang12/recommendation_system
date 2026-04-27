@@ -12,6 +12,7 @@ from collections import defaultdict
 import os
 import urllib.request
 import urllib.error
+import re
 
 from dotenv import load_dotenv
 
@@ -19,6 +20,242 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+
+_ID_LIKE_RE = re.compile(r"^(EXP|PRJ|FUN|ENT)_\d+$", re.IGNORECASE)
+
+
+def _is_id_like(name: str) -> bool:
+    s = (name or "").strip()
+    return bool(s) and bool(_ID_LIKE_RE.match(s))
+
+
+def _source_label_vi(source_type: str) -> str:
+    return {
+        "Project": "dự án",
+        "Expert": "chuyên gia",
+        "Funder": "quỹ",
+        "Enterprise": "doanh nghiệp",
+    }.get(source_type or "", "nguồn")
+
+
+def _source_ref_vi(source_context: Optional[Dict[str, Any]]) -> str:
+    """
+    Vietnamese second-person friendly reference for the source entity.
+    - Expert -> "bạn" (or "chuyên gia <name>" if a real name is available)
+    - Project -> "dự án của bạn" (or "dự án <name>" if available)
+    - Funder -> "quỹ của bạn" (or "quỹ <name>" if available)
+    - Enterprise -> "doanh nghiệp của bạn" (or "doanh nghiệp <name>" if available)
+    """
+    if not source_context:
+        return "nguồn của bạn"
+    st = source_context.get("source_type", "") or ""
+    sid = source_context.get("source_id", "") or ""
+    sn = (source_context.get("source_name") or "").strip()
+    # If name not provided or looks like an ID, fall back to second-person phrasing.
+    if not sn or _is_id_like(sn) or sn == sid:
+        if st == "Expert":
+            return "bạn"
+        if st == "Project":
+            return "dự án của bạn"
+        if st == "Funder":
+            return "quỹ của bạn"
+        if st == "Enterprise":
+            return "doanh nghiệp của bạn"
+        return "nguồn của bạn"
+
+    # If we have a real name, use a named reference.
+    label = _source_label_vi(st)
+    if st == "Expert":
+        return f"{label} {sn}"
+    return f"{label} {sn}"
+
+
+def _format_source_desc(source_context: Optional[Dict[str, Any]], language: str) -> str:
+    """Format a short source phrase like 'cho dự án PRJ_0001'."""
+    if not source_context:
+        return ""
+    st = source_context.get("source_type", "")
+    sid = source_context.get("source_id", "")
+    sn = source_context.get("source_name", sid)
+    if language == "vi":
+        # Prefer second-person friendly phrasing when source_name is missing or looks like an ID.
+        if st == "Expert":
+            ref = _source_ref_vi(source_context)
+            return " cho bạn" if ref == "bạn" else f" cho {ref}"
+        if st == "Project":
+            ref = _source_ref_vi(source_context)
+            return " cho dự án của bạn" if ref == "dự án của bạn" else f" cho {ref}"
+        if st == "Funder":
+            ref = _source_ref_vi(source_context)
+            return " cho quỹ của bạn" if ref == "quỹ của bạn" else f" cho {ref}"
+        if st == "Enterprise":
+            ref = _source_ref_vi(source_context)
+            return " cho doanh nghiệp của bạn" if ref == "doanh nghiệp của bạn" else f" cho {ref}"
+        # Unknown source type
+        ref = _source_ref_vi(source_context)
+        return f" cho {ref}"
+    else:
+        if st == "Project":
+            return f" for project {sn}"
+        if st == "Expert":
+            return f" for expert {sn}"
+        if st == "Funder":
+            return f" for funder {sn}"
+        if st == "Enterprise":
+            return f" for enterprise {sn}"
+        return f" for source {sn}"
+
+
+def _build_task_instructions(
+    *,
+    recommendation_name: str,
+    rec_type: str,
+    source_context: Optional[Dict[str, Any]],
+    language: str,
+    role_vi: str,
+    label_vi: str,
+    label_en: str,
+) -> str:
+    """
+    Build rec_type- & source_type-aware instructions for the LLM.
+
+    Motivation: the same rec_type can be used with different sources:
+    - source=Project -> recommend Expert/Funder/Enterprise/SimilarProject
+    - source=Expert -> recommend Enterprise/Funder/Project
+    - source=Enterprise -> recommend Expert/Project
+    - source=Funder -> recommend Expert/Project
+    """
+    st = (source_context or {}).get("source_type") or "Source"
+
+    if language == "vi":
+        source_labels = {
+            "Project": "dự án",
+            "Expert": "chuyên gia",
+            "Funder": "quỹ tài trợ",
+            "Enterprise": "doanh nghiệp",
+            "Source": "nguồn",
+        }
+        src = source_labels.get(st, "nguồn")
+
+        common = f"""YÊU CẦU CHUNG:
+- Mỗi đường dẫn là một bằng chứng kết nối giữa {src} và {label_vi} **{recommendation_name}**.
+- Với MỖI đường dẫn: viết 1–2 câu tiếng Việt, dễ hiểu, diễn giải ý nghĩa thực tế (không chép lại nguyên văn đường dẫn).
+- Chỉ sử dụng thông tin có thể suy ra trực tiếp từ đường dẫn; không bịa thêm chi tiết bên ngoài.
+- Nếu đường dẫn không thể hiện AI/công nghệ cụ thể thì không suy diễn theo hướng AI; hãy mô tả đúng theo lĩnh vực/chủ đề/ứng dụng xuất hiện.
+- Tránh thuật ngữ kỹ thuật như "node", "edge", "KG", "đồ thị tri thức".
+- Sau khi giải thích từng đường dẫn, viết 1 đoạn tổng kết 1–3 câu dựa trên TẤT CẢ đường dẫn."""
+
+        if rec_type == "expert":
+            if st == "Project":
+                focus = f"""TRỌNG TÂM (Project → Expert):
+- Nêu {src} thuộc/bắt nguồn từ lĩnh vực/chủ đề nào (suy ra từ đường dẫn). Nếu đường dẫn có nhắc AI/ML hoặc kỹ thuật/công nghệ cụ thể thì nêu; nếu không thì chỉ mô tả đúng theo lĩnh vực/chủ đề xuất hiện.
+- Giải thích {label_vi} **{recommendation_name}** phù hợp ra sao (chuyên môn/kỹ năng/mạng lưới cộng tác/các dự án đã tham gia).
+- Nếu có chuyên gia/quỹ/dự án trung gian trong đường dẫn, nêu vai trò cầu nối của họ."""
+            elif st == "Enterprise":
+                focus = f"""TRỌNG TÂM (Enterprise → Expert):
+- Nêu doanh nghiệp đang quan tâm/nghiệp vụ/industry nào (suy ra từ đường dẫn). Nếu đường dẫn thể hiện nhu cầu công nghệ (AI hoặc công nghệ khác) thì nêu rõ; nếu không thì chỉ mô tả đúng theo lĩnh vực/ứng dụng xuất hiện trong đường dẫn.
+- Giải thích {label_vi} **{recommendation_name}** có chuyên môn phù hợp để giải quyết bài toán/ứng dụng, hoặc từng hợp tác với các dự án/đối tác tương tự.
+- Nếu có dự án/chuyên gia trung gian, làm rõ bối cảnh hợp tác/ứng dụng và cách nó kết nối tới doanh nghiệp."""
+            elif st == "Funder":
+                focus = f"""TRỌNG TÂM (Funder → Expert):
+- Nêu quỹ đang hỗ trợ những hướng/lĩnh vực nào (suy ra từ đường dẫn). Nếu đường dẫn có nhắc AI/công nghệ cụ thể thì nêu; nếu không thì không suy diễn.
+- Giải thích {label_vi} **{recommendation_name}** phù hợp để tham gia các dự án/cụm nghiên cứu mà quỹ thường hỗ trợ.
+- Nếu có dự án/chuyên gia trung gian, nêu lịch sử tài trợ/cộng tác như một bằng chứng."""
+            else:
+                focus = f"""TRỌNG TÂM:
+- Làm rõ điểm giao nhau về lĩnh vực/chủ đề/nhóm cộng tác khiến {label_vi} **{recommendation_name}** phù hợp với {src}."""
+
+        elif rec_type == "funder":
+            if st == "Project":
+                focus = f"""TRỌNG TÂM (Project → Funder):
+- Nêu {src} thuộc lĩnh vực nào và trùng/liên quan thế nào với danh mục lĩnh vực quỹ hỗ trợ.
+- Nếu có bằng chứng quỹ đã tài trợ dự án/chuyên gia tương tự, hãy diễn giải như một tiền lệ phù hợp."""
+            elif st == "Expert":
+                focus = f"""TRỌNG TÂM (Expert → Funder):
+- Nêu chuyên gia tập trung hướng nghiên cứu nào (suy ra từ đường dẫn) và hướng đó khớp với danh mục quỹ ra sao.
+- Nếu có lịch sử quỹ tài trợ các dự án/chuyên gia cùng hướng, hãy nhấn mạnh tính liên thông trong mạng lưới nghiên cứu."""
+            elif st == "Enterprise":
+                focus = f"""TRỌNG TÂM (Enterprise → Funder):
+- Nêu nhu cầu R&D/đổi mới/ứng dụng của doanh nghiệp (suy ra từ đường dẫn) và vì sao phù hợp với định hướng quỹ.
+- Nếu có dự án/chuyên gia trung gian, diễn giải như một ví dụ quỹ có thể tạo tác động/đồng hành."""
+            else:
+                focus = f"""TRỌNG TÂM:
+- Làm rõ vì sao quỹ **{recommendation_name}** phù hợp với {src} về lĩnh vực và lịch sử tài trợ."""
+
+        elif rec_type == "enterprise":
+            if st == "Project":
+                focus = f"""TRỌNG TÂM (Project → Enterprise):
+- Nêu {src} thuộc lĩnh vực/ứng dụng nào và liên quan thế nào tới ngành/industry doanh nghiệp đang hoạt động.
+- Nếu đường dẫn cho thấy doanh nghiệp từng hợp tác dự án tương tự hoặc có chuyên gia liên quan, hãy diễn giải như kinh nghiệm phù hợp."""
+            elif st == "Expert":
+                focus = f"""TRỌNG TÂM (Expert → Enterprise):
+- Nêu chuyên gia có thể đóng góp công nghệ/chuyên môn gì (suy ra từ đường dẫn) và vì sao phù hợp với bài toán/industry của doanh nghiệp.
+- Nếu có dự án trung gian, nêu đó là ví dụ cho khả năng chuyển giao/ứng dụng thực tế."""
+            elif st == "Funder":
+                focus = f"""TRỌNG TÂM (Funder → Enterprise):
+- Nêu doanh nghiệp phù hợp để ứng dụng/thương mại hoá/chuyển giao kết quả các dự án mà quỹ quan tâm (suy ra từ đường dẫn).
+- Nếu có dự án/chuyên gia trung gian, diễn giải mối liên kết như chuỗi "nghiên cứu → ứng dụng"."""
+            else:
+                focus = f"""TRỌNG TÂM:
+- Làm rõ vì sao doanh nghiệp **{recommendation_name}** phù hợp với {src} dựa trên lĩnh vực và lịch sử hợp tác."""
+
+        else:  # project
+            if st == "Project":
+                focus = f"""TRỌNG TÂM (Project → Similar Project):
+- Nêu hai dự án giống nhau ở điểm nào (cùng lĩnh vực, cùng quỹ tài trợ, cùng chuyên gia tham gia, v.v.)."""
+            elif st == "Expert":
+                focus = f"""TRỌNG TÂM (Expert → Project):
+- Nêu dự án thuộc lĩnh vực/ứng dụng nào và vì sao phù hợp để chuyên gia tham gia (đúng chuyên môn, có nhóm/đối tác liên quan).
+- Nếu có quỹ/doanh nghiệp/dự án trung gian, nêu chúng như bằng chứng về mạng lưới hợp tác."""
+            elif st == "Funder":
+                focus = f"""TRỌNG TÂM (Funder → Project):
+- Nêu dự án thuộc lĩnh vực nào và vì sao phù hợp chiến lược tài trợ của quỹ (chủ đề, tính ứng dụng/tác động, liên thông mạng lưới)."""
+            elif st == "Enterprise":
+                focus = f"""TRỌNG TÂM (Enterprise → Project):
+- Nêu dự án có ứng dụng/bài toán nào phù hợp nhu cầu doanh nghiệp, và bằng chứng doanh nghiệp/đối tác đã từng tham gia mảng này."""
+            else:
+                focus = f"""TRỌNG TÂM:
+- Nêu vì sao dự án **{recommendation_name}** phù hợp với {src} dựa trên các liên hệ trong đường dẫn."""
+
+        return f"""{common}
+
+{focus}
+
+KẾT LUẬN:
+- Kết lại bằng 1–2 câu: vì sao {label_vi} **{recommendation_name}** là {role_vi} phù hợp với {src}."""
+
+    source_labels_en = {
+        "Project": "the project",
+        "Expert": "the expert",
+        "Funder": "the funder",
+        "Enterprise": "the enterprise",
+        "Source": "the source",
+    }
+    src_en = source_labels_en.get(st, "the source")
+
+    common_en = f"""GENERAL RULES:
+- Each path is evidence connecting {src_en} to the {label_en} **{recommendation_name}**.
+- For EACH path: write 1–2 clear sentences. Do not copy the path verbatim.
+- Only use what can be inferred from the paths; do not invent external details.
+- If the paths do not show AI/ML or a specific technology, do not assume it—describe the domain/application exactly as stated.
+- Avoid technical terms like node/edge/KG/knowledge graph.
+- Then write a 1–3 sentence summary using ALL paths."""
+
+    if rec_type == "expert":
+        focus_en = "FOCUS: domain fit, expertise/skills, collaboration network, and any bridging intermediaries shown by the paths."
+    elif rec_type == "funder":
+        focus_en = "FOCUS: alignment with funding priorities and any evidence of funding similar projects/teams."
+    elif rec_type == "enterprise":
+        focus_en = "FOCUS: industry/application alignment and evidence of collaboration/technology transfer potential."
+    else:
+        focus_en = "FOCUS: practical similarity/fit (domain, shared collaborators, shared funders, or related projects)."
+
+    return f"""{common_en}
+
+{focus_en}
+
+CONCLUSION: End with 1–2 sentences explaining why the {label_en} **{recommendation_name}** is a good match for {src_en}."""
 
 
 def build_prompt_from_paths(
@@ -31,8 +268,9 @@ def build_prompt_from_paths(
     """
     Build a prompt for LLM to explain recommendation reasoning paths.
 
-    Ý tưởng: bắt LLM phải giải thích TỪNG đường dẫn một
-    (path-level), sau đó tổng kết lại lý do chung.
+    Ý tưởng chung:
+    - Bắt LLM giải thích TỪNG đường dẫn (path-level), sau đó tổng kết lại.
+    - Tùy loại gợi ý (expert / funder / enterprise / project) mà wording khác nhau.
     """
     name = recommendation.get("name") or recommendation.get("title", "Unknown")
     score = recommendation.get("score", 0.0)
@@ -40,44 +278,28 @@ def build_prompt_from_paths(
     metrics = recommendation.get("metrics") or {}
 
     rec_labels = {
-        "expert": ("chuyên gia", "expert"),
-        "funder": ("quỹ tài trợ", "funder"),
-        "project": ("dự án", "project"),
-        "enterprise": ("doanh nghiệp", "enterprise"),
+        "expert": ("chuyên gia", "expert", "chuyên gia tham gia dự án"),
+        "funder": ("quỹ tài trợ", "funder", "quỹ tài trợ phù hợp"),
+        "project": ("dự án", "project", "dự án tương tự để tham khảo/hợp tác"),
+        "enterprise": ("doanh nghiệp", "enterprise", "doanh nghiệp/đối tác ứng dụng"),
     }
-    label_vi, label_en = rec_labels.get(rec_type, ("đề xuất", "recommendation"))
+    label_vi, label_en, role_vi = rec_labels.get(
+        rec_type, ("đề xuất", "recommendation", "đề xuất")
+    )
 
-    # Source description (project / expert / funder / enterprise phía nguồn)
-    source_desc_vi = ""
-    source_desc_en = ""
-    if source_context:
-        st = source_context.get("source_type", "")
-        sid = source_context.get("source_id", "")
-        sn = source_context.get("source_name", sid)
-        if st == "Project":
-            source_desc_vi = f" cho dự án {sn}"
-            source_desc_en = f" for project {sn}"
-        elif st == "Expert":
-            source_desc_vi = f" cho chuyên gia {sn}"
-            source_desc_en = f" for expert {sn}"
-        elif st == "Funder":
-            source_desc_vi = f" cho quỹ {sn}"
-            source_desc_en = f" for funder {sn}"
-        elif st == "Enterprise":
-            source_desc_vi = f" cho doanh nghiệp {sn}"
-            source_desc_en = f" for enterprise {sn}"
+    source_desc = _format_source_desc(source_context, language)
 
     # Chuẩn bị block đường dẫn
-    path_lines_vi: List[str] = []
+    path_lines: List[str] = []
     for i, p in enumerate(paths, 1):
         path_str = p.get("path", "") or p.get("explanation", "")
         sc = p.get("score", 0.0)
         length = p.get("length", 0)
         if path_str:
-            path_lines_vi.append(
+            path_lines.append(
                 f"{i}. Đường dẫn (score {sc:.2f}, length {length}): {path_str}"
             )
-    paths_block_vi = "\n".join(path_lines_vi) if path_lines_vi else "(không có đường dẫn)"
+    paths_block = "\n".join(path_lines) if path_lines else "(không có đường dẫn)"
 
     # Thêm metrics cho expert nếu có
     metrics_vi = ""
@@ -101,40 +323,359 @@ def build_prompt_from_paths(
             metrics_vi = "Chỉ số chuyên gia: " + ", ".join(m_parts_vi)
             metrics_en = "Expert metrics: " + ", ".join(m_parts_en)
 
+    task = _build_task_instructions(
+        recommendation_name=name,
+        rec_type=rec_type,
+        source_context=source_context,
+        language=language,
+        role_vi=role_vi,
+        label_vi=label_vi,
+        label_en=label_en,
+    )
+
     if language == "vi":
         prompt = f"""Bạn là trợ lý giải thích gợi ý trong hệ thống đề xuất dựa trên đồ thị tri thức.
 
-Gợi ý: {label_vi} **{name}**{source_desc_vi}
+Gợi ý: {label_vi} **{name}**{source_desc}
 Độ phù hợp tổng thể: khoảng {score:.0%}
 {metrics_vi if metrics_vi else ""}
 
-Các đường dẫn lý luận (từ dự án/nguồn tới {label_vi} này):
-{paths_block_vi}
+Các đường dẫn lý luận (từ nguồn tới {label_vi} này):
+{paths_block}
 
-YÊU CẦU:
-1. Với MỖI đường dẫn ở trên, hãy viết 1–2 câu tiếng Việt, dễ hiểu, giải thích cụ thể đường dẫn đó có ý nghĩa gì.
-   - Nói rõ mối quan hệ giữa lĩnh vực, dự án, chuyên gia/quỹ/doanh nghiệp.
-   - Sử dụng lại tên thực thể trong đường dẫn (ví dụ: Thị giác máy tính, Trí tuệ nhân tạo, Quỹ NAFOSTED, PGS.TS. Nguyễn Thị Huyền...).
-2. Sau đó, viết 1–2 câu tổng kết tại sao {label_vi} **{name}** phù hợp với nguồn (dự án/chuyên gia/quỹ/doanh nghiệp), dựa trên TẤT CẢ các đường dẫn trên.
-3. Không dùng thuật ngữ kỹ thuật như "node", "edge", "KG", "đồ thị tri thức". Không liệt kê lại nguyên văn đường dẫn, mà diễn giải bằng ngôn ngữ tự nhiên.
-4. Viết dưới dạng đoạn văn hoàn chỉnh, không cần đánh số lại các đường dẫn."""
+{task}"""
     else:
         prompt = f"""You are an assistant explaining a recommendation in a knowledge-graph-based system.
 
-Recommendation: {label_en} **{name}**{source_desc_en}
+Recommendation: {label_en} **{name}**{source_desc}
 Overall relevance score: about {score:.0%}
 {metrics_en if metrics_en else ""}
 
-Reasoning paths (from source to this {label_en}):
-{paths_block_vi}
+Reasoning paths (from the source to this {label_en}):
+{paths_block}
 
-TASK:
-1. For EACH path above, write 1–2 clear sentences explaining what this path means in practice (how the fields, projects, experts, funders, or enterprises are connected).
-2. Then write 1–2 summary sentences explaining why {label_en} **{name}** is a good match for the source, based on ALL these paths.
-3. Do NOT use technical terms like node, edge, KG, knowledge graph. Do not repeat the paths verbatim; paraphrase them into natural language.
-4. Answer as a coherent paragraph (or a few short paragraphs), without re-numbering the paths."""
+{task}"""
 
     return prompt
+
+
+def build_prompt_expert(
+    recommendation: Dict[str, Any],
+    source_context: Optional[Dict[str, Any]] = None,
+    top_k: int = 5,
+    language: str = "vi",
+) -> str:
+    return build_prompt_from_paths(
+        recommendation=recommendation,
+        rec_type="expert",
+        source_context=source_context,
+        top_k=top_k,
+        language=language,
+    )
+
+
+def build_prompt_funder(
+    recommendation: Dict[str, Any],
+    source_context: Optional[Dict[str, Any]] = None,
+    top_k: int = 5,
+    language: str = "vi",
+) -> str:
+    return build_prompt_from_paths(
+        recommendation=recommendation,
+        rec_type="funder",
+        source_context=source_context,
+        top_k=top_k,
+        language=language,
+    )
+
+
+def build_prompt_enterprise(
+    recommendation: Dict[str, Any],
+    source_context: Optional[Dict[str, Any]] = None,
+    top_k: int = 5,
+    language: str = "vi",
+) -> str:
+    return build_prompt_from_paths(
+        recommendation=recommendation,
+        rec_type="enterprise",
+        source_context=source_context,
+        top_k=top_k,
+        language=language,
+    )
+
+
+def build_prompt_project(
+    recommendation: Dict[str, Any],
+    source_context: Optional[Dict[str, Any]] = None,
+    top_k: int = 5,
+    language: str = "vi",
+) -> str:
+    return build_prompt_from_paths(
+        recommendation=recommendation,
+        rec_type="project",
+        source_context=source_context,
+        top_k=top_k,
+        language=language,
+    )
+
+
+# ==========================================
+# OLLAMA CONFIGURATION + POST-PROCESSING
+# ==========================================
+
+
+class OllamaConfig:
+    """Model-specific default generation options for Ollama."""
+
+    MODELS: Dict[str, Dict[str, Any]] = {
+        "llama3": {
+            "temperature": 0.3,
+            "top_p": 0.9,
+            "top_k": 40,
+            "num_predict": 420,
+            "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
+        },
+        "qwen": {
+            "temperature": 0.3,
+            "top_p": 0.9,
+            "top_k": 40,
+            "num_predict": 480,
+            "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
+        },
+        "mistral": {
+            "temperature": 0.4,
+            "top_p": 0.9,
+            "top_k": 40,
+            "num_predict": 420,
+            "stop": ["\n\n\n", "==="],
+        },
+        "gemma": {
+            "temperature": 0.35,
+            "top_p": 0.85,
+            "top_k": 30,
+            "num_predict": 380,
+            "stop": ["\n\n\n", "==="],
+        },
+    }
+
+    @classmethod
+    def get_config(cls, model: str) -> Dict[str, Any]:
+        base = (model or "llama3").split(":")[0].strip().lower()
+        return dict(cls.MODELS.get(base, cls.MODELS["llama3"]))
+
+
+def post_process_llm_response(text: str) -> str:
+    """Clean repetitive prefixes and formatting from LLM output."""
+    if not text:
+        return text
+
+    s = text.strip()
+
+    # Strip common meta/preamble phrases to keep output direct.
+    unwanted_prefixes = (
+        "Tôi nghĩ rằng",
+        "Theo phân tích",
+        "Dựa trên phân tích",
+        "Dựa vào đồ thị tri thức",
+        "Theo đồ thị tri thức",
+        "Dựa trên knowledge graph",
+        "Hệ thống đề xuất",
+        "Chúng tôi đề xuất",
+        "Chúng tôi khuyến nghị",
+    )
+    for p in unwanted_prefixes:
+        if s.startswith(p):
+            s = s[len(p) :].lstrip(" :,-\n\t")
+            break
+
+    # Drop accidental appended examples.
+    for marker in ("====", "Ví dụ input:", "VÍ DỤ"):
+        if marker in s:
+            s = s.split(marker, 1)[0].strip()
+
+    while "\n\n\n" in s:
+        s = s.replace("\n\n\n", "\n\n")
+
+    if s.startswith('"') and s.endswith('"') and len(s) >= 2:
+        s = s[1:-1].strip()
+
+    # Ensure sentence-like ending.
+    if s and s[-1] not in ".!?…":
+        s += "."
+
+    return s
+
+
+# ==========================================
+# IMPROVED PROMPT (Few-shot, consistent tone)
+# ==========================================
+
+
+def _format_paths_for_prompt(paths: List[Dict[str, Any]], language: str) -> str:
+    lines: List[str] = []
+    for i, p in enumerate(paths, 1):
+        sc = p.get("score", 0.0)
+        node_names = p.get("node_names") or []
+        if isinstance(node_names, list) and len(node_names) >= 2:
+            arrow = " → " if language == "vi" else " -> "
+            chain = arrow.join(str(x) for x in node_names)
+            lines.append(f"{i}. {chain} (độ tin cậy: {sc:.0%})" if language == "vi" else f"{i}. {chain} (confidence: {sc:.0%})")
+            continue
+
+        path_str = (p.get("path") or p.get("explanation") or "").strip()
+        if path_str:
+            lines.append(f"{i}. {path_str} (độ tin cậy: {sc:.0%})" if language == "vi" else f"{i}. {path_str} (confidence: {sc:.0%})")
+
+    if not lines:
+        return "(không có đường dẫn)" if language == "vi" else "(no paths)"
+    return "\n".join(lines)
+
+
+def build_improved_prompt_from_paths(
+    recommendation: Dict[str, Any],
+    rec_type: str,
+    source_context: Optional[Dict[str, Any]] = None,
+    top_k: int = 5,
+    language: str = "vi",
+) -> str:
+    """
+    Improved prompt inspired by your sample:
+    - clear rules
+    - few-shot example
+    - short, natural output (4–6 sentences)
+    - avoids KG jargon + avoids hallucinating AI
+    """
+    name = recommendation.get("name") or recommendation.get("title", "Unknown")
+    score = float(recommendation.get("score", 0.0) or 0.0)
+    paths = (recommendation.get("reasoning_paths") or [])[:top_k]
+    metrics = recommendation.get("metrics") or {}
+
+    st = (source_context or {}).get("source_type") or ""
+    sid = (source_context or {}).get("source_id") or ""
+    sn = (source_context or {}).get("source_name") or sid
+
+    rec_labels = {
+        "expert": ("chuyên gia", "expert"),
+        "funder": ("quỹ tài trợ", "funder"),
+        "project": ("dự án", "project"),
+        "enterprise": ("doanh nghiệp", "enterprise"),
+    }
+    label_vi, label_en = rec_labels.get(rec_type, ("đề xuất", "recommendation"))
+
+    source_desc = _format_source_desc(source_context, language)
+    paths_block = _format_paths_for_prompt(paths, language)
+
+    metrics_text = ""
+    if rec_type == "expert" and metrics and language == "vi":
+        m_parts = []
+        if metrics.get("h_index") is not None:
+            m_parts.append(f"h-index: {metrics.get('h_index')}")
+        if metrics.get("citations") is not None:
+            m_parts.append(f"{metrics.get('citations')} trích dẫn")
+        if metrics.get("publications") is not None:
+            m_parts.append(f"{metrics.get('publications')} công bố")
+        if m_parts:
+            metrics_text = "\nThành tích (nếu có): " + ", ".join(m_parts)
+
+    if language != "vi":
+        # Keep it simple for English; can extend later similarly.
+        return build_prompt_from_paths(
+            recommendation=recommendation,
+            rec_type=rec_type,
+            source_context=source_context,
+            top_k=top_k,
+            language=language,
+        )
+
+    # ---- Vietnamese few-shot templates ----
+    rules = f"""BẠN LÀ: Trợ lý giải thích gợi ý trong hệ thống đề xuất.
+
+QUY TẮC BẮT BUỘC:
+1. Viết 4–6 câu tiếng Việt tự nhiên, dễ hiểu.
+2. KHÔNG dùng thuật ngữ kỹ thuật (node, edge, KG, đồ thị tri thức).
+3. Chỉ dựa vào thông tin có trong đường dẫn; không bịa thêm chi tiết bên ngoài.
+4. Nếu đường dẫn không nói về AI/công nghệ thì KHÔNG suy diễn theo hướng AI/công nghệ.
+5. Tránh mở đầu bằng “Tôi…”, “Chúng tôi…”, “Hệ thống…”.
+6. Ưu tiên giải thích theo cấu trúc: (bối cảnh nguồn) → (bằng chứng kết nối) → (ý nghĩa hợp tác/tài trợ/phù hợp)."""
+
+    source_ref = _source_ref_vi(source_context)
+
+    if rec_type == "expert":
+        few_shot = """===== VÍ DỤ MẪU (expert) =====
+Gợi ý: chuyên gia PGS.TS. Trần Văn A cho dự án Smart City IoT
+Đường dẫn:
+1. Smart City IoT → IoT → PGS.TS. Trần Văn A (độ tin cậy: 65%)
+2. Nhóm nghiên cứu B → PGS.TS. Trần Văn A (độ tin cậy: 55%)
+Thành tích (nếu có): h-index: 35, 1200 trích dẫn
+
+Output mẫu:
+PGS.TS. Trần Văn A có chuyên môn đúng mảng IoT mà dự án Smart City IoT đang theo đuổi. Đường dẫn cũng cho thấy ông có liên hệ với Nhóm nghiên cứu B, giúp tăng khả năng phối hợp triển khai. Với thành tích học thuật tốt, chuyên gia này phù hợp để tư vấn và dẫn dắt phần nghiên cứu cốt lõi. Nhìn chung, đây là lựa chọn đáng cân nhắc nếu dự án cần người có nền tảng sâu và mạng lưới hợp tác sẵn có."""
+        task = f"""===== NHIỆM VỤ =====
+Gợi ý: {label_vi} **{name}**{source_desc}
+Độ phù hợp: {score:.0%}{metrics_text}
+
+Đường dẫn:
+{paths_block}
+
+Hãy giải thích vì sao {label_vi} **{name}** phù hợp với {source_ref} bằng 4–6 câu, tập trung vào chuyên môn/kỹ năng, kinh nghiệm, và bằng chứng kết nối."""
+        return f"{rules}\n\n{few_shot}\n\n{task}"
+
+    if rec_type == "funder":
+        few_shot = """===== VÍ DỤ MẪU (funder) =====
+Gợi ý: quỹ NAFOSTED cho dự án A
+Đường dẫn:
+1. Dự án A → Thị giác máy tính → NAFOSTED (độ tin cậy: 60%)
+2. PGS.TS. Nguyễn B → NAFOSTED (độ tin cậy: 45%)
+
+Output mẫu:
+Dự án A thuộc hướng Thị giác máy tính, đúng với mảng mà NAFOSTED có liên hệ hỗ trợ trong các đường dẫn. Ngoài ra, PGS.TS. Nguyễn B cũng xuất hiện như một mắt xích kết nối với quỹ, cho thấy mạng lưới nghiên cứu có sự giao thoa. Điều này gợi ý cơ hội tiếp cận kênh tài trợ phù hợp về chủ đề. Tổng thể, NAFOSTED là lựa chọn đáng xem xét nếu dự án muốn tìm nguồn tài trợ gần với hướng nghiên cứu hiện tại."""
+        task = f"""===== NHIỆM VỤ =====
+Gợi ý: {label_vi} **{name}**{source_desc}
+Độ phù hợp: {score:.0%}
+
+Đường dẫn:
+{paths_block}
+
+Hãy giải thích vì sao {label_vi} **{name}** phù hợp với {source_ref} bằng 4–6 câu, nhấn mạnh sự khớp lĩnh vực và các bằng chứng về lịch sử/chuỗi hỗ trợ-tài trợ (nếu có)."""
+        return f"{rules}\n\n{few_shot}\n\n{task}"
+
+    if rec_type == "project":
+        few_shot = """===== VÍ DỤ MẪU (project) =====
+Gợi ý: dự án Smart Agriculture Platform cho dự án Smart City IoT
+Đường dẫn:
+1. IoT Sensors → Smart Agriculture Platform (độ tin cậy: 68%)
+2. Dr. Nguyen → Smart Agriculture Platform (độ tin cậy: 55%)
+
+Output mẫu:
+Smart Agriculture Platform có điểm giao với dự án hiện tại qua cùng chủ đề IoT Sensors. Đường dẫn cũng cho thấy có nhân sự/nhóm (Dr. Nguyen) liên quan, giúp hai dự án dễ trao đổi kinh nghiệm triển khai. Vì vậy dự án này đáng tham khảo nếu bạn muốn học cách thiết kế hệ thống thu thập dữ liệu và vận hành thực tế. Tổng thể, đây là lựa chọn phù hợp để tìm bài học kinh nghiệm hoặc khả năng hợp tác."""
+        task = f"""===== NHIỆM VỤ =====
+Gợi ý: {label_vi} **{name}**{source_desc}
+Độ liên quan: {score:.0%}
+
+Đường dẫn:
+{paths_block}
+
+Hãy giải thích vì sao {label_vi} **{name}** đáng tham khảo/hợp tác với {source_ref} bằng 4–6 câu, tập trung vào điểm tương đồng và giá trị thực tế."""
+        return f"{rules}\n\n{few_shot}\n\n{task}"
+
+    # enterprise
+    few_shot = """===== VÍ DỤ MẪU (enterprise) =====
+Gợi ý: doanh nghiệp Công ty MedTech X cho chuyên gia EXP_0001
+Đường dẫn:
+1. Thiết bị y tế → Công ty MedTech X (độ tin cậy: 50%)
+2. Thị giác máy tính → AI hỗ trợ chẩn đoán X-quang → Công ty MedTech X (độ tin cậy: 44%)
+
+Output mẫu:
+Bên bạn có kinh nghiệm trong mảng Thiết bị y tế, cũng là lĩnh vực doanh nghiệp này đang hoạt động. Một đường dẫn khác cho thấy chuyên môn Thị giác máy tính liên quan tới bài toán AI hỗ trợ chẩn đoán X-quang và có liên kết tới doanh nghiệp. Điều này gợi ý tiềm năng phối hợp để đưa nghiên cứu vào ứng dụng hoặc triển khai sản phẩm. Tổng thể, đây là đối tác đáng cân nhắc nếu bạn muốn mở rộng hợp tác theo đúng mảng chuyên môn hiện có."""
+    task = f"""===== NHIỆM VỤ =====
+Gợi ý: {label_vi} **{name}**{source_desc}
+Độ phù hợp: {score:.0%}
+
+Đường dẫn:
+{paths_block}
+
+Hãy giải thích vì sao {label_vi} **{name}** là đối tác tiềm năng cho {source_ref} bằng 4–6 câu, tập trung vào mảng hoạt động/nhu cầu hợp tác và bằng chứng kết nối."""
+    return f"{rules}\n\n{few_shot}\n\n{task}"
 
 
 def llm_explain_paths_ollama(
@@ -156,7 +697,10 @@ def llm_explain_paths_ollama(
         Generated text or None on error
     """
     url = f"{ollama_url.rstrip('/')}/api/generate"
-    body = json.dumps({"model": model, "prompt": prompt, "stream": False}).encode("utf-8")
+    options = OllamaConfig.get_config(model)
+    body = json.dumps(
+        {"model": model, "prompt": prompt, "stream": False, "options": options}
+    ).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=body,
@@ -166,7 +710,7 @@ def llm_explain_paths_ollama(
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return (data.get("response") or "").strip()
+            return post_process_llm_response((data.get("response") or "").strip())
     except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError):
         return None
 
@@ -332,7 +876,7 @@ class PGPRExplainer:
         # Generate natural language explanation (LLM or template)
         nl_explanation: str
         if self.use_llm:
-            prompt = build_prompt_from_paths(
+            prompt = build_improved_prompt_from_paths(
                 recommendation=recommendation,
                 rec_type=rec_type,
                 source_context=source_context,
@@ -347,7 +891,7 @@ class PGPRExplainer:
             )
             if llm_text:
                 nl_explanation = self._wrap_llm_explanation(
-                    llm_text, name, score, diversity, rec_type
+                    llm_text, name, score, diversity, rec_type, source_context
                 )
             else:
                 nl_explanation = self._generate_natural_language(
@@ -356,6 +900,7 @@ class PGPRExplainer:
                     diversity=diversity,
                     reasoning_paths=reasoning_paths,
                     rec_type=rec_type,
+                    source_context=source_context,
                 )
         else:
             nl_explanation = self._generate_natural_language(
@@ -364,6 +909,7 @@ class PGPRExplainer:
                 diversity=diversity,
                 reasoning_paths=reasoning_paths,
                 rec_type=rec_type,
+                source_context=source_context,
             )
         
         # Analyze path patterns
@@ -394,19 +940,22 @@ class PGPRExplainer:
         diversity: int,
         reasoning_paths: List[Dict],
         rec_type: str,
+        source_context: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Generate human-readable explanation in natural language."""
         templates = self.templates[rec_type]
         
-        # Introduction
-        intro = templates["intro"].format(name=name)
+        # Introduction (make it consistent with source type)
+        intro = self._build_intro(name=name, rec_type=rec_type, source_context=source_context)
         
         # Overall score with level
         score_level = self._get_score_level(score)
         score_text = templates["score"].format(score=score, level=score_level)
         
-        # Path diversity
-        diversity_text = templates["diversity"].format(count=diversity)
+        # Path diversity (source-aware wording)
+        diversity_text = self._build_diversity_text(
+            diversity=diversity, rec_type=rec_type, source_context=source_context
+        )
         
         # Main reasoning paths
         path_intro = templates["path_intro"]
@@ -436,17 +985,18 @@ class PGPRExplainer:
         score: float,
         diversity: int,
         rec_type: str,
+        source_context: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Wrap LLM-generated explanation with intro, score, diversity."""
         templates = self.templates.get(rec_type, self.templates.get("expert", {}))
-        intro = templates.get("intro", "Chúng tôi gợi ý **{name}**:").format(name=name)
+        intro = self._build_intro(name=name, rec_type=rec_type, source_context=source_context)
         score_level = self._get_score_level(score)
         score_text = templates.get("score", "Độ phù hợp: **{score:.1%}** ({level})").format(
             score=score, level=score_level
         )
-        diversity_text = templates.get(
-            "diversity", "Tìm thấy **{count}** cách kết nối"
-        ).format(count=diversity)
+        diversity_text = self._build_diversity_text(
+            diversity=diversity, rec_type=rec_type, source_context=source_context
+        )
         return f"""{intro}
 
 {score_text}
@@ -454,6 +1004,58 @@ class PGPRExplainer:
 
 **Giải thích chi tiết:**
 {llm_text}"""
+
+    def _build_intro(
+        self,
+        *,
+        name: str,
+        rec_type: str,
+        source_context: Optional[Dict[str, Any]],
+    ) -> str:
+        """Create a header that matches the current source entity (Project/Expert/Funder/Enterprise)."""
+        if self.language != "vi":
+            templates = self.templates.get(rec_type, self.templates.get("expert", {}))
+            return templates.get("intro", "We recommend **{name}**:").format(name=name)
+
+        label_map = {
+            "expert": "chuyên gia",
+            "funder": "quỹ tài trợ",
+            "enterprise": "doanh nghiệp",
+            "project": "dự án",
+        }
+        label = label_map.get(rec_type, "đề xuất")
+        src_desc = _format_source_desc(source_context, "vi")
+        return f"Chúng tôi gợi ý {label} **{name}**{src_desc} vì:"
+
+    def _build_diversity_text(
+        self,
+        *,
+        diversity: int,
+        rec_type: str,
+        source_context: Optional[Dict[str, Any]],
+    ) -> str:
+        """Create a diversity line without hard-coding 'dự án'."""
+        if self.language != "vi":
+            templates = self.templates.get(rec_type, self.templates.get("expert", {}))
+            return templates.get("diversity", "Found **{count}** connections").format(
+                count=diversity
+            )
+
+        label_map = {
+            "expert": "chuyên gia",
+            "funder": "quỹ",
+            "enterprise": "doanh nghiệp",
+            "project": "dự án",
+        }
+        label = label_map.get(rec_type, "thực thể")
+        st = (source_context or {}).get("source_type") or ""
+        src_vi = {
+            "Project": "dự án",
+            "Expert": "chuyên gia",
+            "Funder": "quỹ",
+            "Enterprise": "doanh nghiệp",
+        }.get(st, "nguồn")
+        return f"Tìm thấy **{diversity} cách khác nhau** để kết nối {label} này với {src_vi}"
 
     
     def _explain_paths(
@@ -591,24 +1193,121 @@ class PGPRExplainer:
     def _narrate_path_enterprise(
         self, steps: List[tuple], target_name: Optional[str]
     ) -> str:
-        """Narrate path for enterprise recommendation."""
-        parts = []
+        """Narrate path for enterprise recommendation.
+
+        Mục tiêu: giải thích rõ mối quan hệ giữa
+        - lĩnh vực / dự án của người dùng
+        - các dự án mà doanh nghiệp đang hợp tác
+        - (nếu có) chuyên gia liên quan.
+        """
+        source_field: Optional[str] = None
+        related_fields: List[str] = []
+        industries_raw: List[str] = []
+        partner_projects_raw: List[str] = []
+        expertise_areas: List[str] = []
+        experiences: List[str] = []
+        support_entities: List[str] = []  # e.g. funders
+        funded_entities: List[str] = []  # e.g. projects/fields being funded
+
         for key, entity in steps:
             if key == "belongs_to_field":
-                parts.append(f"Dự án thuộc lĩnh vực {entity}.")
+                if source_field is None:
+                    source_field = entity
+                else:
+                    related_fields.append(entity)
             elif key == "operates_in":
-                parts.append(f"Doanh nghiệp hoạt động trong lĩnh vực {entity}.")
+                industries_raw.append(entity)
             elif key == "partners_with":
-                parts.append(f"Doanh nghiệp hợp tác với {entity}.")
+                partner_projects_raw.append(entity)
             elif key == "has_expertise_in":
-                parts.append(f"Chuyên gia {entity} có chuyên môn phù hợp với doanh nghiệp.")
+                expertise_areas.append(entity)
+            elif key == "has_experience_in":
+                experiences.append(entity)
+            elif key == "supports":
+                support_entities.append(entity)
+            elif key == "funds":
+                funded_entities.append(entity)
             elif key == "participates_in":
-                parts.append(f"Qua dự án {entity} mà doanh nghiệp quan tâm.")
-        if parts:
-            return " ".join(parts) + " Hệ thống đánh giá doanh nghiệp này phù hợp để hợp tác."
-        return self._generic_simplification(
-            " -> ".join(f"{k}: {v}" for k, v in steps)
-        )
+                # thường là tên dự án mà expert/enterprise tham gia
+                partner_projects_raw.append(entity)
+
+        enterprise_name = target_name or "doanh nghiệp này"
+        sentences: List[str] = []
+
+        def _looks_like_enterprise_name(x: str) -> bool:
+            s = (x or "").strip().lower()
+            en = (enterprise_name or "").strip().lower()
+            return bool(s) and bool(en) and (s == en or en in s or s in en)
+
+        # Clean up noisy entities coming from imperfect paths (e.g. industry=enterprise_name)
+        industries = [x for x in industries_raw if x and not _looks_like_enterprise_name(x)]
+        partner_projects = [x for x in partner_projects_raw if x and not _looks_like_enterprise_name(x)]
+        linked_to_target = any(_looks_like_enterprise_name(x) for x in partner_projects_raw if x)
+
+        if source_field:
+            sentences.append(f"Bên bạn đang gắn với lĩnh vực {source_field}.")
+
+        if partner_projects:
+            proj_list = ", ".join(partner_projects[:2])
+            sentences.append(
+                f"{enterprise_name} đang/đã hợp tác trong các dự án/đối tác như {proj_list}, "
+                "cho thấy doanh nghiệp có liên hệ trực tiếp với chủ đề/lĩnh vực được nêu trong đường dẫn."
+            )
+
+        # If the path explicitly contains "partners with <enterprise>", state the direct link.
+        if linked_to_target:
+            sentences.append(
+                f"Đường dẫn cũng cho thấy có liên kết/đối tác trực tiếp với {enterprise_name}."
+            )
+
+        # Prefer describing these as expertise areas (not "experts"), because the entity can be a field.
+        if expertise_areas:
+            areas = ", ".join(expertise_areas[:2])
+            if source_field:
+                sentences.append(
+                    f"Điều này đi kèm với chuyên môn/hướng chuyên môn {areas}, phù hợp với lĩnh vực vừa nêu."
+                )
+            else:
+                sentences.append(
+                    f"Bằng chứng còn cho thấy bên bạn có chuyên môn/hướng chuyên môn {areas} liên quan tới nhu cầu hợp tác."
+                )
+
+        # Mention funders/funding chain when present (common in enterprise<->expert paths).
+        if support_entities or funded_entities:
+            sup = ", ".join(support_entities[:1]) if support_entities else ""
+            fun = ", ".join(funded_entities[:1]) if funded_entities else ""
+            if sup and fun:
+                sentences.append(
+                    f"Có thể thấy chuỗi liên quan tới {sup} hỗ trợ/tài trợ cho {fun}, và {enterprise_name} xuất hiện ở phía hợp tác/ứng dụng."
+                )
+            elif sup:
+                sentences.append(f"Đường dẫn còn nhắc tới {sup} như một mắt xích hỗ trợ/tài trợ liên quan.")
+            elif fun:
+                sentences.append(f"Đường dẫn còn nhắc tới hạng mục được tài trợ {fun} liên quan tới hợp tác/ứng dụng.")
+
+        if industries and not sentences:
+            ind_list = ", ".join(industries[:2])
+            sentences.append(
+                f"{enterprise_name} hoạt động trong lĩnh vực {ind_list}. Vì vậy đây có thể là đối tác phù hợp theo đúng mảng được thể hiện trong đường dẫn."
+            )
+
+        # Fallback for paths like:
+        # "has experience in Thiết bị y tế -> operates in industry <enterprise_name>"
+        if experiences and not sentences:
+            exp = ", ".join(experiences[:2])
+            if industries_raw:
+                sentences.append(
+                    f"Bên bạn có kinh nghiệm trong {exp} mà {enterprise_name} đang hoạt động. Đây là bằng chứng cho thấy {enterprise_name} phù hợp để hợp tác trong cùng mảng này."
+                )
+            else:
+                sentences.append(
+                    f"Bên bạn có kinh nghiệm trong {exp}, vì vậy {enterprise_name} có thể là đối tác phù hợp theo hướng này."
+                )
+
+        if sentences:
+            return " ".join(sentences)
+
+        return self._generic_simplification(" -> ".join(f"{k}: {v}" for k, v in steps))
 
     def _narrate_path_project(
         self, steps: List[tuple], target_name: Optional[str]

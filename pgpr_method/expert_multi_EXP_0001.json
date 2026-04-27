@@ -1,0 +1,382 @@
+{
+  "expert_id": "EXP_0001",
+  "enterprises": [
+    {
+      "recommendation": {
+        "enterprise_id": "ENT_0001",
+        "name": "Công ty MedTech X",
+        "location": "VN-HCM",
+        "candidate_sources": [
+          "industry_experience",
+          "partner_projects"
+        ],
+        "matched_industries": 1,
+        "partner_projects": 2,
+        "score": 0.532,
+        "reasoning_paths": [
+          {
+            "path": "has experience in Thiết bị y tế -> operates in industry Công ty MedTech X",
+            "score": 0.5,
+            "length": 2
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI hỗ trợ chẩn đoán X-quang -> partners with Công ty MedTech X",
+            "score": 0.435,
+            "length": 3
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> supports Quỹ NAFOSTED -> funds AI hỗ trợ chẩn đoán X-quang -> partners with Công ty MedTech X",
+            "score": 0.314,
+            "length": 4
+          }
+        ],
+        "path_diversity": 10
+      },
+      "explanation": {
+        "natural_language": "Chúng tôi gợi ý doanh nghiệp **Công ty MedTech X** cho bạn vì:\n\nĐộ phù hợp tổng thể: **53.2%** (Tốt)\nTìm thấy **10 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Giải thích chi tiết:**\nBên bạn có kinh nghiệm trong mảng Thiết bị y tế, cũng là lĩnh vực doanh nghiệp **Công ty MedTech X** đang hoạt động. Ngoài ra, chuyên môn Thị giác máy tính của bạn cũng liên quan tới bài toán AI hỗ trợ chẩn đoán X-quang và có liên kết tới doanh nghiệp. Điều này gợi ý tiềm năng phối hợp để đưa nghiên cứu vào ứng dụng hoặc triển khai sản phẩm. Tổng thể, **Công ty MedTech X** là đối tác đáng cân nhắc nếu bạn muốn mở rộng hợp tác theo đúng mảng chuyên môn hiện có.",
+        "path_analysis": {
+          "path_categories": {
+            "Direct Match": 1,
+            "Funder History": 1,
+            "Expertise Alignment": 2
+          },
+          "avg_path_length": 3.0,
+          "shortest_path": 2,
+          "longest_path": 4
+        },
+        "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 50.0%):\n  ┌─ has experience in Thiết bị y tế\n  └─> operates in industry Công ty MedTech X\n\nPath 2 (Score: 43.5%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI hỗ trợ chẩn đoán X-quang\n  └─> partners with Công ty MedTech X\n\nPath 3 (Score: 31.4%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> supports Quỹ NAFOSTED\n  ├─> funds AI hỗ trợ chẩn đoán X-quang\n  └─> partners with Công ty MedTech X\n\n```",
+        "confidence": {
+          "total": 0.832,
+          "level": "Rất cao - Nhiều bằng chứng mạnh",
+          "components": {
+            "base_score": 0.532,
+            "diversity_boost": 0.3,
+            "quality_boost": 0.0
+          },
+          "interpretation": "Rất khuyến nghị - Nhiều bằng chứng mạnh mẽ hỗ trợ gợi ý này"
+        },
+        "metadata": {
+          "score": 0.532,
+          "diversity": 10,
+          "num_paths": 3
+        }
+      }
+    }
+  ],
+  "funders": [
+    {
+      "recommendation": {
+        "funder_id": "FUN_0001",
+        "name": "Quỹ NAFOSTED",
+        "type": "Government",
+        "location": "VN-HN",
+        "budget_capacity": 3000000000,
+        "candidate_sources": [
+          "expert_projects",
+          "supports_expert_field"
+        ],
+        "funded_related_projects": 2,
+        "score": 0.591,
+        "reasoning_paths": [
+          {
+            "path": "has expertise in Thị giác máy tính -> supports Quỹ NAFOSTED",
+            "score": 0.627,
+            "length": 2
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI hỗ trợ chẩn đoán X-quang -> funds Quỹ NAFOSTED",
+            "score": 0.462,
+            "length": 3
+          },
+          {
+            "path": "has experience in Thiết bị y tế -> operates in industry Công ty MedTech X -> partners with AI hỗ trợ chẩn đoán X-quang -> funds Quỹ NAFOSTED",
+            "score": 0.25,
+            "length": 4
+          }
+        ],
+        "path_diversity": 10
+      },
+      "explanation": {
+        "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Quỹ NAFOSTED** cho bạn vì:\n\nĐộ phù hợp tổng thể: **59.1%** (Tốt)\nTìm thấy **10 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Giải thích chi tiết:**\nQuỹ NAFOSTED phù hợp với bạn vì bạn có chuyên môn về Thị giác máy tính, lĩnh vực mà Quỹ NAFOSTED có liên hệ hỗ trợ. Ngoài ra, bạn có thể được xem là mắt xích kết nối với Quỹ NAFOSTED thông qua lĩnh vực AI hỗ trợ chẩn đoán X-quang, lĩnh vực mà Quỹ NAFOSTED cũng có liên hệ. Lịch sử của bạn trong lĩnh vực Thiết bị y tế và kinh nghiệm làm việc trong Công ty MedTech X cũng cho thấy bạn có thể được xem là đối tác hợp tác với Quỹ NAFOSTED. Tổng thể, Quỹ NAFOSTED là lựa chọn đáng xem xét nếu bạn muốn tìm nguồn tài trợ gần với hướng nghiên cứu hiện tại.",
+        "path_analysis": {
+          "path_categories": {
+            "Direct Match": 1,
+            "Funder History": 2,
+            "Expertise Alignment": 2
+          },
+          "avg_path_length": 3.0,
+          "shortest_path": 2,
+          "longest_path": 4
+        },
+        "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 62.7%):\n  ┌─ has expertise in Thị giác máy tính\n  └─> supports Quỹ NAFOSTED\n\nPath 2 (Score: 46.2%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI hỗ trợ chẩn đoán X-quang\n  └─> funds Quỹ NAFOSTED\n\nPath 3 (Score: 25.0%):\n  ┌─ has experience in Thiết bị y tế\n  ├─> operates in industry Công ty MedTech X\n  ├─> partners with AI hỗ trợ chẩn đoán X-quang\n  └─> funds Quỹ NAFOSTED\n\n```",
+        "confidence": {
+          "total": 1.0,
+          "level": "Rất cao - Nhiều bằng chứng mạnh",
+          "components": {
+            "base_score": 0.591,
+            "diversity_boost": 0.3,
+            "quality_boost": 0.2
+          },
+          "interpretation": "Rất khuyến nghị - Nhiều bằng chứng mạnh mẽ hỗ trợ gợi ý này"
+        },
+        "metadata": {
+          "score": 0.591,
+          "diversity": 10,
+          "num_paths": 3
+        }
+      }
+    },
+    {
+      "recommendation": {
+        "funder_id": "FUN_0002",
+        "name": "Bộ Khoa học và Công nghệ",
+        "type": "Government",
+        "location": "VN-HN",
+        "budget_capacity": 50000000000,
+        "candidate_sources": [
+          "supports_expert_field"
+        ],
+        "funded_related_projects": null,
+        "score": 0.457,
+        "reasoning_paths": [
+          {
+            "path": "has expertise in Thị giác máy tính -> is sub-field of Trí tuệ nhân tạo -> supports Bộ Khoa học và Công nghệ",
+            "score": 0.38,
+            "length": 3
+          },
+          {
+            "path": "collaborates with PGS.TS. Trần Thị B -> has expertise in Xử lý ngôn ngữ tự nhiên -> is sub-field of Trí tuệ nhân tạo -> supports Bộ Khoa học và Công nghệ",
+            "score": 0.274,
+            "length": 4
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> is sub-field of Trí tuệ nhân tạo -> has expertise in PGS.TS. Nguyễn Thị Huyền -> participates in Robot công nghiệp thông minh -> funds Bộ Khoa học và Công nghệ",
+            "score": 0.24,
+            "length": 5
+          }
+        ],
+        "path_diversity": 10
+      },
+      "explanation": {
+        "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Bộ Khoa học và Công nghệ** cho bạn vì:\n\nĐộ phù hợp tổng thể: **45.7%** (Tốt)\nTìm thấy **10 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Giải thích chi tiết:**\nHere's the explanation:\n\nBạn có thể được quỹ tài trợ **Bộ Khoa học và Công nghệ** vì có chuyên môn về Thị giác máy tính, một lĩnh vực nằm trong Trí tuệ nhân tạo, mà Bộ Khoa học và Công nghệ hỗ trợ. Ngoài ra, bạn cũng có thể được quỹ tài trợ do có kinh nghiệm hợp tác với PGS.TS. Trần Thị B, người có chuyên môn về Xử lý ngôn ngữ tự nhiên, một lĩnh vực nằm trong Trí tuệ nhân tạo, và đã được Bộ Khoa học và Công nghệ hỗ trợ. Tóm lại, các bằng chứng về lịch sử/chuỗi hỗ trợ-tài trợ cho thấy bạn có thể được quỹ tài trợ **Bộ Khoa học và Công nghệ** do có chuyên môn và kinh nghiệm trong lĩnh vực Trí tuệ nhân tạo.",
+        "path_analysis": {
+          "path_categories": {
+            "Funder History": 1,
+            "Expert Network": 1,
+            "Expertise Alignment": 3
+          },
+          "avg_path_length": 4.0,
+          "shortest_path": 3,
+          "longest_path": 5
+        },
+        "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 38.0%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> is sub-field of Trí tuệ nhân tạo\n  └─> supports Bộ Khoa học và Công nghệ\n\nPath 2 (Score: 27.4%):\n  ┌─ collaborates with PGS.TS. Trần Thị B\n  ├─> has expertise in Xử lý ngôn ngữ tự nhiên\n  ├─> is sub-field of Trí tuệ nhân tạo\n  └─> supports Bộ Khoa học và Công nghệ\n\nPath 3 (Score: 24.0%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> is sub-field of Trí tuệ nhân tạo\n  ├─> has expertise in PGS.TS. Nguyễn Thị Huyền\n  ├─> participates in Robot công nghiệp thông minh\n  └─> funds Bộ Khoa học và Công nghệ\n\n```",
+        "confidence": {
+          "total": 0.757,
+          "level": "Cao - Bằng chứng đáng tin cậy",
+          "components": {
+            "base_score": 0.457,
+            "diversity_boost": 0.3,
+            "quality_boost": 0.0
+          },
+          "interpretation": "Khuyến nghị - Có đủ bằng chứng tin cậy"
+        },
+        "metadata": {
+          "score": 0.457,
+          "diversity": 10,
+          "num_paths": 3
+        }
+      }
+    },
+    {
+      "recommendation": {
+        "funder_id": "FUN_0003",
+        "name": "LegalTech Fund",
+        "type": "Private",
+        "location": "Singapore",
+        "budget_capacity": 10000000000,
+        "candidate_sources": [
+          "supports_expert_field"
+        ],
+        "funded_related_projects": null,
+        "score": 0.437,
+        "reasoning_paths": [
+          {
+            "path": "participates in AI đa phương thức cho báo cáo chẩn đoán y tế -> participates in PGS.TS. Trần Thị B -> has expertise in Xử lý ngôn ngữ tự nhiên -> supports LegalTech Fund",
+            "score": 0.333,
+            "length": 4
+          },
+          {
+            "path": "participates in AI đa phương thức cho báo cáo chẩn đoán y tế -> participates in PGS.TS. Trần Thị B -> participates in Chatbot LegalBot hỗ trợ tư pháp -> funds LegalTech Fund",
+            "score": 0.301,
+            "length": 4
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI đa phương thức cho báo cáo chẩn đoán y tế -> participates in PGS.TS. Trần Thị B -> has expertise in Xử lý ngôn ngữ tự nhiên -> supports LegalTech Fund",
+            "score": 0.259,
+            "length": 5
+          }
+        ],
+        "path_diversity": 10
+      },
+      "explanation": {
+        "natural_language": "Chúng tôi gợi ý quỹ tài trợ **LegalTech Fund** cho bạn vì:\n\nĐộ phù hợp tổng thể: **43.7%** (Tốt)\nTìm thấy **10 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Giải thích chi tiết:**\n**Gợi ý: quỹ tài trợ LegalTech Fund cho bạn**\n\nLegalTech Fund là một quỹ tài trợ phù hợp với bạn vì bạn có liên hệ với lĩnh vực AI đa phương thức cho báo cáo chẩn đoán y tế. Bằng chứng về lịch sử/chuỗi hỗ trợ-tài trợ là PGS.TS. Trần Thị B, người có chuyên môn về Xử lý ngôn ngữ tự nhiên và đã tham gia vào các dự án AI đa phương thức, bao gồm cả LegalBot, một chatbot hỗ trợ tư pháp. Điều này cho thấy bạn có thể được tài trợ bởi LegalTech Fund vì bạn có liên hệ với lĩnh vực này và đã tham gia vào các dự án có liên quan. Tóm lại, LegalTech Fund là một lựa chọn đáng xem xét nếu bạn muốn tìm nguồn tài trợ phù hợp với lĩnh vực và chuyên môn của mình.",
+        "path_analysis": {
+          "path_categories": {
+            "Direct Match": 1,
+            "Funder History": 1,
+            "Expert Network": 3,
+            "Expertise Alignment": 2
+          },
+          "avg_path_length": 4.333333333333333,
+          "shortest_path": 4,
+          "longest_path": 5
+        },
+        "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 33.3%):\n  ┌─ participates in AI đa phương thức cho báo cáo chẩn đoán y tế\n  ├─> participates in PGS.TS. Trần Thị B\n  ├─> has expertise in Xử lý ngôn ngữ tự nhiên\n  └─> supports LegalTech Fund\n\nPath 2 (Score: 30.1%):\n  ┌─ participates in AI đa phương thức cho báo cáo chẩn đoán y tế\n  ├─> participates in PGS.TS. Trần Thị B\n  ├─> participates in Chatbot LegalBot hỗ trợ tư pháp\n  └─> funds LegalTech Fund\n\nPath 3 (Score: 25.9%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI đa phương thức cho báo cáo chẩn đoán y tế\n  ├─> participates in PGS.TS. Trần Thị B\n  ├─> has expertise in Xử lý ngôn ngữ tự nhiên\n  └─> supports LegalTech Fund\n\n```",
+        "confidence": {
+          "total": 0.737,
+          "level": "Cao - Bằng chứng đáng tin cậy",
+          "components": {
+            "base_score": 0.437,
+            "diversity_boost": 0.3,
+            "quality_boost": 0.0
+          },
+          "interpretation": "Khuyến nghị - Có đủ bằng chứng tin cậy"
+        },
+        "metadata": {
+          "score": 0.437,
+          "diversity": 10,
+          "num_paths": 3
+        }
+      }
+    }
+  ],
+  "projects": [
+    {
+      "recommendation": {
+        "project_id": "PRJ_0002",
+        "title": "NLP tiếng Việt cho văn bản pháp luật",
+        "status": "ongoing",
+        "location": "VN-HN",
+        "trl": 4,
+        "budget": 2000000000,
+        "score": 0.511,
+        "reasoning_paths": [
+          {
+            "path": "has expertise in Thị giác máy tính -> supports Quỹ NAFOSTED -> funds NLP tiếng Việt cho văn bản pháp luật",
+            "score": 0.462,
+            "length": 3
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI hỗ trợ chẩn đoán X-quang -> funds Quỹ NAFOSTED -> funds NLP tiếng Việt cho văn bản pháp luật",
+            "score": 0.333,
+            "length": 4
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI đa phương thức cho báo cáo chẩn đoán y tế -> participates in PGS.TS. Trần Thị B -> participates in NLP tiếng Việt cho văn bản pháp luật",
+            "score": 0.333,
+            "length": 4
+          }
+        ],
+        "path_diversity": 10,
+        "candidate_sources": [
+          "field",
+          "funder"
+        ],
+        "common_funders": 1
+      },
+      "explanation": {
+        "natural_language": "Chúng tôi gợi ý dự án **NLP tiếng Việt cho văn bản pháp luật** cho bạn vì:\n\nĐộ phù hợp tổng thể: **51.1%** (Tốt)\nTìm thấy **10 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Giải thích chi tiết:**\nDự án NLP tiếng Việt cho văn bản pháp luật có điểm giao với bạn qua cùng lĩnh vực Thị giác máy tính. Đường dẫn cho thấy có người/đơn vị (has expertise in Thị giác máy tính, PGS.TS. Trần Thị B) liên quan, giúp hai dự án dễ trao đổi kinh nghiệm triển khai. Vì vậy, dự án này đáng tham khảo nếu bạn muốn học cách áp dụng NLP trong lĩnh vực pháp lý và phát triển các giải pháp hỗ trợ chẩn đoán. Tổng thể, đây là lựa chọn phù hợp để tìm bài học kinh nghiệm hoặc khả năng hợp tác.",
+        "path_analysis": {
+          "path_categories": {
+            "Direct Match": 2,
+            "Funder History": 2,
+            "Expert Network": 1,
+            "Expertise Alignment": 3
+          },
+          "avg_path_length": 3.6666666666666665,
+          "shortest_path": 3,
+          "longest_path": 4
+        },
+        "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 46.2%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> supports Quỹ NAFOSTED\n  └─> funds NLP tiếng Việt cho văn bản pháp luật\n\nPath 2 (Score: 33.3%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI hỗ trợ chẩn đoán X-quang\n  ├─> funds Quỹ NAFOSTED\n  └─> funds NLP tiếng Việt cho văn bản pháp luật\n\nPath 3 (Score: 33.3%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI đa phương thức cho báo cáo chẩn đoán y tế\n  ├─> participates in PGS.TS. Trần Thị B\n  └─> participates in NLP tiếng Việt cho văn bản pháp luật\n\n```",
+        "confidence": {
+          "total": 0.811,
+          "level": "Rất cao - Nhiều bằng chứng mạnh",
+          "components": {
+            "base_score": 0.511,
+            "diversity_boost": 0.3,
+            "quality_boost": 0.0
+          },
+          "interpretation": "Rất khuyến nghị - Nhiều bằng chứng mạnh mẽ hỗ trợ gợi ý này"
+        },
+        "metadata": {
+          "score": 0.511,
+          "diversity": 10,
+          "num_paths": 3
+        }
+      }
+    },
+    {
+      "recommendation": {
+        "project_id": "PRJ_0005",
+        "title": "Chatbot LegalBot hỗ trợ tư pháp",
+        "status": "ongoing",
+        "location": "VN-HN",
+        "trl": 6,
+        "budget": 1200000000,
+        "score": 0.393,
+        "reasoning_paths": [
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI đa phương thức cho báo cáo chẩn đoán y tế -> participates in PGS.TS. Trần Thị B -> has expertise in Xử lý ngôn ngữ tự nhiên -> belongs to field Chatbot LegalBot hỗ trợ tư pháp",
+            "score": 0.259,
+            "length": 5
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> supports Quỹ NAFOSTED -> funds NLP tiếng Việt cho văn bản pháp luật -> participates in PGS.TS. Trần Thị B -> participates in Chatbot LegalBot hỗ trợ tư pháp",
+            "score": 0.234,
+            "length": 5
+          },
+          {
+            "path": "has expertise in Thị giác máy tính -> belongs to field AI hỗ trợ chẩn đoán X-quang -> participates in TS. Nguyễn Văn A -> collaborates with PGS.TS. Trần Thị B -> participates in Chatbot LegalBot hỗ trợ tư pháp",
+            "score": 0.234,
+            "length": 5
+          }
+        ],
+        "path_diversity": 10,
+        "candidate_sources": [
+          "field"
+        ],
+        "common_funders": null
+      },
+      "explanation": {
+        "natural_language": "Chúng tôi gợi ý dự án **Chatbot LegalBot hỗ trợ tư pháp** cho bạn vì:\n\nĐộ phù hợp tổng thể: **39.3%** (Khá)\nTìm thấy **10 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Giải thích chi tiết:**\nDự án **Chatbot LegalBot hỗ trợ tư pháp** có điểm giao với bạn qua các lĩnh vực AI, NLP, và Thị giác máy tính. Đường dẫn cho thấy các chuyên gia trong lĩnh vực này đã tham gia và hỗ trợ dự án, bao gồm PGS.TS. Trần Thị B và TS. Nguyễn Văn A. Điều này cho thấy dự án có thể học hỏi kinh nghiệm và kỹ năng từ các chuyên gia trong lĩnh vực AI và NLP, giúp phát triển hệ thống chatbot hỗ trợ tư pháp hiệu quả. Vì vậy, dự án này đáng tham khảo nếu bạn muốn học cách ứng dụng AI và NLP trong lĩnh vực tư pháp. Tổng thể, đây là lựa chọn phù hợp để tìm bài học kinh nghiệm hoặc khả năng hợp tác.",
+        "path_analysis": {
+          "path_categories": {
+            "Direct Match": 2,
+            "Funder History": 1,
+            "Expert Network": 3,
+            "Expertise Alignment": 3
+          },
+          "avg_path_length": 5.0,
+          "shortest_path": 5,
+          "longest_path": 5
+        },
+        "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 25.9%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI đa phương thức cho báo cáo chẩn đoán y tế\n  ├─> participates in PGS.TS. Trần Thị B\n  ├─> has expertise in Xử lý ngôn ngữ tự nhiên\n  └─> belongs to field Chatbot LegalBot hỗ trợ tư pháp\n\nPath 2 (Score: 23.4%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> supports Quỹ NAFOSTED\n  ├─> funds NLP tiếng Việt cho văn bản pháp luật\n  ├─> participates in PGS.TS. Trần Thị B\n  └─> participates in Chatbot LegalBot hỗ trợ tư pháp\n\nPath 3 (Score: 23.4%):\n  ┌─ has expertise in Thị giác máy tính\n  ├─> belongs to field AI hỗ trợ chẩn đoán X-quang\n  ├─> participates in TS. Nguyễn Văn A\n  ├─> collaborates with PGS.TS. Trần Thị B\n  └─> participates in Chatbot LegalBot hỗ trợ tư pháp\n\n```",
+        "confidence": {
+          "total": 0.693,
+          "level": "Cao - Bằng chứng đáng tin cậy",
+          "components": {
+            "base_score": 0.393,
+            "diversity_boost": 0.3,
+            "quality_boost": 0.0
+          },
+          "interpretation": "Khuyến nghị - Có đủ bằng chứng tin cậy"
+        },
+        "metadata": {
+          "score": 0.393,
+          "diversity": 10,
+          "num_paths": 3
+        }
+      }
+    }
+  ]
+}

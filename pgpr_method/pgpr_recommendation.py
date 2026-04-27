@@ -35,7 +35,10 @@ NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+# Module-level shared driver (safe to reuse across recommender instances).
+# IMPORTANT: Do not close this driver inside PGPRRecommender.close(), otherwise
+# subsequent requests will fail with "neo4j.exceptions.DriverError: Driver closed".
+_shared_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 
 def _entity_key(label: str, id_val: str) -> str:
@@ -62,6 +65,7 @@ class PGPRRecommender:
     DEFAULT_DEPTH_INCREMENT = 2
     DEFAULT_HARD_LIMIT_DEPTH = 12
     DEFAULT_QUERY_TIMEOUT = 10.0  # seconds
+    POLICY_ONLY_MODE = True
     
     def __init__(
         self,
@@ -72,8 +76,12 @@ class PGPRRecommender:
         policy_path: Optional[str] = None,
         data_dir: str = "pgpr_data",
         enable_cache: bool = True,
+        driver: Optional[Any] = None,
     ):
-        self.driver = driver
+        # Use provided driver if any; otherwise reuse module shared driver.
+        # The recommender does NOT own the shared driver.
+        self.driver = driver or _shared_driver
+        self._owns_driver = driver is not None and driver is not _shared_driver
         self.max_path_length = max_path_length
         self.gamma = gamma
         self.top_k_paths = top_k_paths
@@ -90,6 +98,7 @@ class PGPRRecommender:
         # Policy-related attributes
         self.kg = None
         self.policy = None
+        self.policies = {}
         self._policy_device = None
         self._env = None
         self._load_policy_if_available()
@@ -113,19 +122,19 @@ class PGPRRecommender:
         }
     
     def _load_policy_if_available(self) -> None:
-        """Load KG and trained policy from data_dir if files exist."""
+        """Load KG and all available trained policies from data_dir."""
         try:
             import torch
             from pgpr_kg import KG
             from pgpr_env import KGEnv
             from pgpr_policy import load_policy as load_policy_net
         except ImportError:
-            logger.debug("PyTorch or pgpr modules not available; using heuristic only.")
+            logger.error("PyTorch or pgpr modules not available; policy-only mode requires RL policy.")
             return
         
         vocab_path = os.path.join(self.data_dir, "vocab.json")
-        if not os.path.exists(vocab_path) or not os.path.exists(self.policy_path):
-            logger.debug("No PGPR policy found at %s; using heuristic only.", self.policy_path)
+        if not os.path.exists(vocab_path):
+            logger.error("No vocab found at %s; policy-only mode cannot initialize KG.", vocab_path)
             return
         
         try:
@@ -134,14 +143,33 @@ class PGPRRecommender:
             self.kg.load_triples()
             if os.path.exists(os.path.join(self.data_dir, "entity_emb.npy")):
                 self.kg.load_embeddings()
-            self.policy = load_policy_net(self.kg, self.policy_path)
             self._policy_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self._env = KGEnv(self.kg, driver=self.driver, max_path_length=self.max_path_length)
-            logger.info("PGPR policy loaded from %s (policy-guided mode).", self.policy_path)
+            self.policies = {}
+
+            # Preferred multi-policy files: policy_<Source>_<Target>.pt
+            for filename in os.listdir(self.data_dir):
+                if not filename.startswith("policy_") or not filename.endswith(".pt"):
+                    continue
+                task_name = filename.replace("policy_", "").replace(".pt", "")
+                model_path = os.path.join(self.data_dir, filename)
+                try:
+                    self.policies[task_name] = load_policy_net(self.kg, model_path, device=self._policy_device)
+                except Exception as e:
+                    logger.warning("Skip policy %s due to load error: %s", model_path, e)
+
+            # Backward compatibility with legacy single policy file.
+            if not self.policies and os.path.exists(self.policy_path):
+                self.policies["Project_Expert"] = load_policy_net(self.kg, self.policy_path, device=self._policy_device)
+                logger.info("Loaded legacy policy at %s as task Project_Expert.", self.policy_path)
+
+            self.policy = self.policies.get("Project_Expert")
+            logger.info("Loaded %d policy model(s): %s", len(self.policies), sorted(self.policies.keys()))
         except Exception as e:
-            logger.warning("Could not load PGPR policy: %s; using heuristic only.", e)
+            logger.error("Could not load PGPR policy: %s; policy-only mode cannot use heuristic fallback.", e)
             self.kg = None
             self.policy = None
+            self.policies = {}
             self._env = None
     
     def close(self):
@@ -151,7 +179,8 @@ class PGPRRecommender:
                 self._env.close()
             except Exception:
                 pass
-        self.driver.close()
+        if getattr(self, "_owns_driver", False):
+            self.driver.close()
         
         # Print cache statistics
         if self.enable_cache and (self._cache_hits + self._cache_misses) > 0:
@@ -207,6 +236,10 @@ class PGPRRecommender:
         Returns:
             List of paths with scores and explanations
         """
+        if self.POLICY_ONLY_MODE:
+            logger.debug("find_reasoning_paths is disabled in policy-only mode.")
+            return []
+
         # Use provided max_length or fall back to instance default
         effective_max_length = max_length if max_length is not None else self.max_path_length
         
@@ -336,7 +369,7 @@ class PGPRRecommender:
     ) -> str:
         """
         Generate human-readable explanation for a reasoning path.
-        Uses entity names (e.g. PRJ_0001, Nguyen Van A) when available for clearer paths.
+        Uses entity names (e.g. prj_001, Nguyen Van A) when available for clearer paths.
         """
         relation_descriptions = {
             'HAS_EXPERTISE_IN': 'has expertise in',
@@ -378,41 +411,13 @@ class PGPRRecommender:
         min_score: float = 0.0,
         use_policy: bool = True,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend experts using PGPR with improvements.
-        
-        IMPROVEMENTS:
-        - Batch candidate queries (faster)
-        - Better scoring with multiple features
-        - Validation and error handling
-        - Performance monitoring
-        """
-        start_time = time.time()
-        
-        # Validate inputs
-        if not project_id:
-            raise ValueError("project_id cannot be empty")
-        if limit <= 0:
-            raise ValueError(f"limit must be positive, got {limit}")
-        
-        # Policy-guided mode (if available)
-        if use_policy and self.policy is not None:
-            return self._recommend_with_policy(project_id, limit, min_score)
-        
-        # Heuristic mode with improvements
-        try:
-            recommendations = self._recommend_experts_heuristic_improved(
-                project_id, limit, min_score
-            )
-            
-            elapsed = time.time() - start_time
-            logger.info(f"Expert recommendation for {project_id}: {len(recommendations)} results in {elapsed:.2f}s")
-            
-            return recommendations
-            
-        except Exception as e:
-            logger.error(f"Error in expert recommendation: {e}", exc_info=True)
-            return []
+        return self._generic_recommend_with_policy(
+            source_id=project_id,
+            source_type="Project",
+            target_type="Expert",
+            limit=limit,
+            min_score=min_score,
+        )
     
     def _recommend_experts_heuristic_improved(
         self,
@@ -426,6 +431,10 @@ class PGPRRecommender:
         - Process by depth order
         - Better scoring function
         """
+        if self.POLICY_ONLY_MODE:
+            logger.debug("Heuristic recommendation is disabled in policy-only mode.")
+            return []
+
         with self.driver.session() as session:
             # IMPROVEMENT: Single batch query to get all reachable experts
             candidates = self._find_all_reachable_experts_batch(
@@ -540,13 +549,18 @@ class PGPRRecommender:
                 ORDER BY min_hops ASC
                 LIMIT 100
             """, project_id=project_id, max_depth=max_depth, timeout=self.DEFAULT_QUERY_TIMEOUT)
-            
-            return [dict(record) for record in result]
+            out = [dict(record) for record in result]
+
+            # If the graph doesn't follow the expected Project->ResearchField schema,
+            # fall back to a generic traversal (more robust across datasets).
+            if out:
+                return out
+            return self._find_candidate_experts_generic(session, project_id, max_depth=max_depth)
             
         except Exception as e:
             logger.warning(f"Error in batch candidate query: {e}")
             # Fallback to simpler query
-            return self._find_candidate_experts_simple(session, project_id)
+            return self._find_candidate_experts_generic(session, project_id, max_depth=max_depth)
     
     def _find_candidate_experts_simple(
         self,
@@ -570,6 +584,43 @@ class PGPRRecommender:
             LIMIT 50
         """, project_id=project_id)
         
+        return [dict(record) for record in result]
+
+    def _find_candidate_experts_generic(
+        self,
+        session,
+        project_id: str,
+        max_depth: int = 3,
+        limit: int = 200,
+    ) -> List[Dict[str, Any]]:
+        """
+        Generic candidate discovery:
+        find Experts reachable from Project within max_depth hops by ANY relationship types.
+
+        This matches how you debug in Neo4j Browser:
+            MATCH (p:Project {project_id:$id})-[*1..3]-(e:Expert) RETURN DISTINCT e ...
+        """
+        depth = int(max(1, min(max_depth, 12)))
+        lim = int(max(1, min(limit, 500)))
+
+        # Cypher does not accept a parameter for variable-length patterns,
+        # so we safely embed the bounded integer depth/limit.
+        query = f"""
+        MATCH (p:Project {{project_id: $project_id}})
+        MATCH path = (p)-[*1..{depth}]-(e:Expert)
+        WHERE NOT (e)-[:PARTICIPATES_IN]->(p)
+        WITH e, MIN(length(path)) AS min_hops
+        RETURN e.expert_id AS expert_id,
+               e.name AS name,
+               e.location AS location,
+               e.h_index AS h_index,
+               e.citation_count AS citations,
+               e.publication_count AS publications,
+               min_hops
+        ORDER BY min_hops ASC
+        LIMIT {lim}
+        """
+        result = session.run(query, project_id=project_id, timeout=self.DEFAULT_QUERY_TIMEOUT)
         return [dict(record) for record in result]
     
     def _calculate_expert_score(
@@ -629,13 +680,23 @@ class PGPRRecommender:
         min_score: float,
     ) -> List[Dict[str, Any]]:
         """Use trained policy for recommendations."""
-        n_rollouts = min(50, self.top_k_paths * 5)
+        exclude_keys = []
+        with self.driver.session() as session:
+            res = session.run(
+                "MATCH (e:Expert)-[:PARTICIPATES_IN]->(p:Project {project_id: $pid}) "
+                "RETURN e.expert_id as eid",
+                pid=project_id,
+            )
+            exclude_keys = [f"Expert::{record['eid']}" for record in res]
+
+        n_rollouts = 1000
         policy_paths = self.policy_guided_paths(
             source_id=project_id,
             source_type="Project",
             target_type="Expert",
             n_rollouts=n_rollouts,
             deterministic=False,
+            exclude_keys=exclude_keys,
         )
         
         if not policy_paths:
@@ -644,8 +705,9 @@ class PGPRRecommender:
                 source_id=project_id,
                 source_type="Project",
                 target_type="Expert",
-                n_rollouts=min(20, n_rollouts),
+                n_rollouts=1000,
                 deterministic=True,
+                exclude_keys=exclude_keys,
             )
         
         if policy_paths:
@@ -656,7 +718,11 @@ class PGPRRecommender:
                     if "::" not in target_key:
                         continue
                     _, expert_id = target_key.split("::", 1)
-                    expert_info = self._get_expert_info(session, expert_id)
+                    expert_info = self._get_expert_info(
+                        session,
+                        expert_id,
+                        exclude_project_id=project_id,
+                    )
                     if not expert_info:
                         continue
                     
@@ -685,8 +751,8 @@ class PGPRRecommender:
             if recommendations:
                 return recommendations[:limit]
         
-        logger.info("Policy-guided paths returned no experts; using heuristic fallback.")
-        return self._recommend_experts_heuristic_improved(project_id, limit, min_score)
+        logger.info("Policy-guided paths returned no experts.")
+        return []
     
     def policy_guided_paths(
         self,
@@ -695,9 +761,16 @@ class PGPRRecommender:
         target_type: str,
         n_rollouts: int = 20,
         deterministic: bool = False,
+        exclude_keys: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Use trained policy to walk from source until reaching target type."""
-        if self.policy is None or self._env is None:
+        if self._env is None or self._policy_device is None:
+            return []
+
+        task_name = f"{source_type}_{target_type}"
+        active_policy = self.policies.get(task_name)
+        if active_policy is None:
+            logger.warning("No policy loaded for task %s.", task_name)
             return []
         
         try:
@@ -713,12 +786,16 @@ class PGPRRecommender:
         results = defaultdict(lambda: {"paths": [], "scores": []})
         
         for _ in range(n_rollouts):
-            state, valid_actions = self._env.reset(source_key, target_type=target_type)
+            state, valid_actions = self._env.reset(
+                source_key,
+                target_type=target_type,
+                exclude_keys=exclude_keys,
+            )
             current_ent, path = state
             path_log_prob = 0.0
             
             while valid_actions and len(path) < self.max_path_length - 1:
-                action_idx, log_prob = self.policy.select_action(
+                action_idx, log_prob = active_policy.select_action(
                     current_ent, path, valid_actions, self._policy_device, deterministic=deterministic
                 )
                 if action_idx < 0:
@@ -743,26 +820,57 @@ class PGPRRecommender:
         for target_key, data in results.items():
             if not data["scores"]:
                 continue
-            best_idx = np.argmax(data["scores"])
+                
+            # Gom cặp (đường đi, điểm số) và sắp xếp giảm dần theo điểm
+            paths_with_scores = list(zip(data["paths"], data["scores"]))
+            paths_with_scores.sort(key=lambda x: x[1], reverse=True)
+            
+            # Lọc ra Top 3 đường đi CÓ LOGIC KHÁC NHAU
+            unique_top_paths = []
+            seen_patterns = set()
+            for (rels, ents), p_score in paths_with_scores:
+                pattern = tuple(rels)
+                if pattern not in seen_patterns:
+                    seen_patterns.add(pattern)
+                    unique_top_paths.append({
+                        "path_relations": rels,
+                        "path_entities": ents,
+                        "path_score": float(p_score)
+                    })
+                if len(unique_top_paths) >= 3: # Lấy tối đa 3 đường
+                    break
+                    
             out.append({
                 "target_entity_key": target_key,
-                "path_relations": data["paths"][best_idx][0],
-                "path_entities": data["paths"][best_idx][1],
                 "score": float(np.mean(data["scores"])),
                 "n_paths": len(data["paths"]),
+                "top_paths": unique_top_paths # ĐÂY LÀ KEY CÒN THIẾU
             })
         
         out.sort(key=lambda x: x["score"], reverse=True)
         return out
-    
-    def _get_expert_info(self, session, expert_id: str) -> Optional[Dict[str, Any]]:
-        """Fetch expert info from Neo4j."""
+    def _get_expert_info(
+        self,
+        session,
+        expert_id: str,
+        exclude_project_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Fetch expert info from Neo4j and optionally exclude existing project members."""
+        query = "MATCH (e:Expert {expert_id: $expert_id}) "
+        if exclude_project_id:
+            query += "WHERE NOT (e)-[:PARTICIPATES_IN]->(:Project {project_id: $exclude_project_id}) "
+        query += """
+        OPTIONAL MATCH (e)-[:LOCATED_IN]->(l:Location)
+        RETURN e.name AS name,
+               l.location_id AS location,
+               e.h_index AS h_index,
+               e.citation_count AS citations,
+               e.publication_count AS publications
+        """
         result = session.run(
-            "MATCH (e:Expert {expert_id: $expert_id}) "
-            "RETURN e.name AS name, e.location AS location, "
-            "e.h_index AS h_index, e.citation_count AS citations, "
-            "e.publication_count AS publications",
+            query,
             expert_id=expert_id,
+            exclude_project_id=exclude_project_id,
         )
         records = list(result)
         return dict(records[0]) if records else None
@@ -778,236 +886,48 @@ class PGPRRecommender:
         status_filter: List[str] = None,
         include_funder_candidates: bool = True,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend projects with improvements.
-        
-        Note: by default we source candidates from:
-        - field/hierarchy match (Expert HAS_EXPERTISE_IN ... Project BELONGS_TO)
-        - (optional) shared funder portfolio:
-          Expert PARTICIPATES_IN Project <-FUNDS- Funder -FUNDS-> Other Projects
-          This enables suggestions like PRJ_0007 for EXP_0003 if they share FUN_0002.
-        """
-        if status_filter is None:
-            status_filter = ['planning', 'recruiting', 'ongoing']
-        
-        with self.driver.session() as session:
-            candidates = self._find_candidate_projects(session, expert_id, status_filter)
-            if include_funder_candidates:
-                funder_candidates = self._find_candidate_projects_by_shared_funder(
-                    session, expert_id, status_filter
-                )
-                if funder_candidates:
-                    by_id = {c["project_id"]: c for c in candidates}
-                    for fc in funder_candidates:
-                        pid = fc["project_id"]
-                        if pid in by_id:
-                            src = set(by_id[pid].get("candidate_sources") or ["field"])
-                            src.add("funder")
-                            by_id[pid]["candidate_sources"] = sorted(src)
-                            if "common_funders" in fc:
-                                by_id[pid]["common_funders"] = max(
-                                    by_id[pid].get("common_funders", 0),
-                                    fc.get("common_funders", 0),
-                                )
-                        else:
-                            fc["candidate_sources"] = ["funder"]
-                            by_id[pid] = fc
-                    candidates = list(by_id.values())
-            recommendations = []
-            
-            for candidate in candidates:
-                project_id = candidate["project_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=expert_id,
-                    source_type="Expert",
-                    target_id=project_id,
-                    target_type="Project"
-                )
-                
-                if not paths:
-                    continue
-                
-                # Improved scoring
-                score = self._calculate_project_score(paths, candidate)
-                
-                recommendations.append({
-                    "project_id": project_id,
-                    "title": candidate["title"],
-                    "status": candidate["status"],
-                    "location": candidate.get("location"),
-                    "trl": candidate.get("trl"),
-                    "budget": candidate.get("budget"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
-                    "common_funders": candidate.get("common_funders"),
-                })
-            
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=expert_id,
+            source_type="Expert",
+            target_type="Project",
+            limit=limit,
+        )
 
     def recommend_funders_for_expert_pgpr(
         self,
         expert_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend funders/enterprises for an expert.
-
-        Ý tưởng:
-        - Ưu tiên các funder đã từng tài trợ các project mà expert tham gia.
-        - Mở rộng thêm các funder đang SUPPORT các lĩnh vực mà expert có chuyên môn.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_funders_for_expert(session, expert_id)
-            recommendations: List[Dict[str, Any]] = []
-
-            for candidate in candidates:
-                funder_id = candidate["funder_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=expert_id,
-                    source_type="Expert",
-                    target_id=funder_id,
-                    target_type="Funder",
-                )
-
-                if not paths:
-                    continue
-
-                score = self._calculate_funder_score(paths, candidate)
-
-                recommendations.append(
-                    {
-                        "funder_id": funder_id,
-                        "name": candidate["name"],
-                        "type": candidate.get("type"),
-                        "location": candidate.get("location"),
-                        "budget_capacity": candidate.get("budget_capacity"),
-                        "candidate_sources": candidate.get("candidate_sources", []),
-                        "funded_related_projects": candidate.get(
-                            "funded_related_projects"
-                        ),
-                        "score": round(score, 3),
-                        "reasoning_paths": [
-                            {
-                                "path": p["explanation"],
-                                "score": round(p["score"], 3),
-                                "length": p["length"],
-                            }
-                            for p in paths[:3]
-                        ],
-                        "path_diversity": len(
-                            set(tuple(p["relations"]) for p in paths)
-                        ),
-                    }
-                )
-
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=expert_id,
+            source_type="Expert",
+            target_type="Funder",
+            limit=limit,
+        )
 
     def recommend_enterprises_for_expert_pgpr(
         self,
         expert_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend enterprises for an expert.
-
-        Ý tưởng:
-        - Doanh nghiệp hoạt động trong các industry mà expert có kinh nghiệm ứng dụng.
-        - Doanh nghiệp đang hợp tác (PARTNERS_WITH) với các dự án mà expert tham gia.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_enterprises_for_expert(session, expert_id)
-            recommendations: List[Dict[str, Any]] = []
-
-            for candidate in candidates:
-                enterprise_id = candidate["enterprise_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=expert_id,
-                    source_type="Expert",
-                    target_id=enterprise_id,
-                    target_type="Enterprise",
-                )
-
-                if not paths:
-                    continue
-
-                # Reuse funder scoring logic (dựa trên path score + diversity)
-                score = self._calculate_funder_score(paths, candidate)
-
-                recommendations.append(
-                    {
-                        "enterprise_id": enterprise_id,
-                        "name": candidate["name"],
-                        "location": candidate.get("location"),
-                        "candidate_sources": candidate.get("candidate_sources", []),
-                        "matched_industries": candidate.get("matched_industries"),
-                        "partner_projects": candidate.get("partner_projects"),
-                        "score": round(score, 3),
-                        "reasoning_paths": [
-                            {
-                                "path": p["explanation"],
-                                "score": round(p["score"], 3),
-                                "length": p["length"],
-                            }
-                            for p in paths[:3]
-                        ],
-                        "path_diversity": len(
-                            set(tuple(p["relations"]) for p in paths)
-                        ),
-                    }
-                )
-
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=expert_id,
+            source_type="Expert",
+            target_type="Enterprise",
+            limit=limit,
+        )
 
     def recommend_experts_for_expert_pgpr(
         self,
         expert_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend experts for collaboration (chuyên gia tiềm năng hợp tác nghiên cứu).
-        Meta-paths: same HAS_EXPERTISE_IN field; same PARTICIPATES_IN project; HAS_SKILL same MethodTechnique.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_experts_for_expert(session, expert_id)
-            recommendations: List[Dict[str, Any]] = []
-            for candidate in candidates:
-                other_id = candidate["expert_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=expert_id,
-                    source_type="Expert",
-                    target_id=other_id,
-                    target_type="Expert",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_expert_score(paths, candidate)
-                recommendations.append({
-                    "expert_id": other_id,
-                    "name": candidate.get("name"),
-                    "location": candidate.get("location"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "metrics": {
-                        "h_index": candidate.get("h_index"),
-                        "citations": candidate.get("citations"),
-                        "publications": candidate.get("publications"),
-                    },
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=expert_id,
+            source_type="Expert",
+            target_type="Expert",
+            limit=limit,
+        )
 
     def _calculate_project_score(self, paths: List[Dict], project_info: Dict) -> float:
         """Calculate project recommendation score."""
@@ -1102,83 +1022,24 @@ class PGPRRecommender:
         project_id: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
-        """Recommend funders with improvements."""
-        with self.driver.session() as session:
-            candidates = self._find_candidate_funders(session, project_id)
-            recommendations = []
-            
-            for candidate in candidates:
-                funder_id = candidate["funder_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=project_id,
-                    source_type="Project",
-                    target_id=funder_id,
-                    target_type="Funder"
-                )
-                
-                if not paths:
-                    continue
-                
-                score = self._calculate_funder_score(paths, candidate)
-                
-                recommendations.append({
-                    "funder_id": funder_id,
-                    "name": candidate["name"],
-                    "type": candidate["type"],
-                    "location": candidate.get("location"),
-                    "budget_capacity": candidate.get("budget_capacity"),
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                    "funded_related_projects": candidate.get("funded_related_projects"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths))
-                })
-            
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=project_id,
+            source_type="Project",
+            target_type="Funder",
+            limit=limit,
+        )
 
     def recommend_enterprises_for_project_pgpr(
         self,
         project_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend enterprises for a project (doanh nghiệp hợp tác/chuyển giao công nghệ).
-        Meta-paths: Project->Field->RelatedProject<-PARTNERS_WITH-Enterprise;
-                    Project->Expert->Industry<-OPERATES_IN-Enterprise.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_enterprises_for_project(session, project_id)
-            recommendations = []
-            for candidate in candidates:
-                enterprise_id = candidate["enterprise_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=project_id,
-                    source_type="Project",
-                    target_id=enterprise_id,
-                    target_type="Enterprise",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_funder_score(paths, candidate)  # path+diversity
-                recommendations.append({
-                    "enterprise_id": enterprise_id,
-                    "name": candidate["name"],
-                    "location": candidate.get("location"),
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                    "partner_projects": candidate.get("partner_projects"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=project_id,
+            source_type="Project",
+            target_type="Enterprise",
+            limit=limit,
+        )
 
     def recommend_projects_for_project_pgpr(
         self,
@@ -1186,43 +1047,12 @@ class PGPRRecommender:
         limit: int = 10,
         status_filter: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend similar projects (dự án tương tự để tham khảo/hợp tác).
-        Meta-paths: same field, same funder, shared experts.
-        """
-        if status_filter is None:
-            status_filter = ["planning", "recruiting", "ongoing"]
-        with self.driver.session() as session:
-            candidates = self._find_candidate_projects_for_project(session, project_id, status_filter)
-            recommendations = []
-            for candidate in candidates:
-                other_id = candidate["project_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=project_id,
-                    source_type="Project",
-                    target_id=other_id,
-                    target_type="Project",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_project_score(paths, candidate)
-                recommendations.append({
-                    "project_id": other_id,
-                    "title": candidate["title"],
-                    "status": candidate["status"],
-                    "location": candidate.get("location"),
-                    "trl": candidate.get("trl"),
-                    "budget": candidate.get("budget"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=project_id,
+            source_type="Project",
+            target_type="Project",
+            limit=limit,
+        )
     
     def _calculate_funder_score(self, paths: List[Dict], funder_info: Dict) -> float:
         """Calculate funder recommendation score."""
@@ -1680,45 +1510,12 @@ class PGPRRecommender:
         enterprise_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend experts for an enterprise (doanh nghiệp cần chuyên gia phù hợp).
-        - Chuyên gia có kinh nghiệm ứng dụng trong industry mà enterprise hoạt động.
-        - Chuyên gia từng tham gia các dự án mà enterprise đang hợp tác.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_experts_for_enterprise(session, enterprise_id)
-            recommendations: List[Dict[str, Any]] = []
-
-            for candidate in candidates:
-                expert_id = candidate["expert_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=enterprise_id,
-                    source_type="Enterprise",
-                    target_id=expert_id,
-                    target_type="Expert",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_expert_score(paths, candidate)
-                recommendations.append({
-                    "expert_id": expert_id,
-                    "name": candidate.get("name"),
-                    "location": candidate.get("location"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "metrics": {
-                        "h_index": candidate.get("h_index"),
-                        "citations": candidate.get("citations"),
-                        "publications": candidate.get("publications"),
-                    },
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=enterprise_id,
+            source_type="Enterprise",
+            target_type="Expert",
+            limit=limit,
+        )
 
     def recommend_projects_for_enterprise_pgpr(
         self,
@@ -1726,125 +1523,36 @@ class PGPRRecommender:
         limit: int = 10,
         status_filter: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend projects for an enterprise (dự án phù hợp để doanh nghiệp hợp tác).
-        - Dự án cùng lĩnh vực/industry với enterprise.
-        - Dự án liên quan đến các dự án enterprise đã hợp tác.
-        """
-        if status_filter is None:
-            status_filter = ["planning", "recruiting", "ongoing"]
-        with self.driver.session() as session:
-            candidates = self._find_candidate_projects_for_enterprise(session, enterprise_id, status_filter)
-            recommendations: List[Dict[str, Any]] = []
-
-            for candidate in candidates:
-                project_id = candidate["project_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=enterprise_id,
-                    source_type="Enterprise",
-                    target_id=project_id,
-                    target_type="Project",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_project_score(paths, candidate)
-                recommendations.append({
-                    "project_id": project_id,
-                    "title": candidate["title"],
-                    "status": candidate["status"],
-                    "location": candidate.get("location"),
-                    "trl": candidate.get("trl"),
-                    "budget": candidate.get("budget"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=enterprise_id,
+            source_type="Enterprise",
+            target_type="Project",
+            limit=limit,
+        )
 
     def recommend_funders_for_enterprise_pgpr(
         self,
         enterprise_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend funders for an enterprise (quỹ tài trợ liên quan lĩnh vực doanh nghiệp).
-        Meta-paths: Enterprise-PARTNERS_WITH-Project-FUNDS-Funder; Enterprise-PARTNERS_WITH-Project-BELONGS_TO-Field-SUPPORTS-Funder.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_funders_for_enterprise(session, enterprise_id)
-            recommendations: List[Dict[str, Any]] = []
-            for candidate in candidates:
-                funder_id = candidate["funder_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=enterprise_id,
-                    source_type="Enterprise",
-                    target_id=funder_id,
-                    target_type="Funder",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_funder_score(paths, candidate)
-                recommendations.append({
-                    "funder_id": funder_id,
-                    "name": candidate["name"],
-                    "type": candidate.get("type"),
-                    "location": candidate.get("location"),
-                    "budget_capacity": candidate.get("budget_capacity"),
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=enterprise_id,
+            source_type="Enterprise",
+            target_type="Funder",
+            limit=limit,
+        )
 
     def recommend_enterprises_for_enterprise_pgpr(
         self,
         enterprise_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend enterprises for collaboration (doanh nghiệp cùng lĩnh vực để hợp tác).
-        Meta-paths: same OPERATES_IN industry; same PARTNERS_WITH project; related field via partner projects.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_enterprises_for_enterprise(session, enterprise_id)
-            recommendations: List[Dict[str, Any]] = []
-            for candidate in candidates:
-                other_id = candidate["enterprise_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=enterprise_id,
-                    source_type="Enterprise",
-                    target_id=other_id,
-                    target_type="Enterprise",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_funder_score(paths, candidate)
-                recommendations.append({
-                    "enterprise_id": other_id,
-                    "name": candidate["name"],
-                    "location": candidate.get("location"),
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                    "shared_projects": candidate.get("shared_projects"),
-                    "matched_industries": candidate.get("matched_industries"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=enterprise_id,
+            source_type="Enterprise",
+            target_type="Enterprise",
+            limit=limit,
+        )
 
     def _find_candidate_experts_for_enterprise(
         self,
@@ -2083,45 +1791,12 @@ class PGPRRecommender:
         funder_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend experts for a funder (chuyên gia phù hợp với danh mục/quỹ).
-        - Chuyên gia tham gia các dự án mà funder tài trợ.
-        - Chuyên gia có chuyên môn trong lĩnh vực funder hỗ trợ.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_experts_for_funder(session, funder_id)
-            recommendations: List[Dict[str, Any]] = []
-
-            for candidate in candidates:
-                expert_id = candidate["expert_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=funder_id,
-                    source_type="Funder",
-                    target_id=expert_id,
-                    target_type="Expert",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_expert_score(paths, candidate)
-                recommendations.append({
-                    "expert_id": expert_id,
-                    "name": candidate.get("name"),
-                    "location": candidate.get("location"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "metrics": {
-                        "h_index": candidate.get("h_index"),
-                        "citations": candidate.get("citations"),
-                        "publications": candidate.get("publications"),
-                    },
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=funder_id,
+            source_type="Funder",
+            target_type="Expert",
+            limit=limit,
+        )
 
     def recommend_projects_for_funder_pgpr(
         self,
@@ -2129,84 +1804,24 @@ class PGPRRecommender:
         limit: int = 10,
         status_filter: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend projects for a funder (dự án phù hợp để quỹ tài trợ).
-        - Dự án thuộc lĩnh vực funder SUPPORT.
-        - Dự án liên quan (cùng field) với các dự án funder đã FUNDS.
-        """
-        if status_filter is None:
-            status_filter = ["planning", "recruiting", "ongoing"]
-        with self.driver.session() as session:
-            candidates = self._find_candidate_projects_for_funder(session, funder_id, status_filter)
-            recommendations: List[Dict[str, Any]] = []
-
-            for candidate in candidates:
-                project_id = candidate["project_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=funder_id,
-                    source_type="Funder",
-                    target_id=project_id,
-                    target_type="Project",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_project_score(paths, candidate)
-                recommendations.append({
-                    "project_id": project_id,
-                    "title": candidate["title"],
-                    "status": candidate["status"],
-                    "location": candidate.get("location"),
-                    "trl": candidate.get("trl"),
-                    "budget": candidate.get("budget"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                    "candidate_sources": candidate.get("candidate_sources", ["field"]),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=funder_id,
+            source_type="Funder",
+            target_type="Project",
+            limit=limit,
+        )
 
     def recommend_enterprises_for_funder_pgpr(
         self,
         funder_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """
-        Recommend enterprises for a funder (doanh nghiệp chiến lược đồng hành cùng dự án).
-        Meta-paths: Funder-FUNDS-Project-PARTNERS_WITH-Enterprise; Funder-SUPPORTS-Field-BELONGS_TO-Project-PARTNERS_WITH-Enterprise.
-        """
-        with self.driver.session() as session:
-            candidates = self._find_candidate_enterprises_for_funder(session, funder_id)
-            recommendations: List[Dict[str, Any]] = []
-            for candidate in candidates:
-                enterprise_id = candidate["enterprise_id"]
-                paths = self.find_reasoning_paths(
-                    source_id=funder_id,
-                    source_type="Funder",
-                    target_id=enterprise_id,
-                    target_type="Enterprise",
-                )
-                if not paths:
-                    continue
-                score = self._calculate_funder_score(paths, candidate)
-                recommendations.append({
-                    "enterprise_id": enterprise_id,
-                    "name": candidate["name"],
-                    "location": candidate.get("location"),
-                    "candidate_sources": candidate.get("candidate_sources", []),
-                    "partner_projects": candidate.get("partner_projects"),
-                    "score": round(score, 3),
-                    "reasoning_paths": [
-                        {"path": p["explanation"], "score": round(p["score"], 3), "length": p["length"]}
-                        for p in paths[:3]
-                    ],
-                    "path_diversity": len(set(tuple(p["relations"]) for p in paths)),
-                })
-            recommendations.sort(key=lambda x: x["score"], reverse=True)
-            return recommendations[:limit]
+        return self._generic_recommend_with_policy(
+            source_id=funder_id,
+            source_type="Funder",
+            target_type="Enterprise",
+            limit=limit,
+        )
 
     def _find_candidate_experts_for_funder(
         self,
@@ -2522,6 +2137,121 @@ class PGPRRecommender:
             "relation_frequency": dict(relation_freq)
         }
 
+    # ==========================================
+    # SUPER AI WRAPPER (TEST PURE RL POLICY)
+    # ==========================================
+
+    def _get_generic_entity_info(self, session, entity_id: str, entity_type: str) -> Dict[str, Any]:
+        """Tự động query lấy thông tin của bất kỳ Node nào (kèm theo Location nếu có)."""
+        id_prop = f"{entity_type.lower()}_id"
+        query = f"""
+        MATCH (n:{entity_type} {{{id_prop}: $eid}})
+        OPTIONAL MATCH (n)-[:LOCATED_IN]->(l:Location)
+        RETURN properties(n) AS props, l.location_id AS location
+        """
+        res = list(session.run(query, eid=entity_id))
+        if not res:
+            return {}
+        info = res[0]["props"] or {}
+        info["location"] = res[0].get("location")
+        return info
+
+    def _get_exclude_keys(self, source_id: str, source_type: str, target_type: str) -> List[str]:
+        """Tự động cắm biển cấm dựa trên cặp quan hệ Ground Truth"""
+        queries = {
+            "Expert_Project": "MATCH (s:Expert {expert_id: $sid})-[:PARTICIPATES_IN]->(t:Project) RETURN t.project_id AS tid",
+            "Project_Expert": "MATCH (s:Project {project_id: $sid})<-[:PARTICIPATES_IN]-(t:Expert) RETURN t.expert_id AS tid",
+            "Enterprise_Project": "MATCH (s:Enterprise {enterprise_id: $sid})-[:PARTNERS_WITH]->(t:Project) RETURN t.project_id AS tid",
+            "Project_Enterprise": "MATCH (s:Project {project_id: $sid})<-[:PARTNERS_WITH]-(t:Enterprise) RETURN t.enterprise_id AS tid",
+            "Funder_Project": "MATCH (s:Funder {funder_id: $sid})-[:FUNDS]->(t:Project) RETURN t.project_id AS tid",
+            "Project_Funder": "MATCH (s:Project {project_id: $sid})<-[:FUNDS]-(t:Funder) RETURN t.funder_id AS tid",
+            "Enterprise_Project": "MATCH (s:Enterprise {enterprise_id: $sid})-[:PARTNERS_WITH]->(t:Project) RETURN t.project_id AS tid",
+            "Funder_Project": "MATCH (s:Funder {funder_id: $sid})-[:FUNDS]->(t:Project) RETURN t.project_id AS tid",
+            "Expert_Enterprise": "MATCH (s:Expert {expert_id: $sid})-[:HAS_APPLICATION_EXPERIENCE_IN]->(:Industry)<-[:OPERATES_IN]-(t:Enterprise) RETURN t.enterprise_id AS tid",
+            "Enterprise_Expert": "MATCH (s:Enterprise {enterprise_id: $sid})-[:OPERATES_IN]->(:Industry)<-[:HAS_APPLICATION_EXPERIENCE_IN]-(t:Expert) RETURN t.expert_id AS tid",
+        }
+        task_name = f"{source_type}_{target_type}"
+        if task_name not in queries:
+            return []
+            
+        with self.driver.session() as session:
+            res = session.run(queries[task_name], sid=source_id)
+            return [f"{target_type}::{record['tid']}" for record in res]
+
+    def _generic_recommend_with_policy(
+        self,
+        source_id: str,
+        source_type: str,
+        target_type: str,
+        limit: int = 10,
+        min_score: float = 0.0,
+    ) -> List[Dict[str, Any]]:
+        """Hàm duy nhất để chạy AI cho mọi luồng (Không có Cypher)"""
+        task_name = f"{source_type}_{target_type}"
+        if task_name not in self.policies:
+            logger.warning(f"Không tìm thấy bộ não AI cho {task_name}. Vui lòng train trước!")
+            return []
+
+        # 1. Tìm người nhà để cắm biển cấm
+        exclude_keys = self._get_exclude_keys(source_id, source_type, target_type)
+
+        # 2. Thả AI đi dạo 1000 vòng
+        policy_paths = self.policy_guided_paths(
+            source_id=source_id,
+            source_type=source_type,
+            target_type=target_type,
+            n_rollouts=1000,
+            deterministic=False,
+            exclude_keys=exclude_keys,
+        )
+
+        if not policy_paths:
+            logger.info(f"AI RL không tìm thấy kết quả nào cho {source_id} -> {target_type}.")
+            return []
+
+        # 3. Lắp ráp dữ liệu trả về
+        recommendations = []
+        with self.driver.session() as session:
+            for item in policy_paths[:limit * 2]:
+                target_key = item["target_entity_key"]
+                if "::" not in target_key:
+                    continue
+                _, t_id = target_key.split("::", 1)
+
+                # Lấy info tự động
+                info = self._get_generic_entity_info(session, t_id, target_type)
+                if not info:
+                    continue
+
+                # Map thành dictionary chuẩn
+                rec = {
+                    f"{target_type.lower()}_id": t_id,
+                    "name": info.get("name", info.get("title", "N/A")),
+                    "score": round(item["score"], 3),
+                    
+                    # MỚI: Lặp qua danh sách top_paths để lấy ra 3 đường
+                    "reasoning_paths": [
+                        {
+                            "path": " -> ".join(p["path_relations"]),
+                            "score": p["path_score"],
+                            "length": len(p["path_relations"]),
+                        }
+                        for p in item["top_paths"]
+                    ],
+                    
+                    "path_diversity": item["n_paths"],
+                    "metrics": {
+                        "h_index": info.get("h_index"),
+                        "budget": info.get("budget"),
+                        "status": info.get("status"),
+                    },
+                }
+                if rec["score"] >= min_score:
+                    recommendations.append(rec)
+
+        recommendations.sort(key=lambda x: x["score"], reverse=True)
+        return recommendations[:limit]
+
 
 # ==========================================
 # UTILITY FUNCTIONS
@@ -2603,10 +2333,10 @@ if __name__ == "__main__":
         # Test expert recommendations
         print("\n### Expert Recommendations (Improved) ###")
         experts = pgpr.recommend_experts_for_project_pgpr(
-            project_id="PRJ_0001",
+            project_id="prj_001",
             limit=5
         )
-        print_pgpr_recommendations(experts, "Recommended Experts for PRJ_0001")
+        print_pgpr_recommendations(experts, "Recommended Experts for prj_001")
         
         # Show cache statistics
         stats = pgpr.get_cache_stats()

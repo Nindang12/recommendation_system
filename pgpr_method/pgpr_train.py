@@ -9,14 +9,13 @@ import os
 import argparse
 import logging
 import random
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Dict
 
 import torch
-import torch.nn.functional as F
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
-from pgpr_kg import KG, _entity_key, build_kg_from_neo4j
+from pgpr_kg import KG, _entity_key, build_kg_from_neo4j, LABEL_TO_ID_PROP
 from pgpr_env import KGEnv
 from pgpr_policy import PolicyNetwork
 
@@ -29,40 +28,67 @@ NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 
 
-def collect_positive_pairs_project_expert(driver, limit: int = 500) -> List[Tuple[str, str]]:
-    """(source_entity_key, target_entity_key). source=Project, target=Expert where Expert PARTICIPATES_IN Project."""
-    query = """
-    MATCH (p:Project)<-[:PARTICIPATES_IN]-(e:Expert)
-    RETURN p.project_id AS project_id, e.expert_id AS expert_id
-    LIMIT $limit
-    """
+GROUND_TRUTH_RULES: Dict[str, str] = {
+    "Project_Expert": "(s:Project)<-[:PARTICIPATES_IN]-(t:Expert)",
+    "Expert_Project": "(s:Expert)-[:PARTICIPATES_IN]->(t:Project)",
+    "Enterprise_Project": "(s:Enterprise)-[:PARTNERS_WITH]->(t:Project)",
+    "Funder_Project": "(s:Funder)-[:FUNDS]->(t:Project)",
+    "Expert_Enterprise": "(s:Expert)-[:HAS_APPLICATION_EXPERIENCE_IN]->(:Industry)<-[:OPERATES_IN]-(t:Enterprise)",
+}
+
+
+def _id_prop_for_label(label: str) -> str:
+    return LABEL_TO_ID_PROP.get(label, f"{label.lower()}_id")
+
+
+def collect_dynamic_pairs(
+    driver,
+    task_name: str,
+    is_positive: bool = True,
+    limit: int = 500,
+) -> List[Tuple[str, str]]:
+    """Collect positive/negative (source_key, target_key) pairs for a task."""
+    if task_name not in GROUND_TRUTH_RULES:
+        raise ValueError(f"Unsupported task '{task_name}'. Available: {sorted(GROUND_TRUTH_RULES)}")
+    if limit <= 0:
+        return []
+
+    source_type, target_type = task_name.split("_", 1)
+    rule_pattern = GROUND_TRUTH_RULES[task_name]
+    s_id_prop = _id_prop_for_label(source_type)
+    t_id_prop = _id_prop_for_label(target_type)
+
+    if is_positive:
+        query = f"""
+        MATCH {rule_pattern}
+        WHERE s.{s_id_prop} IS NOT NULL AND t.{t_id_prop} IS NOT NULL
+        RETURN s.{s_id_prop} AS s_id, t.{t_id_prop} AS t_id
+        LIMIT $limit
+        """
+    else:
+        query = f"""
+        MATCH (s:{source_type}), (t:{target_type})
+        WHERE s.{s_id_prop} IS NOT NULL
+          AND t.{t_id_prop} IS NOT NULL
+          AND NOT EXISTS {{
+            MATCH {rule_pattern}
+          }}
+        RETURN s.{s_id_prop} AS s_id, t.{t_id_prop} AS t_id
+        LIMIT $limit
+        """
+
     with driver.session() as session:
         result = session.run(query, limit=limit)
         records = list(result)
-    pairs = []
+
+    pairs: List[Tuple[str, str]] = []
     for record in records:
-        proj_id = record["project_id"]
-        exp_id = record["expert_id"]
-        pairs.append((_entity_key("Project", proj_id), _entity_key("Expert", exp_id)))
+        s_id = record["s_id"]
+        t_id = record["t_id"]
+        if s_id is None or t_id is None:
+            continue
+        pairs.append((_entity_key(source_type, str(s_id)), _entity_key(target_type, str(t_id))))
     return pairs
-
-
-def collect_negative_pairs_project_expert(driver, positive_pairs: List[Tuple[str, str]], limit: int = 500) -> List[Tuple[str, str]]:
-    """(project_key, expert_key) where expert does NOT participate in project. Random expert."""
-    project_keys = list({p[0] for p in positive_pairs})
-    with driver.session() as session:
-        result = session.run("MATCH (e:Expert) RETURN e.expert_id AS expert_id LIMIT $limit", limit=limit * 2)
-        expert_ids = [r["expert_id"] for r in list(result)]
-    pos_set = set((p[0], p[1]) for p in positive_pairs)
-    negatives = []
-    for proj_key in project_keys:
-        _, proj_id = proj_key.split("::", 1)
-        for _ in range(min(3, limit // max(len(project_keys), 1))):
-            exp_id = random.choice(expert_ids)
-            pair = (proj_key, _entity_key("Expert", exp_id))
-            if pair not in pos_set:
-                negatives.append(pair)
-    return negatives[:limit]
 
 
 def run_episode(
@@ -82,7 +108,11 @@ def run_episode(
     is_positive: True = (source, target) is a positive pair → reward 1 if reach target_key else -0.1.
     is_positive: False = negative pair → reward -0.5 if reach target_key else 0.1.
     """
-    state, valid_actions = env.reset(source_key, target_type=target_type)
+    state, valid_actions = env.reset(
+        source_key,
+        target_entity_key=target_key,
+        target_type=target_type,
+    )
     current_ent, path = state
     log_probs_list = []
     path_actions = []
@@ -106,7 +136,7 @@ def run_episode(
             if reached_entity == target_key:
                 reward = 1.0 if is_positive else -0.5
             else:
-                reward = step_reward if step_reward > 0 else (-0.1 if is_positive else 0.1)
+                reward = -0.1 if is_positive else 0.1
             break
 
     if not log_probs_list:
@@ -115,6 +145,7 @@ def run_episode(
 
 
 def train_pgpr(
+    task_name: str = "Project_Expert",
     data_dir: str = "pgpr_data",
     max_path_length: int = 5,
     embedding_dim: int = 64,
@@ -124,11 +155,18 @@ def train_pgpr(
     batch_size: int = 32,
     n_positive: int = 200,
     n_negative: int = 200,
-    save_path: str = "pgpr_data/policy.pt",
+    save_path: str = "",
 ) -> None:
     """Build KG, collect pairs, train policy with REINFORCE."""
+    if task_name not in GROUND_TRUTH_RULES:
+        raise ValueError(f"Unsupported task '{task_name}'. Available: {sorted(GROUND_TRUTH_RULES)}")
+
+    source_type, target_type = task_name.split("_", 1)
+    if not save_path:
+        save_path = os.path.join(data_dir, f"policy_{task_name}.pt")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logger.info("Device: %s", device)
+    logger.info("Device: %s | Task: %s (%s -> %s)", device, task_name, source_type, target_type)
 
     # KG: load or build
     kg = KG(data_dir=data_dir)
@@ -154,14 +192,13 @@ def train_pgpr(
     policy.to(device)
     optimizer = torch.optim.Adam(policy.parameters(), lr=lr)
 
-    positive_pairs = collect_positive_pairs_project_expert(driver, limit=n_positive)
-    negative_pairs = collect_negative_pairs_project_expert(driver, positive_pairs, limit=n_negative)
+    positive_pairs = collect_dynamic_pairs(driver, task_name, is_positive=True, limit=n_positive)
+    negative_pairs = collect_dynamic_pairs(driver, task_name, is_positive=False, limit=n_negative)
     logger.info("Positive pairs: %d, Negative pairs: %d", len(positive_pairs), len(negative_pairs))
     if not positive_pairs:
-        logger.warning("No positive pairs. Add PARTICIPATES_IN data in Neo4j or use seed data.")
+        logger.warning("No positive pairs found for task %s.", task_name)
 
     all_pairs = positive_pairs + negative_pairs
-    rewards_positive = [1.0] * len(positive_pairs) + [0.0] * len(negative_pairs)
     baseline = 0.0
     baseline_decay = 0.99
 
@@ -176,13 +213,11 @@ def train_pgpr(
             batch_loss = torch.tensor(0.0, device=device)
             for idx in batch_idx:
                 source_key, target_key = all_pairs[idx]
-                target_type = "Expert"
                 is_positive = idx < len(positive_pairs)
                 path_actions, reward, log_probs_list = run_episode(
                     env, policy, source_key, target_key, target_type, device, max_path_length,
                     deterministic=False, is_positive=is_positive,
                 )
-                expected_reward = rewards_positive[idx] if is_positive else 0.0
                 if path_actions and log_probs_list:
                     # REINFORCE: loss = -sum(log_prob) * (reward - baseline)
                     log_prob_sum = sum(log_probs_list)
@@ -221,6 +256,7 @@ def train_pgpr(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train PGPR policy (REINFORCE)")
+    parser.add_argument("--task", default="Project_Expert", help=f"Training task name. Available: {', '.join(sorted(GROUND_TRUTH_RULES))}")
     parser.add_argument("--data_dir", default="pgpr_data", help="KG data directory")
     parser.add_argument("--max_path_length", type=int, default=5)
     parser.add_argument("--embedding_dim", type=int, default=64)
@@ -230,17 +266,43 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--n_positive", type=int, default=200)
     parser.add_argument("--n_negative", type=int, default=200)
-    parser.add_argument("--save_path", default="pgpr_data/policy.pt")
+    parser.add_argument("--save_path", default="", help="Optional explicit output path. Default: pgpr_data/policy_<task>.pt")
     args = parser.parse_args()
-    train_pgpr(
-        data_dir=args.data_dir,
-        max_path_length=args.max_path_length,
-        embedding_dim=args.embedding_dim,
-        hidden_dim=args.hidden_dim,
-        lr=args.lr,
-        n_epoch=args.n_epoch,
-        batch_size=args.batch_size,
-        n_positive=args.n_positive,
-        n_negative=args.n_negative,
-        save_path=args.save_path,
-    )
+    
+    # NẾU GÕ LỆNH "all", SẼ LẶP QUA TOÀN BỘ TỪ ĐIỂN LUẬT
+    if args.task.lower() == "all":
+        logger.info(f"BẮT ĐẦU TRAIN TỰ ĐỘNG TOÀN BỘ {len(GROUND_TRUTH_RULES)} BỘ NÃO...")
+        for task_key in GROUND_TRUTH_RULES.keys():
+            print(f"\n{'='*60}\n🚀 ĐANG TRAIN TASK: {task_key}\n{'='*60}")
+            try:
+                train_pgpr(
+                    task_name=task_key,
+                    data_dir=args.data_dir,
+                    max_path_length=args.max_path_length,
+                    embedding_dim=args.embedding_dim,
+                    hidden_dim=args.hidden_dim,
+                    lr=args.lr,
+                    n_epoch=args.n_epoch,
+                    batch_size=args.batch_size,
+                    n_positive=args.n_positive,
+                    n_negative=args.n_negative,
+                    save_path="" # Để trống để tự động lưu theo tên task
+                )
+            except Exception as e:
+                logger.error(f"Lỗi khi train task {task_key}: {e}")
+                continue # Lỗi task này thì bỏ qua chạy tiếp task khác
+    else:
+        # Chạy 1 task bình thường như cũ
+        train_pgpr(
+            task_name=args.task,
+            data_dir=args.data_dir,
+            max_path_length=args.max_path_length,
+            embedding_dim=args.embedding_dim,
+            hidden_dim=args.hidden_dim,
+            lr=args.lr,
+            n_epoch=args.n_epoch,
+            batch_size=args.batch_size,
+            n_positive=args.n_positive,
+            n_negative=args.n_negative,
+            save_path=args.save_path,
+        )

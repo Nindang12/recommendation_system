@@ -7,12 +7,12 @@ Reference: PGPR (Xian et al., SIGIR 2019).
 
 import os
 import logging
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Any, Tuple, Optional
 
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
-from pgpr_kg import KG, _entity_key, LABEL_TO_ID_PROP
+from pgpr_kg import KG
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -35,85 +35,53 @@ class KGEnv:
         self._current_entity_key: Optional[str] = None
         self._path: List[Tuple[int, int, int]] = []  # [(h, r, t), ...]
         self._source_entity_key: Optional[str] = None
+        self._target_entity_key: Optional[str] = None
         self._target_type: Optional[str] = None  # e.g. "Expert"; for reward
-
-    def _get_id_prop_for_label(self, label: str) -> str:
-        return LABEL_TO_ID_PROP.get(label, "id")
-
-    def _get_entity_key_from_neo4j_node(self, node: Dict, label: str) -> Optional[str]:
-        id_prop = self._get_id_prop_for_label(label)
-        val = node.get(id_prop) if isinstance(node, dict) else getattr(node, id_prop, None)
-        if val is None:
-            return None
-        return _entity_key(label, str(val))
+        self._exclude_keys: set = set()
 
     def get_neighbors(self, entity_key: str) -> List[Tuple[str, str]]:
         """
         Get all (relation_type, next_entity_key) reachable from entity_key in one step.
-        entity_key format: "Label::id_value" (e.g. "Project::PRJ_0001").
+        Fast path: read neighbors directly from in-memory adjacency list.
         """
-        if "::" not in entity_key:
-            return []
-        label, id_val = entity_key.split("::", 1)
-        id_prop = self._get_id_prop_for_label(label)
-        if not id_prop:
+        h_id = self.kg.entity_key_to_id(entity_key)
+        if h_id is None:
             return []
 
-        query = f"""
-        MATCH (a:{label} {{{id_prop}: $id_val}})-[r]->(b)
-        WITH type(r) AS rel_type, labels(b)[0] AS b_label, b
-        RETURN rel_type, b_label, b
-        """
         out: List[Tuple[str, str]] = []
-        with self.driver.session() as session:
-            result = session.run(query, id_val=id_val)
-            for record in result:
-                rel_type = record["rel_type"]
-                b_label = record["b_label"]
-                b_node = record["b"]
-                id_prop_b = self._get_id_prop_for_label(b_label)
-                if not id_prop_b:
-                    continue
-                b_id = b_node.get(id_prop_b) if isinstance(b_node, dict) else getattr(b_node, id_prop_b, None)
-                if b_id is None:
-                    continue
-                next_key = _entity_key(b_label, str(b_id))
-                out.append((rel_type, next_key))
-
-        # Also follow edges in reverse: (b)-[r]->(a) so we can go from Project to ResearchField and then to Expert
-        query_in = f"""
-        MATCH (a:{label} {{{id_prop}: $id_val}})<-[r]-(b)
-        WITH type(r) AS rel_type, labels(b)[0] AS b_label, b
-        RETURN rel_type, b_label, b
-        """
-        with self.driver.session() as session:
-            result = session.run(query_in, id_val=id_val)
-            for record in result:
-                rel_type = record["rel_type"]
-                b_label = record["b_label"]
-                b_node = record["b"]
-                id_prop_b = self._get_id_prop_for_label(b_label)
-                if not id_prop_b:
-                    continue
-                b_id = b_node.get(id_prop_b) if isinstance(b_node, dict) else getattr(b_node, id_prop_b, None)
-                if b_id is None:
-                    continue
-                next_key = _entity_key(b_label, str(b_id))
-                out.append((rel_type, next_key))
+        for r_id, t_id in self.kg.adj_list.get(h_id, []):
+            rel_type = self.kg.id2relation.get(r_id)
+            next_key = self.kg.id2entity.get(t_id)
+            if rel_type is None or next_key is None:
+                continue
+            if next_key in self._exclude_keys:
+                continue
+            # Prevent direct one-hop answer exposure from source to known target during training.
+            if (
+                self._target_entity_key
+                and entity_key == self._source_entity_key
+                and next_key == self._target_entity_key
+            ):
+                continue
+            out.append((rel_type, next_key))
 
         return out
 
     def reset(
         self,
         source_entity_key: str,
+        target_entity_key: Optional[str] = None,
         target_type: Optional[str] = None,
+        exclude_keys: Optional[List[str]] = None,
     ) -> Tuple[Any, List[Tuple[int, int, int]]]:
         """
         Reset env to start at source_entity_key.
         Returns: state_embedding (for policy), list of valid actions as (relation_id, entity_id).
         """
         self._source_entity_key = source_entity_key
+        self._target_entity_key = target_entity_key
         self._target_type = target_type
+        self._exclude_keys = set(exclude_keys) if exclude_keys else set()
         self._current_entity_key = source_entity_key
         self._path = []
 
@@ -141,7 +109,18 @@ class KGEnv:
 
         done = False
         reward = 0.0
-        if self._target_type:
+
+        # Training mode: a concrete target entity is provided.
+        if self._target_entity_key:
+            if self._current_entity_key == self._target_entity_key:
+                done = True
+                reward = 1.0
+            # Reached correct type but wrong entity -> terminate early, no positive reward.
+            elif self._target_type and self._current_entity_key.startswith(self._target_type + "::"):
+                done = True
+                reward = 0.0
+        # Inference mode: only target type is provided.
+        elif self._target_type:
             if self._current_entity_key.startswith(self._target_type + "::"):
                 done = True
                 reward = 1.0

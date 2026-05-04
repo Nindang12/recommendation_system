@@ -1086,6 +1086,11 @@ class PGPRExplainer:
         steps = []
         parts = [p.strip() for p in path_text.split("->") if p.strip()]
         rel_patterns = [
+            # --- NEW SCHEMA ARROWS (v2) ---
+            (r"^researches (.+)$", "researches"),
+            (r"^focuses on topic (.+)$", "focuses_on_topic"),
+            (r"^focuses on (.+)$", "focuses_on"),
+
             (r"^belongs to field (.+)$", "belongs_to_field"),
             (r"^is sub-field of (.+)$", "sub_field_of"),
             (r"^is under field (.+)$", "under_field"),
@@ -1143,15 +1148,14 @@ class PGPRExplainer:
         intro_parts = []
         expert_name = None
         for key, entity in steps:
-            if key == "belongs_to_field":
-                intro_parts.append(f"Dự án nằm trong lĩnh vực {entity}")
+            # Gộp các key có ý nghĩa giống nhau lại
+            if key in ["belongs_to_field", "focuses_on_topic", "focuses_on"]:
+                intro_parts.append(f"Dự án tập trung vào mảng/chủ đề {entity}")
             elif key == "sub_field_of":
                 intro_parts.append(f"đây là một nhánh thuộc {entity}")
             elif key == "under_field":
                 intro_parts.append(f"liên quan tới kỹ thuật {entity}")
-            elif key == "has_expertise_in":
-                expert_name = entity
-            elif key == "has_skill_in":
+            elif key in ["has_expertise_in", "researches", "has_skill_in"]:
                 expert_name = entity
             elif key == "participates_in":
                 intro_parts.append(f"thông qua chuyên gia {entity} (đã tham gia dự án liên quan)")
@@ -1174,8 +1178,8 @@ class PGPRExplainer:
         """Narrate path for funder recommendation."""
         parts = []
         for key, entity in steps:
-            if key == "belongs_to_field":
-                parts.append(f"Dự án thuộc lĩnh vực {entity}.")
+            if key in ["belongs_to_field", "focuses_on_topic", "focuses_on"]:
+                parts.append(f"Dự án thuộc/tập trung vào mảng {entity}.")
             elif key == "sub_field_of":
                 parts.append(f"Đây là nhánh thuộc {entity}.")
             elif key == "supports":
@@ -1210,7 +1214,7 @@ class PGPRExplainer:
         funded_entities: List[str] = []  # e.g. projects/fields being funded
 
         for key, entity in steps:
-            if key == "belongs_to_field":
+            if key in ["belongs_to_field", "focuses_on_topic", "focuses_on"]:
                 if source_field is None:
                     source_field = entity
                 else:
@@ -1315,8 +1319,8 @@ class PGPRExplainer:
         """Narrate path for similar project recommendation."""
         parts = []
         for key, entity in steps:
-            if key == "belongs_to_field":
-                parts.append(f"Cả hai dự án đều thuộc lĩnh vực {entity}.")
+            if key in ["belongs_to_field", "focuses_on_topic", "focuses_on"]:
+                parts.append(f"Cả hai dự án đều tập trung vào mảng/chủ đề {entity}.")
             elif key == "sub_field_of":
                 parts.append(f"Lĩnh vực này là nhánh của {entity}.")
             elif key == "participates_in":

@@ -372,6 +372,11 @@ class PGPRRecommender:
         Uses entity names (e.g. prj_001, Nguyen Van A) when available for clearer paths.
         """
         relation_descriptions = {
+            # New schema v2 (ResearchTopic/ResearchDirection)
+            'RESEARCHES': 'researches',
+            'FOCUSES_ON': 'focuses on',
+            'FOCUSES_ON_TOPIC': 'focuses on topic',
+
             'HAS_EXPERTISE_IN': 'has expertise in',
             'HAS_SKILL': 'has skill in',
             'PARTICIPATES_IN': 'participates in',
@@ -403,6 +408,65 @@ class PGPRRecommender:
     # ==========================================
     # IMPROVED EXPERT RECOMMENDATIONS
     # ==========================================
+
+    def _is_new_node_in_vocab(self, source_type: str, source_id: str) -> bool:
+        """
+        Hybrid step-1 helper:
+        return True when the source node is NOT present in the trained vocab (vocab.json).
+        """
+        source_key = f"{source_type}::{source_id}"
+        return (not self.kg) or (not getattr(self.kg, "entity2id", None)) or (source_key not in self.kg.entity2id)
+
+    def _fallback_score_by_rank(self, idx: int, total: int) -> float:
+        """Simple monotonic score for Cypher fallback results."""
+        denom = max(1, int(total))
+        return round((denom - idx) / denom, 6)
+
+    def _recommend_generic_fallback_from_candidates(
+        self,
+        candidates: List[Dict[str, Any]],
+        target_type: str,
+        id_field: str,
+        limit: int,
+        min_score: float = 0.0,
+    ) -> List[Dict[str, Any]]:
+        """
+        Convert candidate rows (from Cypher) into the same response shape as AI recommendations.
+        This fallback intentionally does NOT depend on PGPR reasoning paths.
+        """
+        out: List[Dict[str, Any]] = []
+        total = len(candidates)
+        for idx, c in enumerate(candidates[: max(0, int(limit))], start=1):
+            t_id = c.get(id_field)
+            if not t_id:
+                continue
+
+            score = float(c.get("score")) if isinstance(c.get("score"), (int, float)) else self._fallback_score_by_rank(idx, total)
+            if score < float(min_score):
+                continue
+
+            name = c.get("name") or c.get("title") or "N/A"
+            rec = {
+                f"{target_type.lower()}_id": t_id,
+                "name": name,
+                "score": round(score, 3),
+                "reasoning_paths": [],
+                "path_diversity": 0,
+                "metrics": {},
+            }
+
+            # Preserve any useful extra fields from candidate query
+            metrics = {}
+            for k in ("location", "status", "trl", "budget", "type", "h_index", "citations", "publications"):
+                if k in c and c.get(k) is not None:
+                    metrics[k] = c.get(k)
+            if metrics:
+                rec["metrics"] = metrics
+
+            out.append(rec)
+
+        out.sort(key=lambda x: x["score"], reverse=True)
+        return out[:limit]
     
     def recommend_experts_for_project_pgpr(
         self,
@@ -411,12 +475,232 @@ class PGPRRecommender:
         min_score: float = 0.0,
         use_policy: bool = True,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=project_id,
-            source_type="Project",
-            target_type="Expert",
+        # BƯỚC 1: KIỂM TRA XEM ĐÂY CÓ PHẢI LÀ NODE MỚI KHÔNG?
+        source_key = f"Project::{project_id}"
+        is_new_node = False
+        if not self.kg or not getattr(self.kg, "entity2id", None) or source_key not in self.kg.entity2id:
+            logger.info(
+                "Phát hiện NODE MỚI '%s' chưa có trong vocab. Kích hoạt Cypher/Heuristic ngay lập tức!",
+                project_id,
+            )
+            is_new_node = True
+
+        # BƯỚC 2: NẾU KHÔNG PHẢI NODE MỚI -> THỬ DÙNG AI (CHÍNH)
+        if use_policy and not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=project_id,
+                source_type="Project",
+                target_type="Expert",
+                limit=limit,
+                min_score=min_score,
+            )
+            if ai_results:
+                return ai_results  # AI làm tốt, trả kết quả luôn!
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", project_id)
+
+        # BƯỚC 3: FALLBACK XUỐNG CYPHER/HEURISTIC (Cho Node mới hoặc AI thất bại)
+        cypher_results = self._recommend_experts_heuristic_improved(
+            project_id=project_id,
             limit=limit,
             min_score=min_score,
+        )
+        return cypher_results
+
+    def _recommend_projects_for_expert_cypher(
+        self,
+        expert_id: str,
+        limit: int,
+        status_filter: Optional[List[str]] = None,
+        include_funder_candidates: bool = True,
+    ) -> List[Dict[str, Any]]:
+        # In current Neo4j seed, Project.status is typically "ongoing".
+        status_filter = status_filter or ["ongoing", "active", "completed", "proposed"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects(session, expert_id, status_filter=status_filter)
+            if include_funder_candidates:
+                candidates2 = self._find_candidate_projects_by_shared_funder(
+                    session, expert_id, status_filter=status_filter, limit=max(80, limit * 5)
+                )
+                # Merge unique by project_id, keep first occurrence (already ordered by query)
+                seen = {c.get("project_id") for c in candidates if c.get("project_id")}
+                for c in candidates2:
+                    pid = c.get("project_id")
+                    if pid and pid not in seen:
+                        candidates.append(c)
+                        seen.add(pid)
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Project",
+            id_field="project_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_funders_for_expert_cypher(self, expert_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_funders_for_expert(session, expert_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Funder",
+            id_field="funder_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_enterprises_for_expert_cypher(self, expert_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_expert(session, expert_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Enterprise",
+            id_field="enterprise_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_experts_for_expert_cypher(self, expert_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_experts_for_expert(session, expert_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Expert",
+            id_field="expert_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_funders_for_project_cypher(self, project_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_funders(session, project_id)
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Funder",
+            id_field="funder_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_enterprises_for_project_cypher(self, project_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_project(session, project_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Enterprise",
+            id_field="enterprise_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_projects_for_project_cypher(
+        self,
+        project_id: str,
+        limit: int,
+        status_filter: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        status_filter = status_filter or ["ongoing", "active", "completed", "proposed"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects_for_project(
+                session, project_id, status_filter=status_filter, limit=max(80, limit * 5)
+            )
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Project",
+            id_field="project_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_experts_for_enterprise_cypher(self, enterprise_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_experts_for_enterprise(session, enterprise_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Expert",
+            id_field="expert_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_projects_for_enterprise_cypher(
+        self,
+        enterprise_id: str,
+        limit: int,
+        status_filter: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        status_filter = status_filter or ["ongoing", "active", "completed", "proposed"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects_for_enterprise(
+                session, enterprise_id, status_filter=status_filter, limit=max(80, limit * 5)
+            )
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Project",
+            id_field="project_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_funders_for_enterprise_cypher(self, enterprise_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_funders_for_enterprise(session, enterprise_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Funder",
+            id_field="funder_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_enterprises_for_enterprise_cypher(self, enterprise_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_enterprise(session, enterprise_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Enterprise",
+            id_field="enterprise_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_experts_for_funder_cypher(self, funder_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_experts_for_funder(session, funder_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Expert",
+            id_field="expert_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_projects_for_funder_cypher(
+        self,
+        funder_id: str,
+        limit: int,
+        status_filter: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        status_filter = status_filter or ["ongoing", "active", "completed", "proposed"]
+        with self.driver.session() as session:
+            candidates = self._find_candidate_projects_for_funder(
+                session, funder_id, status_filter=status_filter, limit=max(80, limit * 5)
+            )
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Project",
+            id_field="project_id",
+            limit=limit,
+            min_score=0.0,
+        )
+
+    def _recommend_enterprises_for_funder_cypher(self, funder_id: str, limit: int) -> List[Dict[str, Any]]:
+        with self.driver.session() as session:
+            candidates = self._find_candidate_enterprises_for_funder(session, funder_id, limit=max(80, limit * 5))
+        return self._recommend_generic_fallback_from_candidates(
+            candidates=candidates,
+            target_type="Enterprise",
+            id_field="enterprise_id",
+            limit=limit,
+            min_score=0.0,
         )
     
     def _recommend_experts_heuristic_improved(
@@ -523,35 +807,41 @@ class PGPRRecommender:
         Single query instead of multiple queries at each depth level.
         """
         try:
-            result = session.run("""
-                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
-                
-                // Find all related fields through hierarchy
-                MATCH path = (rf)-[:SUB_FIELD_OF*0..10]-(related_rf:ResearchField)
-                
-                // Find experts with expertise in these fields
-                MATCH (related_rf)<-[:HAS_EXPERTISE_IN]-(e:Expert)
-                
-                // Exclude experts already in project
-                WHERE NOT (e)-[:PARTICIPATES_IN]->(p)
-                
-                // Calculate minimum hops
-                WITH e, MIN(length(path) + 2) as min_hops
-                WHERE min_hops <= $max_depth
-                
-                RETURN e.expert_id as expert_id,
+            # Schema v2: Project -> ResearchTopic/ResearchDirection,
+            # Expert -> ResearchTopic via HAS_EXPERIENCE_IN, Expert -> ResearchDirection via RESEARCHES.
+            result = session.run(
+                """
+                MATCH (p:Project {project_id: $project_id})
+
+                // Source A: shared topics
+                OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:HAS_EXPERIENCE_IN]-(e1:Expert)
+                WHERE NOT (e1)-[:PARTICIPATES_IN]->(p)
+
+                // Source B: shared directions
+                OPTIONAL MATCH (p)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:RESEARCHES]-(e2:Expert)
+                WHERE NOT (e2)-[:PARTICIPATES_IN]->(p)
+
+                WITH collect(DISTINCT e1) + collect(DISTINCT e2) AS experts, p
+                UNWIND experts AS e
+                WITH e, p
+                WHERE e IS NOT NULL
+
+                OPTIONAL MATCH (e)-[:LOCATED_IN]->(l:Location)
+                RETURN DISTINCT e.expert_id as expert_id,
                        e.name as name,
-                       e.location as location,
+                       l.location_id as location,
                        e.h_index as h_index,
                        e.citation_count as citations,
                        e.publication_count as publications,
-                       min_hops
-                ORDER BY min_hops ASC
-                LIMIT 100
-            """, project_id=project_id, max_depth=max_depth, timeout=self.DEFAULT_QUERY_TIMEOUT)
+                       3 as min_hops
+                LIMIT 200
+                """,
+                project_id=project_id,
+                timeout=self.DEFAULT_QUERY_TIMEOUT,
+            )
             out = [dict(record) for record in result]
 
-            # If the graph doesn't follow the expected Project->ResearchField schema,
+            # If the graph doesn't follow the expected schema,
             # fall back to a generic traversal (more robust across datasets).
             if out:
                 return out
@@ -568,21 +858,24 @@ class PGPRRecommender:
         project_id: str
     ) -> List[Dict[str, Any]]:
         """Fallback: Simple candidate query without depth calculation."""
-        result = session.run("""
-            MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
-            MATCH (rf)<-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)
-                <-[:HAS_EXPERTISE_IN]-(e:Expert)
+        result = session.run(
+            """
+            MATCH (p:Project {project_id: $project_id})
+            OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:HAS_EXPERIENCE_IN]-(e:Expert)
             WHERE NOT (e)-[:PARTICIPATES_IN]->(p)
-            
+            OPTIONAL MATCH (e)-[:LOCATED_IN]->(l:Location)
             RETURN DISTINCT e.expert_id as expert_id,
                    e.name as name,
-                   e.location as location,
+                   l.location_id as location,
                    e.h_index as h_index,
                    e.citation_count as citations,
                    e.publication_count as publications,
-                   5 as min_hops
-            LIMIT 50
-        """, project_id=project_id)
+                   3 as min_hops
+            LIMIT 100
+            """,
+            project_id=project_id,
+            timeout=self.DEFAULT_QUERY_TIMEOUT,
+        )
         
         return [dict(record) for record in result]
 
@@ -886,11 +1179,25 @@ class PGPRRecommender:
         status_filter: List[str] = None,
         include_funder_candidates: bool = True,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=expert_id,
-            source_type="Expert",
-            target_type="Project",
+        is_new_node = self._is_new_node_in_vocab("Expert", expert_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=expert_id,
+                source_type="Expert",
+                target_type="Project",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", expert_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", expert_id)
+
+        return self._recommend_projects_for_expert_cypher(
+            expert_id=expert_id,
             limit=limit,
+            status_filter=status_filter,
+            include_funder_candidates=include_funder_candidates,
         )
 
     def recommend_funders_for_expert_pgpr(
@@ -898,36 +1205,63 @@ class PGPRRecommender:
         expert_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=expert_id,
-            source_type="Expert",
-            target_type="Funder",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Expert", expert_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=expert_id,
+                source_type="Expert",
+                target_type="Funder",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", expert_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", expert_id)
+
+        return self._recommend_funders_for_expert_cypher(expert_id=expert_id, limit=limit)
 
     def recommend_enterprises_for_expert_pgpr(
         self,
         expert_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=expert_id,
-            source_type="Expert",
-            target_type="Enterprise",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Expert", expert_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=expert_id,
+                source_type="Expert",
+                target_type="Enterprise",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", expert_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", expert_id)
+
+        return self._recommend_enterprises_for_expert_cypher(expert_id=expert_id, limit=limit)
 
     def recommend_experts_for_expert_pgpr(
         self,
         expert_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=expert_id,
-            source_type="Expert",
-            target_type="Expert",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Expert", expert_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=expert_id,
+                source_type="Expert",
+                target_type="Expert",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", expert_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", expert_id)
+
+        return self._recommend_experts_for_expert_cypher(expert_id=expert_id, limit=limit)
 
     def _calculate_project_score(self, paths: List[Dict], project_info: Dict) -> float:
         """Calculate project recommendation score."""
@@ -952,28 +1286,45 @@ class PGPRRecommender:
     ) -> List[Dict[str, Any]]:
         """
         Find candidate projects.
-        
-        Note:
-        - We expand the expert's research field through the hierarchy in BOTH directions
-          (parent/child/sibling via common parent), so experts can be matched to related
-          fields like: AI_002 (Computer Vision) ↔ IOT_001 (IoT) through AI_001.
+
+        NOTE (schema v2):
+        - Neo4j uses ResearchTopic/ResearchDirection (NOT ResearchField).
+        - Expert connects to topics via HAS_EXPERIENCE_IN and to directions via RESEARCHES.
+        - Project connects to topics via FOCUSES_ON_TOPIC and to directions via FOCUSES_ON.
         """
-        result = session.run("""
-            MATCH (e:Expert {expert_id: $expert_id})-[:HAS_EXPERTISE_IN]->(rf:ResearchField)
-            // Traverse hierarchy undirected to include parent/child and sibling fields
-            MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)
-                <-[:BELONGS_TO]-(p:Project)
-            WHERE p.status IN $status_filter
-              AND NOT (e)-[:PARTICIPATES_IN]->(p)
-            
+        result = session.run(
+            """
+            // Candidate source 1: Shared ResearchTopic
+            MATCH (e:Expert {expert_id: $expert_id})
+            MATCH (e)-[:HAS_EXPERIENCE_IN]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p:Project)
+            WHERE p.status IN $status_filter AND NOT (e)-[:PARTICIPATES_IN]->(p)
+            OPTIONAL MATCH (p)-[:LOCATED_IN]->(l:Location)
             RETURN DISTINCT p.project_id as project_id,
                    p.title as title,
                    p.status as status,
-                   p.location as location,
+                   l.location_id as location,
                    p.trl as trl,
-                   p.budget as budget
-            LIMIT 80
-        """, expert_id=expert_id, status_filter=status_filter)
+                   p.budget as budget,
+                   2 as rank_hint
+            UNION
+            // Candidate source 2: Shared ResearchDirection
+            MATCH (e:Expert {expert_id: $expert_id})
+            MATCH (e)-[:RESEARCHES]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p:Project)
+            WHERE p.status IN $status_filter AND NOT (e)-[:PARTICIPATES_IN]->(p)
+            OPTIONAL MATCH (p)-[:LOCATED_IN]->(l:Location)
+            RETURN DISTINCT p.project_id as project_id,
+                   p.title as title,
+                   p.status as status,
+                   l.location_id as location,
+                   p.trl as trl,
+                   p.budget as budget,
+                   3 as rank_hint
+            LIMIT 120
+            """,
+            expert_id=expert_id,
+            status_filter=status_filter,
+            timeout=self.DEFAULT_QUERY_TIMEOUT,
+        )
         
         return [dict(record) for record in result]
 
@@ -998,10 +1349,11 @@ class PGPRRecommender:
                   AND NOT (e)-[:PARTICIPATES_IN]->(p)
                 
                 WITH p, count(DISTINCT f) as common_funders
+                OPTIONAL MATCH (p)-[:LOCATED_IN]->(l:Location)
                 RETURN DISTINCT p.project_id as project_id,
                        p.title as title,
                        p.status as status,
-                       p.location as location,
+                       l.location_id as location,
                        p.trl as trl,
                        p.budget as budget,
                        common_funders
@@ -1022,24 +1374,42 @@ class PGPRRecommender:
         project_id: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=project_id,
-            source_type="Project",
-            target_type="Funder",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Project", project_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=project_id,
+                source_type="Project",
+                target_type="Funder",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", project_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", project_id)
+
+        return self._recommend_funders_for_project_cypher(project_id=project_id, limit=limit)
 
     def recommend_enterprises_for_project_pgpr(
         self,
         project_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=project_id,
-            source_type="Project",
-            target_type="Enterprise",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Project", project_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=project_id,
+                source_type="Project",
+                target_type="Enterprise",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", project_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", project_id)
+
+        return self._recommend_enterprises_for_project_cypher(project_id=project_id, limit=limit)
 
     def recommend_projects_for_project_pgpr(
         self,
@@ -1047,11 +1417,24 @@ class PGPRRecommender:
         limit: int = 10,
         status_filter: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=project_id,
-            source_type="Project",
-            target_type="Project",
+        is_new_node = self._is_new_node_in_vocab("Project", project_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=project_id,
+                source_type="Project",
+                target_type="Project",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", project_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", project_id)
+
+        return self._recommend_projects_for_project_cypher(
+            project_id=project_id,
             limit=limit,
+            status_filter=status_filter,
         )
     
     def _calculate_funder_score(self, paths: List[Dict], funder_info: Dict) -> float:
@@ -1088,14 +1471,17 @@ class PGPRRecommender:
         """
         by_id: Dict[str, Dict[str, Any]] = {}
         
-        # Source 1: Funders that SUPPORT the project's field or related fields (hierarchy-expanded)
+        # Source 1: Funders that SUPPORT project's topics/directions (schema v2)
         try:
             result = session.run(
                 """
-                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)
-                    <-[:SUPPORTS]-(f:Funder)
-                WHERE NOT (f)-[:FUNDS]->(p)
+                MATCH (p:Project {project_id: $project_id})
+                OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:SUPPORTS_TOPIC]-(f1:Funder)
+                OPTIONAL MATCH (p)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:SUPPORTS]-(f2:Funder)
+                WITH p, collect(DISTINCT f1) + collect(DISTINCT f2) AS funders
+                UNWIND funders AS f
+                WITH p, f
+                WHERE f IS NOT NULL AND NOT (f)-[:FUNDS]->(p)
                 
                 RETURN DISTINCT f.funder_id as funder_id,
                        f.name as name,
@@ -1114,23 +1500,26 @@ class PGPRRecommender:
         except Exception as e:
             logger.debug("Candidate funders (SUPPORTS) query failed: %s", e)
         
-        # Source 2: Funders that FUNDS other projects in related fields (portfolio-based)
-        # Pattern: p -> field ~ related_field <- p2 <- FUNDS - f
+        # Source 2: Funders that FUNDS other projects sharing topic/direction (portfolio-based)
         try:
             result2 = session.run(
                 """
-                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p2:Project)
-                MATCH (f:Funder)-[:FUNDS]->(p2)
-                WHERE p2.project_id <> $project_id
-                  AND NOT (f)-[:FUNDS]->(p)
+                MATCH (p:Project {project_id: $project_id})
+                OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p2:Project)
+                OPTIONAL MATCH (p)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p3:Project)
+                WITH p, collect(DISTINCT p2) + collect(DISTINCT p3) AS projects
+                UNWIND projects AS px
+                WITH p, px
+                WHERE px IS NOT NULL AND px.project_id <> $project_id
+                MATCH (f:Funder)-[:FUNDS]->(px)
+                WHERE NOT (f)-[:FUNDS]->(p)
                 
                 RETURN DISTINCT f.funder_id as funder_id,
                        f.name as name,
                        f.type as type,
                        f.location as location,
                        f.budget_capacity as budget_capacity,
-                       count(DISTINCT p2) as funded_related_projects
+                       count(DISTINCT px) as funded_related_projects
                 ORDER BY funded_related_projects DESC
                 LIMIT 80
                 """,
@@ -1170,14 +1559,17 @@ class PGPRRecommender:
         try:
             result = session.run(
                 """
-                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p2:Project)
-                MATCH (en:Enterprise)-[:PARTNERS_WITH]->(p2)
-                WHERE p2.project_id <> $project_id
+                MATCH (p:Project {project_id: $project_id})
+                OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p2:Project)<-[:PARTNERS_WITH]-(en:Enterprise)
+                OPTIONAL MATCH (p)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p3:Project)<-[:PARTNERS_WITH]-(en2:Enterprise)
+                WITH p, collect(DISTINCT {en: en, px: p2}) + collect(DISTINCT {en: en2, px: p3}) AS rows
+                UNWIND rows AS r
+                WITH p, r.en AS en, r.px AS px
+                WHERE en IS NOT NULL AND px IS NOT NULL AND px.project_id <> $project_id
                 RETURN DISTINCT en.enterprise_id AS enterprise_id,
                        en.name AS name,
                        en.location AS location,
-                       count(DISTINCT p2) AS partner_projects
+                       count(DISTINCT px) AS partner_projects
                 ORDER BY partner_projects DESC
                 LIMIT $limit
                 """,
@@ -1233,15 +1625,20 @@ class PGPRRecommender:
         try:
             result = session.run(
                 """
-                MATCH (p:Project {project_id: $project_id})-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p2:Project)
-                WHERE p2.project_id <> $project_id AND p2.status IN $status_filter
-                RETURN DISTINCT p2.project_id AS project_id,
-                       p2.title AS title,
-                       p2.status AS status,
-                       p2.location AS location,
-                       p2.trl AS trl,
-                       p2.budget AS budget
+                MATCH (p:Project {project_id: $project_id})
+                OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p2:Project)
+                OPTIONAL MATCH (p)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p3:Project)
+                WITH p, collect(DISTINCT p2) + collect(DISTINCT p3) AS ps
+                UNWIND ps AS px
+                WITH px
+                WHERE px IS NOT NULL AND px.project_id <> $project_id AND px.status IN $status_filter
+                OPTIONAL MATCH (px)-[:LOCATED_IN]->(l:Location)
+                RETURN DISTINCT px.project_id AS project_id,
+                       px.title AS title,
+                       px.status AS status,
+                       l.location_id AS location,
+                       px.trl AS trl,
+                       px.budget AS budget
                 LIMIT $limit
                 """,
                 project_id=project_id,
@@ -1260,10 +1657,11 @@ class PGPRRecommender:
                 """
                 MATCH (p:Project {project_id: $project_id})<-[:FUNDS]-(f:Funder)-[:FUNDS]->(p2:Project)
                 WHERE p2.project_id <> $project_id AND p2.status IN $status_filter
+                OPTIONAL MATCH (p2)-[:LOCATED_IN]->(l:Location)
                 RETURN DISTINCT p2.project_id AS project_id,
                        p2.title AS title,
                        p2.status AS status,
-                       p2.location AS location,
+                       l.location_id AS location,
                        p2.trl AS trl,
                        p2.budget AS budget
                 LIMIT $limit
@@ -1330,9 +1728,13 @@ class PGPRRecommender:
         try:
             result2 = session.run(
                 f"""
-                MATCH (e:Expert {{expert_id: $expert_id}})-[:HAS_EXPERTISE_IN]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)
-                    <-[:SUPPORTS]-(f:Funder)
+                MATCH (e:Expert {{expert_id: $expert_id}})
+                OPTIONAL MATCH (e)-[:HAS_EXPERIENCE_IN]->(t:ResearchTopic)<-[:SUPPORTS_TOPIC]-(f1:Funder)
+                OPTIONAL MATCH (e)-[:RESEARCHES]->(d:ResearchDirection)<-[:SUPPORTS]-(f2:Funder)
+                WITH collect(DISTINCT f1) + collect(DISTINCT f2) AS funders
+                UNWIND funders AS f
+                WITH f
+                WHERE f IS NOT NULL
                 RETURN DISTINCT f.funder_id AS funder_id,
                        f.name AS name,
                        f.type AS type,
@@ -1451,15 +1853,21 @@ class PGPRRecommender:
         try:
             result = session.run(
                 """
-                MATCH (e:Expert {expert_id: $expert_id})-[:HAS_EXPERTISE_IN]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:HAS_EXPERTISE_IN]-(e2:Expert)
-                WHERE e2.expert_id <> $expert_id
-                RETURN DISTINCT e2.expert_id AS expert_id,
-                       e2.name AS name,
-                       e2.location AS location,
-                       e2.h_index AS h_index,
-                       e2.citation_count AS citations,
-                       e2.publication_count AS publications
+                MATCH (e:Expert {expert_id: $expert_id})
+                OPTIONAL MATCH (e)-[:HAS_EXPERIENCE_IN]->(t:ResearchTopic)<-[:HAS_EXPERIENCE_IN]-(e2:Expert)
+                OPTIONAL MATCH (e)-[:RESEARCHES]->(d:ResearchDirection)<-[:RESEARCHES]-(e3:Expert)
+                WITH e,
+                     collect(DISTINCT e2) + collect(DISTINCT e3) AS experts
+                UNWIND experts AS ex
+                WITH ex
+                WHERE ex IS NOT NULL AND ex.expert_id <> $expert_id
+                OPTIONAL MATCH (ex)-[:LOCATED_IN]->(l:Location)
+                RETURN DISTINCT ex.expert_id AS expert_id,
+                       ex.name AS name,
+                       l.location_id AS location,
+                       ex.h_index AS h_index,
+                       ex.citation_count AS citations,
+                       ex.publication_count AS publications
                 LIMIT $limit
                 """,
                 expert_id=expert_id,
@@ -1510,12 +1918,21 @@ class PGPRRecommender:
         enterprise_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=enterprise_id,
-            source_type="Enterprise",
-            target_type="Expert",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Enterprise", enterprise_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=enterprise_id,
+                source_type="Enterprise",
+                target_type="Expert",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", enterprise_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", enterprise_id)
+
+        return self._recommend_experts_for_enterprise_cypher(enterprise_id=enterprise_id, limit=limit)
 
     def recommend_projects_for_enterprise_pgpr(
         self,
@@ -1523,11 +1940,24 @@ class PGPRRecommender:
         limit: int = 10,
         status_filter: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=enterprise_id,
-            source_type="Enterprise",
-            target_type="Project",
+        is_new_node = self._is_new_node_in_vocab("Enterprise", enterprise_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=enterprise_id,
+                source_type="Enterprise",
+                target_type="Project",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", enterprise_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", enterprise_id)
+
+        return self._recommend_projects_for_enterprise_cypher(
+            enterprise_id=enterprise_id,
             limit=limit,
+            status_filter=status_filter,
         )
 
     def recommend_funders_for_enterprise_pgpr(
@@ -1535,24 +1965,42 @@ class PGPRRecommender:
         enterprise_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=enterprise_id,
-            source_type="Enterprise",
-            target_type="Funder",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Enterprise", enterprise_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=enterprise_id,
+                source_type="Enterprise",
+                target_type="Funder",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", enterprise_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", enterprise_id)
+
+        return self._recommend_funders_for_enterprise_cypher(enterprise_id=enterprise_id, limit=limit)
 
     def recommend_enterprises_for_enterprise_pgpr(
         self,
         enterprise_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=enterprise_id,
-            source_type="Enterprise",
-            target_type="Enterprise",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Enterprise", enterprise_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=enterprise_id,
+                source_type="Enterprise",
+                target_type="Enterprise",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", enterprise_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", enterprise_id)
+
+        return self._recommend_enterprises_for_enterprise_cypher(enterprise_id=enterprise_id, limit=limit)
 
     def _find_candidate_experts_for_enterprise(
         self,
@@ -1635,16 +2083,22 @@ class PGPRRecommender:
         try:
             result = session.run(
                 """
-                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p0:Project)-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
-                WHERE p.status IN $status_filter
-                  AND NOT (en)-[:PARTNERS_WITH]->(p)
-                RETURN DISTINCT p.project_id AS project_id,
-                       p.title AS title,
-                       p.status AS status,
-                       p.location AS location,
-                       p.trl AS trl,
-                       p.budget AS budget
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p0:Project)
+                OPTIONAL MATCH (p0)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p:Project)
+                OPTIONAL MATCH (p0)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p2:Project)
+                WITH en, collect(DISTINCT p) + collect(DISTINCT p2) AS ps
+                UNWIND ps AS px
+                WITH en, px
+                WHERE px IS NOT NULL
+                  AND px.status IN $status_filter
+                  AND NOT (en)-[:PARTNERS_WITH]->(px)
+                OPTIONAL MATCH (px)-[:LOCATED_IN]->(l:Location)
+                RETURN DISTINCT px.project_id AS project_id,
+                       px.title AS title,
+                       px.status AS status,
+                       l.location_id AS location,
+                       px.trl AS trl,
+                       px.budget AS budget
                 LIMIT $limit
                 """,
                 enterprise_id=enterprise_id,
@@ -1695,8 +2149,13 @@ class PGPRRecommender:
         try:
             result2 = session.run(
                 """
-                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p:Project)-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (f:Funder)-[:SUPPORTS]->(rf)
+                MATCH (en:Enterprise {enterprise_id: $enterprise_id})-[:PARTNERS_WITH]->(p:Project)
+                OPTIONAL MATCH (p)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:SUPPORTS_TOPIC]-(f1:Funder)
+                OPTIONAL MATCH (p)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:SUPPORTS]-(f2:Funder)
+                WITH collect(DISTINCT f1) + collect(DISTINCT f2) AS funders
+                UNWIND funders AS f
+                WITH f
+                WHERE f IS NOT NULL
                 RETURN DISTINCT f.funder_id AS funder_id,
                        f.name AS name,
                        f.type AS type,
@@ -1791,12 +2250,21 @@ class PGPRRecommender:
         funder_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=funder_id,
-            source_type="Funder",
-            target_type="Expert",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Funder", funder_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=funder_id,
+                source_type="Funder",
+                target_type="Expert",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", funder_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", funder_id)
+
+        return self._recommend_experts_for_funder_cypher(funder_id=funder_id, limit=limit)
 
     def recommend_projects_for_funder_pgpr(
         self,
@@ -1804,11 +2272,24 @@ class PGPRRecommender:
         limit: int = 10,
         status_filter: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=funder_id,
-            source_type="Funder",
-            target_type="Project",
+        is_new_node = self._is_new_node_in_vocab("Funder", funder_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=funder_id,
+                source_type="Funder",
+                target_type="Project",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", funder_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", funder_id)
+
+        return self._recommend_projects_for_funder_cypher(
+            funder_id=funder_id,
             limit=limit,
+            status_filter=status_filter,
         )
 
     def recommend_enterprises_for_funder_pgpr(
@@ -1816,12 +2297,21 @@ class PGPRRecommender:
         funder_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        return self._generic_recommend_with_policy(
-            source_id=funder_id,
-            source_type="Funder",
-            target_type="Enterprise",
-            limit=limit,
-        )
+        is_new_node = self._is_new_node_in_vocab("Funder", funder_id)
+        if not is_new_node:
+            ai_results = self._generic_recommend_with_policy(
+                source_id=funder_id,
+                source_type="Funder",
+                target_type="Enterprise",
+                limit=limit,
+            )
+            if ai_results:
+                return ai_results
+            logger.info("AI không tìm thấy đường cho '%s'. Chuyển sang Cypher/Heuristic...", funder_id)
+        else:
+            logger.info("NODE MỚI '%s' chưa có trong vocab. Chuyển sang Cypher/Heuristic...", funder_id)
+
+        return self._recommend_enterprises_for_funder_cypher(funder_id=funder_id, limit=limit)
 
     def _find_candidate_experts_for_funder(
         self,
@@ -1836,9 +2326,10 @@ class PGPRRecommender:
             result = session.run(
                 """
                 MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(p:Project)<-[:PARTICIPATES_IN]-(e:Expert)
+                OPTIONAL MATCH (e)-[:LOCATED_IN]->(l:Location)
                 RETURN DISTINCT e.expert_id AS expert_id,
                        e.name AS name,
-                       e.location AS location,
+                       l.location_id AS location,
                        e.h_index AS h_index,
                        e.citation_count AS citations,
                        e.publication_count AS publications,
@@ -1860,11 +2351,17 @@ class PGPRRecommender:
         try:
             result2 = session.run(
                 """
-                MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(rf:ResearchField)
-                MATCH (e:Expert)-[:HAS_EXPERTISE_IN]->(rf)
+                MATCH (f:Funder {funder_id: $funder_id})
+                OPTIONAL MATCH (f)-[:SUPPORTS_TOPIC]->(t:ResearchTopic)<-[:HAS_EXPERIENCE_IN]-(e1:Expert)
+                OPTIONAL MATCH (f)-[:SUPPORTS]->(d:ResearchDirection)<-[:RESEARCHES]-(e2:Expert)
+                WITH collect(DISTINCT e1) + collect(DISTINCT e2) AS experts
+                UNWIND experts AS e
+                WITH e
+                WHERE e IS NOT NULL
+                OPTIONAL MATCH (e)-[:LOCATED_IN]->(l:Location)
                 RETURN DISTINCT e.expert_id AS expert_id,
                        e.name AS name,
-                       e.location AS location,
+                       l.location_id AS location,
                        e.h_index AS h_index,
                        e.citation_count AS citations,
                        e.publication_count AS publications
@@ -1902,16 +2399,22 @@ class PGPRRecommender:
         try:
             result = session.run(
                 """
-                MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
-                WHERE p.status IN $status_filter
-                  AND NOT (f)-[:FUNDS]->(p)
-                RETURN DISTINCT p.project_id AS project_id,
-                       p.title AS title,
-                       p.status AS status,
-                       p.location AS location,
-                       p.trl AS trl,
-                       p.budget AS budget
+                MATCH (f:Funder {funder_id: $funder_id})
+                OPTIONAL MATCH (f)-[:SUPPORTS_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p:Project)
+                OPTIONAL MATCH (f)-[:SUPPORTS]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p2:Project)
+                WITH f, collect(DISTINCT p) + collect(DISTINCT p2) AS ps
+                UNWIND ps AS px
+                WITH f, px
+                WHERE px IS NOT NULL
+                  AND px.status IN $status_filter
+                  AND NOT (f)-[:FUNDS]->(px)
+                OPTIONAL MATCH (px)-[:LOCATED_IN]->(l:Location)
+                RETURN DISTINCT px.project_id AS project_id,
+                       px.title AS title,
+                       px.status AS status,
+                       l.location_id AS location,
+                       px.trl AS trl,
+                       px.budget AS budget
                 LIMIT $limit
                 """,
                 funder_id=funder_id,
@@ -1929,17 +2432,23 @@ class PGPRRecommender:
         try:
             result2 = session.run(
                 """
-                MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(p0:Project)-[:BELONGS_TO]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
-                WHERE p.status IN $status_filter
-                  AND p.project_id <> p0.project_id
-                  AND NOT (f)-[:FUNDS]->(p)
-                RETURN DISTINCT p.project_id AS project_id,
-                       p.title AS title,
-                       p.status AS status,
-                       p.location AS location,
-                       p.trl AS trl,
-                       p.budget AS budget
+                MATCH (f:Funder {funder_id: $funder_id})-[:FUNDS]->(p0:Project)
+                OPTIONAL MATCH (p0)-[:FOCUSES_ON_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p:Project)
+                OPTIONAL MATCH (p0)-[:FOCUSES_ON]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p2:Project)
+                WITH f, p0, collect(DISTINCT p) + collect(DISTINCT p2) AS ps
+                UNWIND ps AS px
+                WITH f, p0, px
+                WHERE px IS NOT NULL
+                  AND px.status IN $status_filter
+                  AND px.project_id <> p0.project_id
+                  AND NOT (f)-[:FUNDS]->(px)
+                OPTIONAL MATCH (px)-[:LOCATED_IN]->(l:Location)
+                RETURN DISTINCT px.project_id AS project_id,
+                       px.title AS title,
+                       px.status AS status,
+                       l.location_id AS location,
+                       px.trl AS trl,
+                       px.budget AS budget
                 LIMIT $limit
                 """,
                 funder_id=funder_id,
@@ -1994,13 +2503,17 @@ class PGPRRecommender:
         try:
             result2 = session.run(
                 """
-                MATCH (f:Funder {funder_id: $funder_id})-[:SUPPORTS]->(rf:ResearchField)
-                MATCH (rf)-[:SUB_FIELD_OF*0..2]-(related_rf:ResearchField)<-[:BELONGS_TO]-(p:Project)
-                MATCH (en:Enterprise)-[:PARTNERS_WITH]->(p)
+                MATCH (f:Funder {funder_id: $funder_id})
+                OPTIONAL MATCH (f)-[:SUPPORTS_TOPIC]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p:Project)<-[:PARTNERS_WITH]-(en:Enterprise)
+                OPTIONAL MATCH (f)-[:SUPPORTS]->(d:ResearchDirection)<-[:FOCUSES_ON]-(p2:Project)<-[:PARTNERS_WITH]-(en2:Enterprise)
+                WITH collect(DISTINCT {en: en, px: p}) + collect(DISTINCT {en: en2, px: p2}) AS rows
+                UNWIND rows AS r
+                WITH r.en AS en, r.px AS px
+                WHERE en IS NOT NULL AND px IS NOT NULL
                 RETURN DISTINCT en.enterprise_id AS enterprise_id,
                        en.name AS name,
                        en.location AS location,
-                       count(DISTINCT p) AS partner_projects
+                       count(DISTINCT px) AS partner_projects
                 ORDER BY partner_projects DESC
                 LIMIT $limit
                 """,
@@ -2165,10 +2678,9 @@ class PGPRRecommender:
             "Project_Enterprise": "MATCH (s:Project {project_id: $sid})<-[:PARTNERS_WITH]-(t:Enterprise) RETURN t.enterprise_id AS tid",
             "Funder_Project": "MATCH (s:Funder {funder_id: $sid})-[:FUNDS]->(t:Project) RETURN t.project_id AS tid",
             "Project_Funder": "MATCH (s:Project {project_id: $sid})<-[:FUNDS]-(t:Funder) RETURN t.funder_id AS tid",
-            "Enterprise_Project": "MATCH (s:Enterprise {enterprise_id: $sid})-[:PARTNERS_WITH]->(t:Project) RETURN t.project_id AS tid",
-            "Funder_Project": "MATCH (s:Funder {funder_id: $sid})-[:FUNDS]->(t:Project) RETURN t.project_id AS tid",
             "Expert_Enterprise": "MATCH (s:Expert {expert_id: $sid})-[:HAS_APPLICATION_EXPERIENCE_IN]->(:Industry)<-[:OPERATES_IN]-(t:Enterprise) RETURN t.enterprise_id AS tid",
             "Enterprise_Expert": "MATCH (s:Enterprise {enterprise_id: $sid})-[:OPERATES_IN]->(:Industry)<-[:HAS_APPLICATION_EXPERIENCE_IN]-(t:Expert) RETURN t.expert_id AS tid",
+            "Expert_Expert": "MATCH (s:Expert {expert_id: $sid})-[:PARTICIPATES_IN]->(:Project)<-[:PARTICIPATES_IN]-(t:Expert) RETURN t.expert_id AS tid",
         }
         task_name = f"{source_type}_{target_type}"
         if task_name not in queries:
@@ -2249,7 +2761,31 @@ class PGPRRecommender:
                 if rec["score"] >= min_score:
                     recommendations.append(rec)
 
+        # Sắp xếp từ cao xuống thấp
         recommendations.sort(key=lambda x: x["score"], reverse=True)
+
+        # ==========================================
+        # CHUẨN HÓA ĐỘ TƯƠNG THÍCH TUYỆT ĐỐI (ABSOLUTE COMPATIBILITY)
+        # ==========================================
+        if recommendations:
+            # Định nghĩa điểm số của một "Perfect Match" (Gợi ý hoàn hảo)
+            # Theo đồ thị của bạn, điểm ~0.1 là một đường đi 2 bước cực kỳ rõ ràng.
+            IDEAL_MAX_SCORE = 0.1
+
+            for rec in recommendations:
+                raw_score = rec["score"] if rec["score"] > 0 else (
+                    rec["reasoning_paths"][0]["score"] if rec.get("reasoning_paths") else 0
+                )
+
+                # Tính % dựa trên thang điểm tuyệt đối
+                compatibility = (raw_score / IDEAL_MAX_SCORE) * 100
+
+                # Cắt trần ở mức 99% (Để chừa lại 1% cho sự hoàn hảo tuyệt đối ngoài đời thực)
+                # Và tạo mốc sàn (Bonus thêm 10-15% cho những người đã lọt được vào Top Recommend)
+                final_percentage = min(99.0, compatibility + 15.0) if raw_score > 0 else 0.0
+
+                rec["score"] = round(final_percentage, 1)  # VD: 85.5%, 42.0%
+
         return recommendations[:limit]
 
 
@@ -2264,6 +2800,14 @@ def print_pgpr_recommendations(
     show_detailed: bool = False
 ):
     """Pretty print PGPR recommendations with reasoning paths and detailed explanations."""
+    # Avoid Windows console encoding issues (cp1252/cp936...). Force UTF-8 when possible.
+    try:
+        import sys
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
     print("\n" + "="*80)
     print(f"{title}")
     print("="*80)

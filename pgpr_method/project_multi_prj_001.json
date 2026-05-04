@@ -1,0 +1,333 @@
+{
+  "project_id": "prj_001",
+  "experts": [
+    {
+      "expert_id": "exp_002",
+      "name": "TS. Trần Thị B",
+      "score": 53.0,
+      "reasoning_paths": [
+        {
+          "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.05871865309026052,
+          "length": 2
+        },
+        {
+          "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.011275561275849512,
+          "length": 4
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.005854931847840669,
+          "length": 4
+        }
+      ],
+      "path_diversity": 87,
+      "metrics": {
+        "h_index": 10,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_003",
+      "name": "TS. Phạm Minh C",
+      "score": 38.0,
+      "reasoning_paths": [
+        {
+          "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.03397862688971201,
+          "length": 2
+        },
+        {
+          "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.006466506065754866,
+          "length": 4
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.0031021501858860246,
+          "length": 4
+        }
+      ],
+      "path_diversity": 50,
+      "metrics": {
+        "h_index": 9,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_004",
+      "name": "PGS.TS. Lê Thu D",
+      "score": 24.0,
+      "reasoning_paths": [
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> PARTICIPATES_IN",
+          "score": 0.015239539116178629,
+          "length": 3
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> HAS_EXPERIENCE_IN",
+          "score": 0.010374632259451266,
+          "length": 4
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> CREATES -> DEVELOPS",
+          "score": 0.00824266138405653,
+          "length": 4
+        }
+      ],
+      "path_diversity": 43,
+      "metrics": {
+        "h_index": 11,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_005",
+      "name": "TS. Vũ Quốc E",
+      "score": 17.0,
+      "reasoning_paths": [
+        {
+          "path": "REQUIRES_SKILL -> HAS_SKILL",
+          "score": 0.0024170843626024714,
+          "length": 2
+        }
+      ],
+      "path_diversity": 5,
+      "metrics": {
+        "h_index": 8,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_009",
+      "name": "TS. Nguyễn Mai K",
+      "score": 16.0,
+      "reasoning_paths": [
+        {
+          "path": "LOCATED_IN -> LOCATED_IN",
+          "score": 0.0011583682991694662,
+          "length": 2
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> LOCATED_IN -> LOCATED_IN",
+          "score": 9.692762084811593e-05,
+          "length": 4
+        },
+        {
+          "path": "LOCATED_IN -> LOCATED_IN -> PARTICIPATES_IN",
+          "score": 5.480340232031602e-05,
+          "length": 3
+        }
+      ],
+      "path_diversity": 5,
+      "metrics": {
+        "h_index": 5,
+        "budget": null,
+        "status": null
+      }
+    }
+  ],
+  "funders": [
+    {
+      "funder_id": "fnd_002",
+      "name": "National Technology Development Fund (NATIF)",
+      "score": 99.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+          "score": 0.08942375082803895,
+          "length": 4
+        },
+        {
+          "path": "LOCATED_IN -> LOCATED_IN",
+          "score": 0.0011108838592975509,
+          "length": 2
+        }
+      ],
+      "path_diversity": 79,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "funder_id": "fnd_003",
+      "name": "Vietnam Digital Innovation Grant (VDIG)",
+      "score": 37.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+          "score": 0.024229136150961148,
+          "length": 4
+        },
+        {
+          "path": "LOCATED_IN -> LOCATED_IN",
+          "score": 0.0003738978185290117,
+          "length": 2
+        },
+        {
+          "path": "PARTNERS_WITH -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+          "score": 9.281870838662957e-05,
+          "length": 3
+        }
+      ],
+      "path_diversity": 25,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "funder_id": "fnd_006",
+      "name": "Urban Mobility Grant Vietnam",
+      "score": 15.2,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> HAS_APPLICATION_EXPERIENCE_IN -> LOCATED_IN -> FOCUSES_ON_REGION",
+          "score": 0.0001987215077713981,
+          "length": 4
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> HAS_EXPERIENCE_IN -> LOCATED_IN -> FOCUSES_ON_REGION",
+          "score": 1.966742800327465e-06,
+          "length": 4
+        }
+      ],
+      "path_diversity": 2,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    }
+  ],
+  "enterprises": [
+    {
+      "enterprise_id": "ent_002",
+      "name": "VinaSmart Factory Tech",
+      "score": 78.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 0.06669618174521731,
+          "length": 4
+        },
+        {
+          "path": "TARGETS -> HAS_APPLICATION_EXPERIENCE_IN -> COLLABORATES_WITH -> WORK_FOR",
+          "score": 0.00011616241453840395,
+          "length": 4
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> SUPPORTS_TOPIC -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 7.810574124214862e-05,
+          "length": 4
+        }
+      ],
+      "path_diversity": 62,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "enterprise_id": "ent_005",
+      "name": "LearnNext EdTech",
+      "score": 53.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 0.03941927743138829,
+          "length": 4
+        },
+        {
+          "path": "FUNDS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 0.0002451350872112515,
+          "length": 3
+        },
+        {
+          "path": "REQUIRES_SKILL -> HAS_SKILL -> HAS_APPLICATION_EXPERIENCE_IN -> OPERATES_IN",
+          "score": 0.00013671684976925108,
+          "length": 4
+        }
+      ],
+      "path_diversity": 44,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "enterprise_id": "ent_007",
+      "name": "GreenGrid Solutions",
+      "score": 46.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 0.03132600390674572,
+          "length": 4
+        }
+      ],
+      "path_diversity": 26,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "enterprise_id": "ent_003",
+      "name": "SecurePay Analytics JSC",
+      "score": 44.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 0.03320363633644985,
+          "length": 4
+        },
+        {
+          "path": "LOCATED_IN -> LOCATED_IN",
+          "score": 0.0013246791408554142,
+          "length": 2
+        },
+        {
+          "path": "LOCATED_IN -> LOCATED_IN -> HAS_APPLICATION_EXPERIENCE_IN -> OPERATES_IN",
+          "score": 0.000183951127079874,
+          "length": 4
+        }
+      ],
+      "path_diversity": 34,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "enterprise_id": "ent_006",
+      "name": "UrbanRoute Logistics Tech",
+      "score": 42.0,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+          "score": 0.027428814549008022,
+          "length": 4
+        }
+      ],
+      "path_diversity": 15,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    }
+  ]
+}

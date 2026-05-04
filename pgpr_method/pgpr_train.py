@@ -29,11 +29,24 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 
 
 GROUND_TRUTH_RULES: Dict[str, str] = {
+    # 1. Project - Expert (2 chiều)
     "Project_Expert": "(s:Project)<-[:PARTICIPATES_IN]-(t:Expert)",
     "Expert_Project": "(s:Expert)-[:PARTICIPATES_IN]->(t:Project)",
+
+    # 2. Enterprise - Project (2 chiều)
     "Enterprise_Project": "(s:Enterprise)-[:PARTNERS_WITH]->(t:Project)",
+    "Project_Enterprise": "(s:Project)<-[:PARTNERS_WITH]-(t:Enterprise)",
+
+    # 3. Funder - Project (2 chiều)
     "Funder_Project": "(s:Funder)-[:FUNDS]->(t:Project)",
+    "Project_Funder": "(s:Project)<-[:FUNDS]-(t:Funder)",
+
+    # 4. Expert - Enterprise (2 chiều)
     "Expert_Enterprise": "(s:Expert)-[:HAS_APPLICATION_EXPERIENCE_IN]->(:Industry)<-[:OPERATES_IN]-(t:Enterprise)",
+    "Enterprise_Expert": "(s:Enterprise)-[:OPERATES_IN]->(:Industry)<-[:HAS_APPLICATION_EXPERIENCE_IN]-(t:Expert)",
+
+    # Thêm nếu cần:
+    "Expert_Expert": "(s:Expert)-[:HAS_EXPERTISE_IN]->(:ResearchField)<-[:HAS_EXPERTISE_IN]-(t:Expert)",
 }
 
 
@@ -62,17 +75,22 @@ def collect_dynamic_pairs(
         query = f"""
         MATCH {rule_pattern}
         WHERE s.{s_id_prop} IS NOT NULL AND t.{t_id_prop} IS NOT NULL
+          AND s <> t
         RETURN s.{s_id_prop} AS s_id, t.{t_id_prop} AS t_id
         LIMIT $limit
         """
     else:
         query = f"""
-        MATCH (s:{source_type}), (t:{target_type})
+        MATCH (s:{source_type})
         WHERE s.{s_id_prop} IS NOT NULL
-          AND t.{t_id_prop} IS NOT NULL
-          AND NOT EXISTS {{
-            MATCH {rule_pattern}
-          }}
+        WITH s ORDER BY rand() LIMIT 2000
+
+        MATCH (t:{target_type})
+        WHERE t.{t_id_prop} IS NOT NULL
+          AND s <> t
+          AND NOT EXISTS {{ MATCH {rule_pattern} }}
+
+        WITH s, t ORDER BY rand()
         RETURN s.{s_id_prop} AS s_id, t.{t_id_prop} AS t_id
         LIMIT $limit
         """

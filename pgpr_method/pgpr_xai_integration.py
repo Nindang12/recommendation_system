@@ -11,7 +11,7 @@ Giải thích XAI bằng Ollama LLM (cần chạy `ollama serve` và `ollama pul
 
 Trong code:
   from pgpr_xai_integration import generate_project_multi_recommendations, print_project_multi_recommendations, save_project_multi_html
-  result = generate_project_multi_recommendations("PRJ_0001", limit_experts=5, limit_funders=5, limit_enterprises=5, limit_similar_projects=5)
+  result = generate_project_multi_recommendations("PRJ_0001", limit_experts=5, limit_funders=5, limit_enterprises=5)
   print_project_multi_recommendations(result)
   save_project_multi_html(result, "my_project_recommendations.html")
 """
@@ -19,6 +19,23 @@ Trong code:
 from pgpr_recommendation import PGPRRecommender
 from pgpr_xai_explainer import PGPRExplainer
 import json
+
+ALLOWED_MULTI_PAIRS = {
+    ("Enterprise", "Expert"),
+    ("Enterprise", "Project"),
+    ("Expert", "Enterprise"),
+    ("Expert", "Expert"),
+    ("Expert", "Project"),
+    ("Funder", "Project"),
+    ("Project", "Enterprise"),
+    ("Project", "Expert"),
+    ("Project", "Funder"),
+}
+
+
+def _ensure_allowed_pair(source_type: str, target_type: str):
+    if (source_type, target_type) not in ALLOWED_MULTI_PAIRS:
+        raise ValueError(f"Pair not allowed in multi mode: {source_type}->{target_type}")
 
 
 def _ensure_utf8_console():
@@ -169,7 +186,6 @@ def generate_project_multi_recommendations(
     limit_funders: int = 5,
     limit_experts: int = 5,
     limit_enterprises: int = 5,
-    limit_similar_projects: int = 5,
     language: str = "vi",
     include_xai: bool = True,
     use_llm: bool = False,
@@ -182,7 +198,7 @@ def generate_project_multi_recommendations(
     - experts: Chuyên gia phù hợp tham gia dự án
     - funders: Quỹ tài trợ phù hợp
     - enterprises: Doanh nghiệp hợp tác/chuyển giao công nghệ
-    - similar_projects: Dự án tương tự để tham khảo/hợp tác
+    (Chỉ giữ các cặp trong ALLOWED_MULTI_PAIRS; không dùng Project->Project)
 
     Nếu include_xai=True (mặc định), mỗi đề xuất có thêm explanation từ XAI Explainer.
     use_llm=True: dùng Ollama LLM để tạo giải thích (cần chạy ollama serve + pull model).
@@ -207,6 +223,7 @@ def generate_project_multi_recommendations(
         out = {"project_id": project_id}
 
         # 1) Experts cho project
+        _ensure_allowed_pair("Project", "Expert")
         expert_recs = pgpr.recommend_experts_for_project_pgpr(
             project_id=project_id,
             limit=limit_experts,
@@ -225,6 +242,7 @@ def generate_project_multi_recommendations(
         out["experts"] = explained_experts
 
         # 2) Funders cho project
+        _ensure_allowed_pair("Project", "Funder")
         funder_recs = pgpr.recommend_funders_for_project_pgpr(
             project_id=project_id,
             limit=limit_funders,
@@ -243,6 +261,7 @@ def generate_project_multi_recommendations(
         out["funders"] = explained_funders
 
         # 3) Enterprises cho project (hợp tác / chuyển giao công nghệ)
+        _ensure_allowed_pair("Project", "Enterprise")
         enterprise_recs = pgpr.recommend_enterprises_for_project_pgpr(
             project_id=project_id,
             limit=limit_enterprises,
@@ -260,24 +279,6 @@ def generate_project_multi_recommendations(
                 explained_enterprises.append({"recommendation": rec, "explanation": None})
         out["enterprises"] = explained_enterprises
 
-        # 4) Dự án tương tự
-        similar_recs = pgpr.recommend_projects_for_project_pgpr(
-            project_id=project_id,
-            limit=limit_similar_projects,
-        )
-        explained_similar = []
-        for rec in similar_recs:
-            if explainer:
-                explanation = explainer.explain_recommendation(
-                    rec,
-                    rec_type="project",
-                    source_context={"source_id": project_id, "source_type": "Project"},
-                )
-                explained_similar.append({"recommendation": rec, "explanation": explanation})
-            else:
-                explained_similar.append({"recommendation": rec, "explanation": None})
-        out["similar_projects"] = explained_similar
-
         return out
     finally:
         pgpr.close()
@@ -286,7 +287,7 @@ def generate_project_multi_recommendations(
 def generate_expert_multi_recommendations(
     expert_id: str,
     limit_enterprises: int = 5,
-    limit_funders: int = 5,
+    limit_experts: int = 5,
     limit_projects: int = 5,
     language: str = "vi",
     use_llm: bool = False,
@@ -295,7 +296,7 @@ def generate_expert_multi_recommendations(
     """
     Generate recommendations cho 1 Expert, bao gồm:
     - Enterprises (doanh nghiệp/đối tác phù hợp)
-    - Funders (quỹ tài trợ phù hợp)
+    - Experts (chuyên gia phù hợp để cộng tác)
     - Projects (dự án phù hợp để tham gia)
     """
     pgpr = PGPRRecommender(
@@ -308,6 +309,7 @@ def generate_expert_multi_recommendations(
 
     try:
         # 1) Enterprises cho expert
+        _ensure_allowed_pair("Expert", "Enterprise")
         enterprise_recs = pgpr.recommend_enterprises_for_expert_pgpr(
             expert_id=expert_id,
             limit=limit_enterprises,
@@ -324,24 +326,26 @@ def generate_expert_multi_recommendations(
                 {"recommendation": rec, "explanation": explanation}
             )
 
-        # 2) Funders cho expert
-        funder_recs = pgpr.recommend_funders_for_expert_pgpr(
+        # 2) Experts cho expert
+        _ensure_allowed_pair("Expert", "Expert")
+        expert_recs = pgpr.recommend_experts_for_expert_pgpr(
             expert_id=expert_id,
-            limit=limit_funders,
+            limit=limit_experts,
         )
 
-        explained_funders = []
-        for rec in funder_recs:
+        explained_experts = []
+        for rec in expert_recs:
             explanation = explainer.explain_recommendation(
                 rec,
-                rec_type="funder",
+                rec_type="expert",
                 source_context={"source_id": expert_id, "source_type": "Expert"},
             )
-            explained_funders.append(
+            explained_experts.append(
                 {"recommendation": rec, "explanation": explanation}
             )
 
         # 3) Projects cho expert
+        _ensure_allowed_pair("Expert", "Project")
         project_recs = pgpr.recommend_projects_for_expert_pgpr(
             expert_id=expert_id,
             limit=limit_projects,
@@ -361,7 +365,7 @@ def generate_expert_multi_recommendations(
         return {
             "expert_id": expert_id,
             "enterprises": explained_enterprises,
-            "funders": explained_funders,
+            "experts": explained_experts,
             "projects": explained_projects,
         }
     finally:
@@ -391,6 +395,7 @@ def generate_enterprise_multi_recommendations(
     source_context = {"source_id": enterprise_id, "source_type": "Enterprise"}
 
     try:
+        _ensure_allowed_pair("Enterprise", "Expert")
         expert_recs = pgpr.recommend_experts_for_enterprise_pgpr(
             enterprise_id=enterprise_id,
             limit=limit_experts,
@@ -402,6 +407,7 @@ def generate_enterprise_multi_recommendations(
             )
             explained_experts.append({"recommendation": rec, "explanation": explanation})
 
+        _ensure_allowed_pair("Enterprise", "Project")
         project_recs = pgpr.recommend_projects_for_enterprise_pgpr(
             enterprise_id=enterprise_id,
             limit=limit_projects,
@@ -424,7 +430,6 @@ def generate_enterprise_multi_recommendations(
 
 def generate_funder_multi_recommendations(
     funder_id: str,
-    limit_experts: int = 5,
     limit_projects: int = 5,
     language: str = "vi",
     use_llm: bool = False,
@@ -432,7 +437,6 @@ def generate_funder_multi_recommendations(
 ) -> dict:
     """
     Đề xuất cho 1 Funder (quỹ tài trợ), gồm:
-    - Experts (chuyên gia phù hợp với danh mục quỹ)
     - Projects (dự án phù hợp để tài trợ)
     """
     pgpr = PGPRRecommender(
@@ -445,17 +449,7 @@ def generate_funder_multi_recommendations(
     source_context = {"source_id": funder_id, "source_type": "Funder"}
 
     try:
-        expert_recs = pgpr.recommend_experts_for_funder_pgpr(
-            funder_id=funder_id,
-            limit=limit_experts,
-        )
-        explained_experts = []
-        for rec in expert_recs:
-            explanation = explainer.explain_recommendation(
-                rec, rec_type="expert", source_context=source_context
-            )
-            explained_experts.append({"recommendation": rec, "explanation": explanation})
-
+        _ensure_allowed_pair("Funder", "Project")
         project_recs = pgpr.recommend_projects_for_funder_pgpr(
             funder_id=funder_id,
             limit=limit_projects,
@@ -469,7 +463,6 @@ def generate_funder_multi_recommendations(
 
         return {
             "funder_id": funder_id,
-            "experts": explained_experts,
             "projects": explained_projects,
         }
     finally:
@@ -530,7 +523,7 @@ def print_explained_recommendations(result: dict):
 
 def print_project_multi_recommendations(multi_result: dict):
     """
-    In ra console tất cả đề xuất multi cho 1 Project (experts, funders, enterprises, similar_projects).
+    In ra console tất cả đề xuất multi cho 1 Project (experts, funders, enterprises).
     Dùng sau khi gọi generate_project_multi_recommendations(project_id).
     """
     pid = multi_result.get("project_id", "?")
@@ -559,8 +552,6 @@ def print_project_multi_recommendations(multi_result: dict):
     _section("Chuyên gia đề xuất (Experts)", multi_result.get("experts", []))
     _section("Quỹ tài trợ đề xuất (Funders)", multi_result.get("funders", []))
     _section("Doanh nghiệp đề xuất (Enterprises)", multi_result.get("enterprises", []))
-    _section("Dự án tương tự (Similar Projects)", multi_result.get("similar_projects", []), name_key="title")
-
     print("\n" + "="*80)
 
 
@@ -700,7 +691,6 @@ def save_project_multi_html(multi_result: dict, output_file: str = "project_mult
         ("Chuyên gia đề xuất", "experts", "name"),
         ("Quỹ tài trợ đề xuất", "funders", "name"),
         ("Doanh nghiệp đề xuất", "enterprises", "name"),
-        ("Dự án tương tự", "similar_projects", "title"),
     ]
 
     blocks = []
@@ -763,12 +753,12 @@ def save_project_multi_html(multi_result: dict, output_file: str = "project_mult
 def save_expert_multi_html(multi_result: dict, output_file: str = "expert_multi_recommendations.html"):
     """
     Lưu tất cả đề xuất multi cho 1 Expert ra file HTML để mở trình duyệt xem.
-    Gồm 3 phần: Enterprises, Funders, Projects.
+    Gồm 3 phần: Enterprises, Experts, Projects.
     """
     eid = multi_result.get("expert_id", "?")
     sections = [
         ("Doanh nghiệp đề xuất (Enterprises)", "enterprises", "name"),
-        ("Quỹ tài trợ đề xuất (Funders)", "funders", "name"),
+        ("Chuyên gia đề xuất (Experts)", "experts", "name"),
         ("Dự án đề xuất (Projects)", "projects", "title"),
     ]
 
@@ -815,7 +805,7 @@ def save_expert_multi_html(multi_result: dict, output_file: str = "expert_multi_
     <div class="container">
         <div class="header">
             <h1>Đề xuất Multi cho Expert: {eid}</h1>
-            <p>Doanh nghiệp · Quỹ tài trợ · Dự án phù hợp</p>
+            <p>Doanh nghiệp · Chuyên gia · Dự án phù hợp</p>
         </div>
         <div class="content">
             {"".join(blocks)}
@@ -900,11 +890,10 @@ def save_enterprise_multi_html(multi_result: dict, output_file: str = "enterpris
 def save_funder_multi_html(multi_result: dict, output_file: str = "funder_multi_recommendations.html"):
     """
     Lưu tất cả đề xuất multi cho 1 Funder ra file HTML để mở trình duyệt xem.
-    Gồm 2 phần: Experts, Projects.
+    Gồm 1 phần: Projects.
     """
     fid = multi_result.get("funder_id", "?")
     sections = [
-        ("Chuyên gia đề xuất (Experts)", "experts", "name"),
         ("Dự án đề xuất (Projects)", "projects", "title"),
     ]
 
@@ -951,7 +940,7 @@ def save_funder_multi_html(multi_result: dict, output_file: str = "funder_multi_
     <div class="container">
         <div class="header">
             <h1>Đề xuất Multi cho Funder: {fid}</h1>
-            <p>Chuyên gia · Dự án phù hợp với chiến lược quỹ</p>
+            <p>Dự án phù hợp với chiến lược quỹ</p>
         </div>
         <div class="content">
             {"".join(blocks)}
@@ -997,7 +986,7 @@ if __name__ == "__main__":
         except ValueError:
             pass
 
-    # Mode expert: đề xuất cho 1 Expert (enterprises, funders, projects)
+    # Mode expert: đề xuất cho 1 Expert (enterprises, experts, projects)
     if "--expert" in args:
         try:
             idx = args.index("--expert")
@@ -1006,13 +995,13 @@ if __name__ == "__main__":
             print("Cách dùng: python pgpr_xai_integration.py --expert EXP_0001")
             sys.exit(1)
 
-        print("Chạy Multi-Entity đề xuất cho Expert (Enterprises, Funders, Projects)...")
+        print("Chạy Multi-Entity đề xuất cho Expert (Enterprises, Experts, Projects)...")
         print(f"Expert ID: {expert_id}\n")
 
         result = generate_expert_multi_recommendations(
             expert_id=expert_id,
             limit_enterprises=5,
-            limit_funders=5,
+            limit_experts=5,
             limit_projects=5,
             language="vi",
             use_llm=use_llm,
@@ -1025,10 +1014,10 @@ if __name__ == "__main__":
             rec = item.get("recommendation", {})
             print(f"{i}. {rec.get('name') or rec.get('enterprise_id', 'N/A')}  (score: {rec.get('score', 0)})")
 
-        print(f"\n=== FUNDERS cho Expert {expert_id} ===")
-        for i, item in enumerate(result.get("funders", []), 1):
+        print(f"\n=== EXPERTS cho Expert {expert_id} ===")
+        for i, item in enumerate(result.get("experts", []), 1):
             rec = item.get("recommendation", {})
-            print(f"{i}. {rec.get('name') or rec.get('funder_id', 'N/A')}  (score: {rec.get('score', 0)})")
+            print(f"{i}. {rec.get('name') or rec.get('expert_id', 'N/A')}  (score: {rec.get('score', 0)})")
 
         print(f"\n=== PROJECTS cho Expert {expert_id} ===")
         for i, item in enumerate(result.get("projects", []), 1):
@@ -1086,7 +1075,7 @@ if __name__ == "__main__":
         print(f"\nĐã lưu JSON: {out_json}")
         print("Để xem đề xuất: mở file HTML trong trình duyệt:", html_file)
 
-    # Mode funder: đề xuất cho 1 Funder (experts, projects)
+    # Mode funder: đề xuất cho 1 Funder (projects)
     elif "--funder" in args:
         try:
             idx = args.index("--funder")
@@ -1095,24 +1084,18 @@ if __name__ == "__main__":
             print("Cách dùng: python pgpr_xai_integration.py --funder FUN_0001")
             sys.exit(1)
 
-        print("Chạy Multi-Entity đề xuất cho Funder (Experts, Projects)...")
+        print("Chạy Multi-Entity đề xuất cho Funder (Projects)...")
         print(f"Funder ID: {funder_id}\n")
 
         result = generate_funder_multi_recommendations(
             funder_id=funder_id,
-            limit_experts=5,
             limit_projects=5,
             language="vi",
             use_llm=use_llm,
             ollama_model=ollama_model,
         )
 
-        print(f"=== EXPERTS cho Funder {funder_id} ===")
-        for i, item in enumerate(result.get("experts", []), 1):
-            rec = item.get("recommendation", {})
-            print(f"{i}. {rec.get('name') or rec.get('expert_id', 'N/A')}  (score: {rec.get('score', 0)})")
-
-        print(f"\n=== PROJECTS cho Funder {funder_id} ===")
+        print(f"=== PROJECTS cho Funder {funder_id} ===")
         for i, item in enumerate(result.get("projects", []), 1):
             rec = item.get("recommendation", {})
             print(f"{i}. {rec.get('title') or rec.get('project_id', 'N/A')}  (score: {rec.get('score', 0)})")
@@ -1134,7 +1117,7 @@ if __name__ == "__main__":
         if len(positional) >= 1 and not positional[0].startswith("--"):
             project_id = positional[0]
 
-        print("Chạy Multi-Entity đề xuất cho Project (Experts, Funders, Enterprises, Similar Projects)...")
+        print("Chạy Multi-Entity đề xuất cho Project (Experts, Funders, Enterprises)...")
         print(f"Project ID: {project_id}")
         if use_llm:
             print(f"Chế độ XAI: Ollama LLM (model: {ollama_model})")
@@ -1146,7 +1129,6 @@ if __name__ == "__main__":
             limit_experts=5,
             limit_funders=5,
             limit_enterprises=5,
-            limit_similar_projects=5,
             language="vi",
             include_xai=True,
             use_llm=use_llm,
@@ -1168,7 +1150,6 @@ if __name__ == "__main__":
                 "experts": [x["recommendation"] for x in multi_result["experts"]],
                 "funders": [x["recommendation"] for x in multi_result["funders"]],
                 "enterprises": [x["recommendation"] for x in multi_result["enterprises"]],
-                "similar_projects": [x["recommendation"] for x in multi_result["similar_projects"]],
             }, f, ensure_ascii=False, indent=2)
         print(f"Đã lưu JSON: {json_file}")
 

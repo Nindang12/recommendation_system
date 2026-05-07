@@ -1,0 +1,77 @@
+from __future__ import annotations
+
+from typing import Literal
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
+EntityType = Literal["project", "expert", "funder", "enterprise"]
+
+
+class RecommendationRequest(BaseModel):
+    project_id: Optional[str] = Field(
+        default=None,
+        description="Project identifier (e.g. PRJ_0001)",
+    )
+    expert_id: Optional[str] = Field(
+        default=None,
+        description="Expert identifier when recommending projects for an expert",
+    )
+    limit: int = Field(5, ge=1, le=100, description="Maximum number of recommendations")
+    language: str = Field(
+        "vi",
+        description="Language for natural-language explanations",
+    )
+    source_id: Optional[str] = Field(
+        default=None,
+        description="Generic source id for policy-based recommendation",
+    )
+    source_type: Optional[EntityType] = Field(
+        default=None,
+        description="Source entity type in policy graph",
+    )
+    target_type: Optional[EntityType] = Field(
+        default=None,
+        description="Target entity type to recommend in policy graph",
+    )
+
+
+class ExplanationSchema(BaseModel):
+    natural_language: str = Field(..., description="Human-readable explanation text")
+    visualization: str = Field(..., description="Visualization payload or URL")
+
+
+class RecommendationItem(BaseModel):
+    id: str = Field(..., description="Recommended object identifier")
+    name: str = Field(..., description="Recommended object display name")
+    score: float
+
+    explanation: Optional[ExplanationSchema] = Field(
+        default=None,
+        description="Structured explanation for this recommendation",
+    )
+    metrics: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional ranking metrics used by recommendation engine",
+    )
+    # Compatibility bridge for current service output shape.
+    expert_id: Optional[str] = None
+    xai_explanation: Optional[str] = None
+    extra: Optional[Dict[str, Any]] = None
+
+
+class RecommendationResponse(BaseModel):
+    status: str
+    data: List[RecommendationItem]
+    count: int = Field(..., ge=0)
+
+
+# Backward-compatibility alias used by existing service code.
+ExpertRecommendation = RecommendationItem
+
+
+class ExplainRecommendationRequest(BaseModel):
+    recommendation: Dict[str, Any] = Field(..., description="The recommendation object to explain")
+    target_type: EntityType = Field(..., description="The type of the recommended entity")
+    source_context: Optional[Dict[str, Any]] = Field(None, description="Context about the source node")
+    language: str = Field("vi", description="Language for natural-language explanations")

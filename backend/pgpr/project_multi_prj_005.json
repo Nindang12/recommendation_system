@@ -1,0 +1,206 @@
+{
+  "project_id": "prj_005",
+  "experts": [
+    {
+      "expert_id": "exp_006",
+      "name": "TS. Nguyễn Huy F",
+      "score": 0.48,
+      "reasoning_paths": [
+        {
+          "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.04480546950735994,
+          "length": 2
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.012049672253022094,
+          "length": 4
+        },
+        {
+          "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.008986966966347714,
+          "length": 4
+        }
+      ],
+      "path_diversity": 76,
+      "metrics": {
+        "h_index": 10,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_008",
+      "name": "TS. Trương Đức H",
+      "score": 0.29,
+      "reasoning_paths": [
+        {
+          "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.020236982720764737,
+          "length": 2
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.00443552966636901,
+          "length": 4
+        },
+        {
+          "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+          "score": 0.00398503023106492,
+          "length": 4
+        }
+      ],
+      "path_diversity": 25,
+      "metrics": {
+        "h_index": 6,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_001",
+      "name": "PGS.TS. Nguyễn Văn A",
+      "score": 0.17,
+      "reasoning_paths": [
+        {
+          "path": "FOCUSES_ON_TOPIC -> SUPPORTS_TOPIC -> FOCUSES_ON_REGION -> LOCATED_IN",
+          "score": 0.0030718125851035387,
+          "length": 4
+        },
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_REGION -> LOCATED_IN",
+          "score": 0.000624193392067249,
+          "length": 4
+        },
+        {
+          "path": "FUNDS -> FOCUSES_ON_REGION -> LOCATED_IN",
+          "score": 0.00024391573590008283,
+          "length": 3
+        }
+      ],
+      "path_diversity": 9,
+      "metrics": {
+        "h_index": 12,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_003",
+      "name": "TS. Phạm Minh C",
+      "score": 0.151,
+      "reasoning_paths": [
+        {
+          "path": "FOCUSES_ON -> RESEARCHES",
+          "score": 8.102170037360726e-05,
+          "length": 2
+        }
+      ],
+      "path_diversity": 1,
+      "metrics": {
+        "h_index": 9,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "expert_id": "exp_004",
+      "name": "PGS.TS. Lê Thu D",
+      "score": 0.15,
+      "reasoning_paths": [
+        {
+          "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON -> RESEARCHES",
+          "score": 1.7267917154431404e-05,
+          "length": 4
+        }
+      ],
+      "path_diversity": 1,
+      "metrics": {
+        "h_index": 11,
+        "budget": null,
+        "status": null
+      }
+    }
+  ],
+  "funders": [
+    {
+      "funder_id": "fnd_002",
+      "name": "National Technology Development Fund (NATIF)",
+      "score": 0.99,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+          "score": 0.15287793387835524,
+          "length": 4
+        }
+      ],
+      "path_diversity": 148,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "funder_id": "fnd_003",
+      "name": "Vietnam Digital Innovation Grant (VDIG)",
+      "score": 0.55,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+          "score": 0.041306437059238005,
+          "length": 4
+        },
+        {
+          "path": "FOCUSES_ON_TOPIC -> BELONGS_TO -> SUPPORTS",
+          "score": 1.656732431050703e-05,
+          "length": 3
+        }
+      ],
+      "path_diversity": 37,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    },
+    {
+      "funder_id": "fnd_001",
+      "name": "Vietnam Innovation Fund (VINIF)",
+      "score": 0.45,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+          "score": 0.03005291733179801,
+          "length": 4
+        }
+      ],
+      "path_diversity": 22,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    }
+  ],
+  "enterprises": [
+    {
+      "enterprise_id": "ent_001",
+      "name": "TechMed Solutions VN",
+      "score": 0.155,
+      "reasoning_paths": [
+        {
+          "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_REGION -> LOCATED_IN",
+          "score": 0.000499616710750545,
+          "length": 4
+        }
+      ],
+      "path_diversity": 2,
+      "metrics": {
+        "h_index": null,
+        "budget": null,
+        "status": null
+      }
+    }
+  ]
+}

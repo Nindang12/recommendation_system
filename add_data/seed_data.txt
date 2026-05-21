@@ -548,6 +548,103 @@
         "privacy": { "privacy_level": "Public", "field_privacy": { "contact_info.phones": "Restricted" }, "consent": { "status": "granted", "date": "2026-01-12" } },
         "temporal_freshness": { "last_update": "2026-03-16", "update_source": "User_Profile", "freshness_score": 95 }
       }
+    },
+    {
+      "expert_id": "exp_010",
+      "basic_info": {
+        "name": "TS. Đặng Quang L",
+        "birth_year": 1988,
+        "gender": "Male",
+        "location": {
+          "country_code": "VN",
+          "country_name": "Vietnam",
+          "region": "Đông Nam Bộ",
+          "city": "TP. Hồ Chí Minh",
+          "coordinates": { "lat": 10.823099, "lng": 106.629664 }
+        },
+        "nationality": "Vietnam",
+        "preferred_language": "Vietnamese"
+      },
+      "identifiers": {
+        "ORCID": "0000-0011-2026-1010",
+        "ScopusID": "1010101010",
+        "ResearcherID": "L-1010-2026"
+      },
+      "contact_info": {
+        "phones": ["+84916667788"],
+        "emails": ["dangquangl@aicslab.edu.vn"],
+        "preferred_contact_method": "email",
+        "social_links": [
+          { "platform": "LinkedIn", "url": "linkedin.com/in/dangquangl", "is_primary": true, "verified": true },
+          { "platform": "GoogleScholar", "url": "scholar.google.com/dangquangl", "is_primary": false, "verified": true }
+        ]
+      },
+      "academic_profile": {
+        "academic_status": "TS",
+        "degrees": [
+          { "level": "PhD", "major": "Computer Science", "institution": "University of Toronto", "year_awarded": 2017 }
+        ],
+        "current_affiliation": {
+          "org_name": "University of Technology - VNUHCM",
+          "type": "University",
+          "department": "Faculty of Computer Science and Engineering",
+          "position_title": "Senior Lecturer"
+        },
+        "affiliation_history": [
+          { "org": "Applied AI Lab", "role": "Research Scientist", "start_date": "2017-09-01", "end_date": "2020-12-31" }
+        ],
+        "teaching_experience": ["Recommender Systems", "Graph Machine Learning"]
+      },
+      "research_capacity": {
+        "research_directions": ["Artificial Intelligence", "Information Systems"],
+        "research_topics": [
+          { "name": "Knowledge Graph Recommendation", "parent_direction": "Artificial Intelligence" },
+          { "name": "Graph Representation Learning", "parent_direction": "Artificial Intelligence" }
+        ],
+        "technology": ["Recommender Systems", "Graph Neural Networks", "Information Retrieval"],
+        "skills_methods": [
+          { "name": "Python", "category": "Programming", "proficiency_level": "expert" },
+          { "name": "PyTorch", "category": "Framework", "proficiency_level": "advanced" }
+        ],
+        "applied_industries": [
+          { "code": "IT", "name": "Information Technology" }
+        ],
+        "academic_metrics": {
+          "publication_count": 27,
+          "h_index": 8,
+          "citation_count": 610,
+          "i10_index": 9,
+          "altmetrics": 165
+        }
+      },
+      "activities_and_outputs": {
+        "list_outputs": [
+          { "type": "Bài báo", "title": "Hybrid Reasoning for Cold-start Knowledge Graph Recommendation", "year": 2026, "doi_id": "10.1016/j.ipm.2026.103210", "publisher": "Elsevier" }
+        ],
+        "owned_dataset_ids": ["ds_001"],
+        "accessible_dataset_ids": ["ds_002", "ds_006"],
+        "collaborators": [
+          { "expert_id": "exp_009", "relation_type": "Co-author", "duration": "1 year" }
+        ],
+        "grant_history": [
+          { "grant_id": "g_2026_10", "funder_id": "fnd_003", "funder_name": "Vietnam Digital Innovation Grant", "amount": 60000, "year": 2026, "linked_project_id": "prj_003", "status": "active" }
+        ],
+        "projects_participation": [
+          { "project_id": "prj_003", "role": "Researcher", "status": "ongoing", "duration": "18 months" }
+        ]
+      },
+      "governance": {
+        "privacy": {
+          "privacy_level": "Public",
+          "field_privacy": { "contact_info.phones": "Restricted" },
+          "consent": { "status": "granted", "date": "2026-02-01" }
+        },
+        "temporal_freshness": {
+          "last_update": "2026-04-20",
+          "update_source": "User_Profile",
+          "freshness_score": 94
+        }
+      }
     }
   ],
 

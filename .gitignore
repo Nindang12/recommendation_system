@@ -81,3 +81,4 @@ tmp/
 # OS
 Thumbs.db
 .DS_Store
+.aider*

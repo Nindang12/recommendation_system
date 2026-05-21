@@ -1,4 +1,5 @@
 import logging
+import os
 from services.recommendation_service import RecommendationService
 from pgpr.pgpr_recommendation import PGPRRecommender
 from pgpr.pgpr_xai_explainer import PGPRExplainer
@@ -25,7 +26,12 @@ def get_pgpr_explainer() -> PGPRExplainer:
     global _pgpr_explainer
     if _pgpr_explainer is None:
         logger.info("Khởi tạo PGPRExplainer (Singleton)...")
-        _pgpr_explainer = PGPRExplainer(language="vi", use_llm=True, ollama_model="llama3")
+        model = os.getenv("OLLAMA_MODEL", "llama3")
+        _pgpr_explainer = PGPRExplainer(
+            language="vi", 
+            use_llm=True, 
+            ollama_model=model
+        )
     return _pgpr_explainer
 
 

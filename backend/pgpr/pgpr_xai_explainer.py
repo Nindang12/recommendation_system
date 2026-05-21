@@ -434,7 +434,14 @@ class OllamaConfig:
             "temperature": 0.3,
             "top_p": 0.9,
             "top_k": 40,
-            "num_predict": 420,
+            "num_predict": 200,
+            "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
+        },
+        "llama3.2": {
+            "temperature": 0.25,
+            "top_p": 0.9,
+            "top_k": 40,
+            "num_predict": 250,
             "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
         },
         "qwen": {
@@ -442,6 +449,20 @@ class OllamaConfig:
             "top_p": 0.9,
             "top_k": 40,
             "num_predict": 480,
+            "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
+        },
+        "qwen3.5": {
+            "temperature": 0.25,
+            "top_p": 0.9,
+            "top_k": 40,
+            "num_predict": 512,
+            "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
+        },
+        "qwen3.6": {
+            "temperature": 0.3,
+            "top_p": 0.95,
+            "top_k": 40,
+            "num_predict": 512,
             "stop": ["\n\n\n", "===", "Ví dụ", "VÍ DỤ"],
         },
         "mistral": {
@@ -463,7 +484,37 @@ class OllamaConfig:
     @classmethod
     def get_config(cls, model: str) -> Dict[str, Any]:
         base = (model or "llama3").split(":")[0].strip().lower()
-        return dict(cls.MODELS.get(base, cls.MODELS["llama3"]))
+        if base in cls.MODELS:
+            return dict(cls.MODELS[base])
+        # Tìm kiếm khớp thông minh (fuzzy match)
+        for key in ["llama3.2", "llama3", "qwen3.6", "qwen3.5", "qwen", "mistral", "gemma"]:
+            if key in base or base.startswith(key.split(".")[0]):
+                return dict(cls.MODELS[key])
+        return dict(cls.MODELS["llama3"])
+
+
+def _build_ollama_generate_payload(model: str, prompt: str) -> Dict[str, Any]:
+    """Build a generate request that returns only the final answer for reasoning models."""
+    return {
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "think": False,
+        "options": OllamaConfig.get_config(model),
+    }
+
+
+def _extract_ollama_response(data: Dict[str, Any]) -> str:
+    """Ollama context is token IDs; only response should be used as user-facing text."""
+    response = (data.get("response") or "").strip()
+    if response:
+        return response
+
+    # Some reasoning models can exhaust num_predict in thinking. Do not expose
+    # the raw thinking trace or token-id context as a fallback explanation.
+    if data.get("done_reason") == "length":
+        return ""
+    return ""
 
 
 def post_process_llm_response(text: str) -> str:
@@ -681,7 +732,7 @@ Hãy phân tích vì sao {label_vi} **{name}** là đối tác tiềm năng cho 
 
 def llm_explain_paths_ollama(
     prompt: str,
-    model: str = "llama3",
+    model: str = os.getenv("OLLAMA_MODEL", "llama3"),
     ollama_url: str = OLLAMA_URL,
     timeout: int = 120,
 ) -> Optional[str]:
@@ -698,10 +749,7 @@ def llm_explain_paths_ollama(
         Generated text or None on error
     """
     url = f"{ollama_url.rstrip('/')}/api/generate"
-    options = OllamaConfig.get_config(model)
-    body = json.dumps(
-        {"model": model, "prompt": prompt, "stream": False, "options": options}
-    ).encode("utf-8")
+    body = json.dumps(_build_ollama_generate_payload(model, prompt)).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=body,
@@ -711,26 +759,25 @@ def llm_explain_paths_ollama(
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return post_process_llm_response((data.get("response") or "").strip())
+            return post_process_llm_response(_extract_ollama_response(data))
     except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError):
         return None
 
 async def async_llm_explain_paths_ollama(
     prompt: str,
     session: aiohttp.ClientSession,
-    model: str = "llama3",
+    model: str = os.getenv("OLLAMA_MODEL", "llama3"),
     ollama_url: str = OLLAMA_URL,
     timeout: int = 120,
 ) -> Optional[str]:
     url = f"{ollama_url.rstrip('/')}/api/generate"
-    options = OllamaConfig.get_config(model)
-    body = {"model": model, "prompt": prompt, "stream": False, "options": options}
+    body = _build_ollama_generate_payload(model, prompt)
     
     try:
         async with session.post(url, json=body, timeout=timeout) as resp:
             if resp.status == 200:
                 data = await resp.json()
-                return post_process_llm_response((data.get("response") or "").strip())
+                return post_process_llm_response(_extract_ollama_response(data))
             return None
     except Exception:
         return None
@@ -751,7 +798,7 @@ class PGPRExplainer:
         self,
         language: str = "vi",
         use_llm: bool = False,
-        ollama_model: str = "llama3",
+        ollama_model: str = os.getenv("OLLAMA_MODEL", "llama3"),
         ollama_url: str = OLLAMA_URL,
     ):
         """

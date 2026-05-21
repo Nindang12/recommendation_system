@@ -901,7 +901,7 @@ def import_to_mongodb(data_file=None, force=False):
                 f"upserted={upserted}, inserted_without_id={inserted}"
             )
 
-    print("\nSeed data import hoàn tất.")
+    print("\nSeed data import completed successfully.")
 
 
 if __name__ == "__main__":

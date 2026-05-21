@@ -1681,13 +1681,31 @@ def sync_experts_new(session, direction_ids: set, topic_ids: set):
 
             research_topics = safe_get(ex, "research_capacity", "research_topics") or []
             for topic in research_topics:
+                if not isinstance(topic, dict):
+                    continue
                 topic_name = topic.get("name")
-                if not topic_name: continue
+                if not topic_name:
+                    continue
+                parent_direction_name = topic.get("parent_direction")
                 
                 session.run(
                     "MERGE (t:ResearchTopic {name: $name}) SET t.updated_at = datetime()",
                     name=topic_name
                 )
+                if parent_direction_name:
+                    session.run(
+                        "MERGE (d:ResearchDirection {name: $name}) SET d.updated_at = datetime()",
+                        name=parent_direction_name,
+                    )
+                    session.run(
+                        """
+                        MATCH (t:ResearchTopic {name: $topic_name})
+                        MATCH (d:ResearchDirection {name: $direction_name})
+                        MERGE (t)-[:BELONGS_TO]->(d)
+                        """,
+                        topic_name=topic_name,
+                        direction_name=parent_direction_name,
+                    )
                 session.run(
                     """
                     MATCH (e:Expert {expert_id: $expert_id})
@@ -1936,12 +1954,30 @@ def sync_enterprises_new(session, direction_ids: set, topic_ids: set):
                 
             # rd_focus_topics (MERGE by name)
             for topic in rd_profile.get("rd_focus_topics") or []:
+                if not isinstance(topic, dict):
+                    continue
                 topic_name = topic.get("name")
-                if not topic_name: continue
+                if not topic_name:
+                    continue
+                parent_direction_name = topic.get("parent_direction")
                 session.run(
                     "MERGE (t:ResearchTopic {name: $name}) SET t.updated_at = datetime()",
                     name=topic_name
                 )
+                if parent_direction_name:
+                    session.run(
+                        "MERGE (d:ResearchDirection {name: $name}) SET d.updated_at = datetime()",
+                        name=parent_direction_name,
+                    )
+                    session.run(
+                        """
+                        MATCH (t:ResearchTopic {name: $topic_name})
+                        MATCH (d:ResearchDirection {name: $direction_name})
+                        MERGE (t)-[:BELONGS_TO]->(d)
+                        """,
+                        topic_name=topic_name,
+                        direction_name=parent_direction_name,
+                    )
                 session.run(
                     """
                     MATCH (en:Enterprise {enterprise_id: $enterprise_id})
@@ -2101,12 +2137,30 @@ def sync_funders_new(session, direction_ids: set, topic_ids: set):
                 
             # funding_topics (MERGE by name)
             for topic in strategy.get("funding_topics") or []:
+                if not isinstance(topic, dict):
+                    continue
                 topic_name = topic.get("name")
-                if not topic_name: continue
+                if not topic_name:
+                    continue
+                parent_direction_name = topic.get("parent_direction")
                 session.run(
                     "MERGE (t:ResearchTopic {name: $name}) SET t.updated_at = datetime()",
                     name=topic_name
                 )
+                if parent_direction_name:
+                    session.run(
+                        "MERGE (d:ResearchDirection {name: $name}) SET d.updated_at = datetime()",
+                        name=parent_direction_name,
+                    )
+                    session.run(
+                        """
+                        MATCH (t:ResearchTopic {name: $topic_name})
+                        MATCH (d:ResearchDirection {name: $direction_name})
+                        MERGE (t)-[:BELONGS_TO]->(d)
+                        """,
+                        topic_name=topic_name,
+                        direction_name=parent_direction_name,
+                    )
                 session.run(
                     """
                     MATCH (f:Funder {funder_id: $funder_id})
@@ -2234,12 +2288,30 @@ def sync_projects_new(session, direction_ids: set, topic_ids: set):
                 
             # research_topics (MERGE by name)
             for topic in basic.get("research_topics") or []:
+                if not isinstance(topic, dict):
+                    continue
                 topic_name = topic.get("name")
-                if not topic_name: continue
+                if not topic_name:
+                    continue
+                parent_direction_name = topic.get("parent_direction")
                 session.run(
                     "MERGE (t:ResearchTopic {name: $name}) SET t.updated_at = datetime()",
                     name=topic_name
                 )
+                if parent_direction_name:
+                    session.run(
+                        "MERGE (d:ResearchDirection {name: $name}) SET d.updated_at = datetime()",
+                        name=parent_direction_name,
+                    )
+                    session.run(
+                        """
+                        MATCH (t:ResearchTopic {name: $topic_name})
+                        MATCH (d:ResearchDirection {name: $direction_name})
+                        MERGE (t)-[:BELONGS_TO]->(d)
+                        """,
+                        topic_name=topic_name,
+                        direction_name=parent_direction_name,
+                    )
                 session.run(
                     """
                     MATCH (p:Project {project_id: $project_id})

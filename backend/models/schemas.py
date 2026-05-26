@@ -3,9 +3,24 @@ from __future__ import annotations
 from typing import Literal
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 EntityType = Literal["project", "expert", "funder", "enterprise"]
+
+ALLOWED_RESEARCH_TOPICS = {
+    "ai-healthcare",
+    "computer-vision",
+    "machine-learning",
+    "deep-learning",
+    "natural-language-processing",
+    "iot",
+    "data-science",
+    "knowledge-graph",
+    "robotics",
+    "renewable-energy",
+    "smart-manufacturing",
+    "cybersecurity",
+}
 
 
 class RecommendationRequest(BaseModel):
@@ -33,6 +48,14 @@ class RecommendationRequest(BaseModel):
     target_type: Optional[EntityType] = Field(
         default=None,
         description="Target entity type to recommend in policy graph",
+    )
+    mode: Literal["personal", "public", "admin_debug"] = Field(
+        "public",
+        description="Recommendation visibility mode for provisional KG data",
+    )
+    current_user_id: Optional[str] = Field(
+        default=None,
+        description="Current user id for personal-mode recommendation filters",
     )
 
 
@@ -68,6 +91,16 @@ class RecommendationItem(BaseModel):
         default=None,
         description="Number of paths connecting the entities",
     )
+    final_score: Optional[float] = None
+    raw_score: Optional[float] = None
+    stored_trust_weight: Optional[float] = None
+    runtime_source_weight: Optional[float] = None
+    trust_override_reason: Optional[str] = None
+    uses_provisional_data: Optional[bool] = None
+    provisional_nodes_count: Optional[int] = None
+    data_quality_level: Optional[str] = None
+    data_quality_notes: Optional[List[str]] = None
+    verification_badges: Optional[Dict[str, Any]] = None
 
 
 class RecommendationResponse(BaseModel):
@@ -85,3 +118,161 @@ class ExplainRecommendationRequest(BaseModel):
     target_type: EntityType = Field(..., description="The type of the recommended entity")
     source_context: Optional[Dict[str, Any]] = Field(None, description="Context about the source node")
     language: str = Field("vi", description="Language for natural-language explanations")
+    mode: Literal["rule", "llm", "auto"] = Field(
+        "rule",
+        description="rule=fast template; llm=Ollama; auto=try llm then fallback rule",
+    )
+    force_refresh: bool = Field(
+        False,
+        description="Bypass service-layer explanation cache and regenerate the explanation",
+    )
+
+
+class ExplanationResponse(BaseModel):
+    status: str
+    data: Dict[str, Any]
+
+
+class GraphPathsQuery(BaseModel):
+    source_type: EntityType
+    source_id: str
+    target_type: EntityType
+    target_id: str
+    max_length: Optional[int] = Field(None, ge=1, le=12)
+    limit: int = Field(10, ge=1, le=50)
+
+
+class GraphPathItem(BaseModel):
+    path: str
+    score: float
+    relations: List[str]
+    entities: List[str]
+    path_length: int
+    explanation: Optional[str] = None
+
+
+class GraphPathsResponse(BaseModel):
+    status: str
+    data: List[GraphPathItem]
+    count: int = Field(..., ge=0)
+
+
+class GraphNodeItem(BaseModel):
+    id: str
+    label: str
+    type: str
+    properties: Dict[str, Any] = Field(default_factory=dict)
+
+
+class GraphEdgeItem(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: str
+
+
+class GraphNeighborsData(BaseModel):
+    nodes: List[GraphNodeItem]
+    edges: List[GraphEdgeItem]
+
+
+class GraphNeighborsResponse(BaseModel):
+    status: str
+    data: GraphNeighborsData
+    count: int = Field(..., ge=0)
+
+
+class UserPublic(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    username: str = ""
+    role: str = "expert"
+    organization: str = ""
+    phone: str = ""
+    address: str = ""
+    bio: str = ""
+    research_interests: List[str] = Field(default_factory=list)
+    custom_research_topics: List[str] = Field(default_factory=list)
+    linked_entity: Optional[Dict[str, Any]] = None
+    account_verification_status: str = "email_unverified"
+    status: str = "active"
+    created_at: Optional[Any] = None
+    updated_at: Optional[Any] = None
+
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str = Field(..., min_length=6)
+    full_name: str
+    username: str = ""
+    role: Literal["expert", "enterprise", "funder"] = "expert"
+    organization: str = ""
+    phone: str = ""
+    address: str = ""
+    bio: str = ""
+    research_interests: List[str] = Field(default_factory=list)
+    custom_research_topics: List[str] = Field(default_factory=list)
+
+    @field_validator("research_interests")
+    @classmethod
+    def validate_research_interests(cls, value: List[str]) -> List[str]:
+        invalid = [item for item in value if item not in ALLOWED_RESEARCH_TOPICS]
+        if invalid:
+            raise ValueError(f"Unsupported research topics: {', '.join(invalid)}")
+        return value
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthData(BaseModel):
+    token: str
+    user: UserPublic
+
+
+class AuthResponse(BaseModel):
+    status: str
+    data: AuthData
+
+
+class ProfileUpdateRequest(BaseModel):
+    full_name: Optional[str] = None
+    username: Optional[str] = None
+    role: Optional[Literal["expert", "enterprise", "funder"]] = None
+    organization: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    bio: Optional[str] = None
+    research_interests: Optional[List[str]] = None
+    custom_research_topics: Optional[List[str]] = None
+
+    @field_validator("research_interests")
+    @classmethod
+    def validate_research_interests(cls, value: Optional[List[str]]) -> Optional[List[str]]:
+        if value is None:
+            return value
+        invalid = [item for item in value if item not in ALLOWED_RESEARCH_TOPICS]
+        if invalid:
+            raise ValueError(f"Unsupported research topics: {', '.join(invalid)}")
+        return value
+
+
+class ProjectCreateRequest(BaseModel):
+    title: str
+    summary: str = ""
+    description: str = ""
+    field: str = ""
+    status: str = "draft"
+    budget: Optional[float] = None
+    trl: Optional[int] = Field(default=None, ge=1, le=9)
+    location: str = ""
+    keywords: List[str] = Field(default_factory=list)
+
+
+class MyProjectsResponse(BaseModel):
+    status: str
+    data: List[Dict[str, Any]] = Field(default_factory=list)
+    count: int = 0

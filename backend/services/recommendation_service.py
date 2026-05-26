@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import Any, Dict, List, Optional
 
 from core.cache import cache
@@ -41,7 +42,7 @@ class RecommendationService:
         High-level business workflow for expert recommendation.
         This is a skeleton that you can plug existing PGPR/XAI logic into.
         """
-        cache_key = f"recommendations:experts:{project_id}:{limit}"
+        cache_key = f"recommendations:v2:experts:{project_id}:{limit}"
 
         # 1. Try cache first
         cached = await cache.get(cache_key)
@@ -79,12 +80,14 @@ class RecommendationService:
         target_type: str,
         limit: int = 10,
         language: str = "vi",
+        mode: str = "public",
+        current_user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         source_label = self._to_policy_label(source_type)
         target_label = self._to_policy_label(target_type)
         cache_key = (
-            f"recommendations:{target_label.lower()}_for_{source_label.lower()}:"
-            f"{source_id}:{limit}:{language}"
+            f"recommendations:v3:{target_label.lower()}_for_{source_label.lower()}:"
+            f"{source_id}:{limit}:{language}:{mode}:{current_user_id or ''}"
         )
 
         cached = await cache.get(cache_key)
@@ -113,6 +116,15 @@ class RecommendationService:
             limit=limit,
         )
 
+        recommendations = self._apply_provisional_rules(
+            recommendations=recommendations,
+            source_id=source_id,
+            source_label=source_label,
+            target_label=target_label,
+            mode=mode,
+            current_user_id=current_user_id,
+        )
+
         # 4. Enrich with XAI explanations (plug existing XAI here)
         recommendations = await self._enrich_with_xai(
             source_context=source_context,
@@ -138,6 +150,71 @@ class RecommendationService:
 
         # 8. Return results
         return recommendations
+
+    async def get_project_overview(
+        self,
+        project_id: str,
+        limit: int = 3,
+        language: str = "vi",
+    ) -> Dict[str, Any]:
+        """
+        Build dashboard-friendly recommendations for one project.
+        Partial failures are captured per group so the UI can still render.
+        """
+        limit = max(1, min(limit, 10))
+        source = {
+            "id": project_id,
+            "type": "project",
+            "name": project_id,
+        }
+        try:
+            project = await self.mongo_repo.get_project(project_id)
+        except Exception as exc:
+            logger.warning("Mongo error while loading project overview source: %s", exc)
+            project = None
+        if project:
+            source["name"] = project.get("title") or project.get("name") or project_id
+
+        async def _recommend_group(target_type: str) -> Any:
+            try:
+                return await self.get_recommendations_by_policy(
+                    source_id=project_id,
+                    source_type="project",
+                    target_type=target_type,
+                    limit=limit,
+                    language=language,
+                    mode="public",
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("Project overview group failed: %s", target_type)
+                return {
+                    "error": str(exc),
+                    "data": [],
+                }
+
+        experts, funders, enterprises, similar_projects = await asyncio.gather(
+            _recommend_group("expert"),
+            _recommend_group("funder"),
+            _recommend_group("enterprise"),
+            _recommend_group("project"),
+        )
+
+        return {
+            "status": "success",
+            "source": source,
+            "data": {
+                "experts": self._group_data(experts),
+                "funders": self._group_data(funders),
+                "enterprises": self._group_data(enterprises),
+                "similar_projects": self._group_data(similar_projects),
+            },
+            "errors": {
+                "experts": self._group_error(experts),
+                "funders": self._group_error(funders),
+                "enterprises": self._group_error(enterprises),
+                "similar_projects": self._group_error(similar_projects),
+            },
+        }
 
     async def _run_pgpr_dispatch(
         self,
@@ -223,39 +300,180 @@ class RecommendationService:
             out.append(rec)
         return out
         
+    async def explain_recommendation(
+        self,
+        recommendation: Dict[str, Any],
+        target_type: str,
+        source_context: Optional[Dict[str, Any]] = None,
+        language: str = "vi",
+        mode: str = "rule",
+        force_refresh: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Explain one recommendation. mode: rule | llm | auto (llm with rule fallback).
+        """
+        mode = (mode or "rule").lower()
+        if mode not in ("rule", "llm", "auto"):
+            raise ValueError(f"Unsupported explanation mode: {mode}")
+
+        cache_key = self._build_explanation_cache_key(
+            recommendation=recommendation,
+            target_type=target_type,
+            source_context=source_context,
+            language=language,
+            mode=mode,
+        )
+
+        if not force_refresh:
+            cached = await cache.get(cache_key)
+            if isinstance(cached, dict):
+                cached["_cache"] = {
+                    "hit": True,
+                    "key": cache_key,
+                    "scope": "service",
+                }
+                return cached
+
+        if mode == "rule":
+            explanation = self._explain_rule(
+                recommendation, target_type, source_context, language
+            )
+            await self._save_explanation_cache(cache_key, explanation)
+            explanation["_cache"] = {
+                "hit": False,
+                "key": cache_key,
+                "scope": "service",
+            }
+            return explanation
+
+        try:
+            explanation = await self._explain_llm(
+                recommendation, target_type, source_context, language
+            )
+            await self._save_explanation_cache(cache_key, explanation)
+            explanation["_cache"] = {
+                "hit": False,
+                "key": cache_key,
+                "scope": "service",
+            }
+            return explanation
+        except Exception as e:
+            logger.warning("LLM explanation failed (%s), fallback to rule", e)
+            if mode == "llm":
+                raise
+            explanation = self._explain_rule(
+                recommendation, target_type, source_context, language
+            )
+            await self._save_explanation_cache(cache_key, explanation)
+            explanation["_cache"] = {
+                "hit": False,
+                "key": cache_key,
+                "scope": "service",
+                "fallback": "rule",
+            }
+            return explanation
+
     async def explain_single_recommendation(
         self,
         recommendation: Dict[str, Any],
         target_type: str,
         source_context: Optional[Dict[str, Any]] = None,
-        language: str = "vi"
+        language: str = "vi",
     ) -> Dict[str, Any]:
-        """
-        On-demand LLM explanation for a single recommendation.
-        """
-        import aiohttp
-        
-        llm_explainer = PGPRExplainer(
-            language=language, 
-            use_llm=True, 
-            ollama_model=self.explainer.ollama_model
+        """Backward-compatible alias: defaults to LLM with rule fallback."""
+        return await self.explain_recommendation(
+            recommendation=recommendation,
+            target_type=target_type,
+            source_context=source_context,
+            language=language,
+            mode="auto",
         )
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                explanation = await llm_explainer.async_explain_recommendation(
-                    recommendation=recommendation,
-                    session=session,
-                    rec_type=target_type.lower(),
-                    source_context=source_context,
+
+    async def _save_explanation_cache(self, cache_key: str, explanation: Dict[str, Any]) -> None:
+        payload = dict(explanation)
+        payload.pop("_cache", None)
+        await cache.set(cache_key, payload, ttl=3600)
+
+    def _build_explanation_cache_key(
+        self,
+        recommendation: Dict[str, Any],
+        target_type: str,
+        source_context: Optional[Dict[str, Any]],
+        language: str,
+        mode: str,
+    ) -> str:
+        source_context = source_context or {}
+        source_type = str(source_context.get("source_type") or "unknown").lower()
+        source_id = str(source_context.get("source_id") or "unknown")
+        rec_id = (
+            recommendation.get("id")
+            or recommendation.get("expert_id")
+            or recommendation.get("project_id")
+            or recommendation.get("funder_id")
+            or recommendation.get("enterprise_id")
+            or recommendation.get("name")
+            or "unknown"
+        )
+
+        parts = [
+            "explanation",
+            str(language or "vi").lower(),
+            str(mode or "rule").lower(),
+            source_type,
+            source_id,
+            str(target_type or "unknown").lower(),
+            str(rec_id),
+        ]
+        safe_parts = [re.sub(r"[^a-zA-Z0-9_.:-]+", "_", part) for part in parts]
+        return ":".join(safe_parts)
+
+    def _explain_rule(
+        self,
+        recommendation: Dict[str, Any],
+        target_type: str,
+        source_context: Optional[Dict[str, Any]],
+        language: str,
+    ) -> Dict[str, Any]:
+        rule_explainer = PGPRExplainer(language=language, use_llm=False)
+        explanation = rule_explainer.explain_recommendation(
+            recommendation=recommendation,
+            rec_type=target_type.lower(),
+            source_context=source_context,
+        )
+        if isinstance(explanation, dict):
+            explanation["uses_provisional_data"] = bool(recommendation.get("uses_provisional_data"))
+            explanation["data_quality_level"] = recommendation.get("data_quality_level", "high")
+            explanation["provisional_nodes_count"] = int(recommendation.get("provisional_nodes_count", 0) or 0)
+            explanation["data_quality_notes"] = recommendation.get("data_quality_notes") or []
+            explanation["verification_badges"] = recommendation.get("verification_badges") or {}
+            if recommendation.get("uses_provisional_data"):
+                note = (
+                    "Goi y nay co su dung du lieu chua xac thuc. "
+                    "Ket qua co the thay doi sau khi ho so duoc duyet."
                 )
-                return explanation
-        except Exception as e:
-            logger.error(f"Lỗi khi sinh XAI On-demand (aiohttp): {e}")
-            # Fallback to rule-based if LLM fails
-            rule_explainer = PGPRExplainer(language=language, use_llm=False)
-            return rule_explainer.explain_recommendation(
+                existing = explanation.get("natural_language")
+                if isinstance(existing, str) and note not in existing:
+                    explanation["natural_language"] = f"{existing}\n\n{note}"
+        return explanation
+
+    async def _explain_llm(
+        self,
+        recommendation: Dict[str, Any],
+        target_type: str,
+        source_context: Optional[Dict[str, Any]],
+        language: str,
+    ) -> Dict[str, Any]:
+        import aiohttp
+
+        llm_explainer = PGPRExplainer(
+            language=language,
+            use_llm=True,
+            ollama_model=self.explainer.ollama_model,
+        )
+        async with aiohttp.ClientSession() as session:
+            return await llm_explainer.async_explain_recommendation(
                 recommendation=recommendation,
+                session=session,
                 rec_type=target_type.lower(),
                 source_context=source_context,
             )
@@ -296,9 +514,142 @@ class RecommendationService:
         # TODO: use self.mongo_repo / self.neo4j_repo to enrich recommendations.
         return recommendations
 
+    def _apply_provisional_rules(
+        self,
+        recommendations: List[Dict[str, Any]],
+        source_id: str,
+        source_label: str,
+        target_label: str,
+        mode: str,
+        current_user_id: Optional[str],
+    ) -> List[Dict[str, Any]]:
+        mode = mode if mode in {"public", "personal", "admin_debug"} else "public"
+        graph_repo = getattr(self.recommender, "graph_repo", None)
+        if graph_repo is None:
+            return recommendations
+
+        try:
+            source_status = graph_repo.get_entity_status(source_label, source_id)
+        except Exception:
+            source_status = {}
+
+        source_owner = str(source_status.get("owner_user_id") or "")
+        source_scope = source_status.get("participation_scope") or "public"
+        source_allowed = bool(source_status.get("allow_as_source", True))
+        source_runtime_weight = float(source_status.get("trust_weight", 1.0) or 1.0)
+        source_override_reason = None
+        if (
+            mode == "personal"
+            and source_allowed
+            and source_scope == "owner_only"
+            and current_user_id
+            and source_owner == str(current_user_id)
+        ):
+            source_runtime_weight = 1.0
+            source_override_reason = "current_user_personal_mode"
+
+        out: List[Dict[str, Any]] = []
+        for rec in recommendations:
+            item = dict(rec)
+            target_id = str(
+                item.get("id")
+                or item.get(f"{target_label.lower()}_id")
+                or item.get("expert_id")
+                or item.get("project_id")
+                or item.get("funder_id")
+                or item.get("enterprise_id")
+                or ""
+            )
+            try:
+                target_status = graph_repo.get_entity_status(target_label, target_id) if target_id else {}
+            except Exception:
+                target_status = {}
+
+            if not self._is_target_visible(target_status, mode, current_user_id):
+                continue
+
+            target_weight = float(target_status.get("trust_weight", 1.0) or 1.0)
+            stored_source_weight = float(source_status.get("trust_weight", 1.0) or 1.0)
+            base_score = float(item.get("score", 0.0) or 0.0)
+            final_score = round(base_score * source_runtime_weight * target_weight, 6)
+
+            provisional_count = int(self._is_provisional(source_status)) + int(self._is_provisional(target_status))
+            notes: List[str] = []
+            if self._is_provisional(source_status):
+                notes.append("Source entity is unverified or provisional")
+            if self._is_provisional(target_status):
+                notes.append("Target entity is unverified or provisional")
+            if provisional_count:
+                notes.append("This recommendation uses provisional KG data")
+
+            item["raw_score"] = base_score
+            item["score"] = final_score
+            item["final_score"] = final_score
+            item["stored_trust_weight"] = stored_source_weight
+            item["runtime_source_weight"] = source_runtime_weight
+            item["trust_override_reason"] = source_override_reason
+            item["uses_provisional_data"] = bool(provisional_count)
+            item["provisional_nodes_count"] = provisional_count
+            item["data_quality_level"] = self._data_quality_level(source_status, target_status)
+            item["data_quality_notes"] = notes
+            item["verification_badges"] = {
+                "source": source_status.get("entity_verification_status", "verified"),
+                "target": target_status.get("entity_verification_status", "verified"),
+            }
+            out.append(item)
+
+        out.sort(key=lambda rec: float(rec.get("score", 0.0) or 0.0), reverse=True)
+        return out
+
+    def _is_target_visible(
+        self,
+        status: Dict[str, Any],
+        mode: str,
+        current_user_id: Optional[str],
+    ) -> bool:
+        if mode == "admin_debug":
+            return True
+        if (status.get("visibility") or "public") in {"hidden", "disabled"}:
+            return False
+        if (status.get("participation_scope") or "public") == "disabled":
+            return False
+        if (status.get("entity_verification_status") or "verified") == "rejected":
+            return False
+        if mode == "public":
+            if (status.get("participation_scope") or "public") == "owner_only":
+                return False
+            if status and status.get("recommendable_as_target") is False:
+                return False
+        if mode == "personal" and (status.get("participation_scope") or "public") == "owner_only":
+            return str(status.get("owner_user_id") or "") == str(current_user_id or "")
+        return True
+
+    @staticmethod
+    def _is_provisional(status: Dict[str, Any]) -> bool:
+        return (status.get("entity_verification_status") or "verified") != "verified"
+
+    def _data_quality_level(self, source_status: Dict[str, Any], target_status: Dict[str, Any]) -> str:
+        if any((s.get("kg_sync_status") == "merge_required") for s in (source_status, target_status)):
+            return "low"
+        provisional_count = int(self._is_provisional(source_status)) + int(self._is_provisional(target_status))
+        if provisional_count == 0:
+            return "high"
+        if provisional_count == 1:
+            return "medium"
+        return "low"
+
     def _to_policy_label(self, entity_type: str) -> str:
         key = (entity_type or "").strip().lower()
         if key not in ENTITY_LABEL_MAP:
             raise ValueError(f"Unsupported entity type: {entity_type}")
         return ENTITY_LABEL_MAP[key]
 
+    def _group_data(self, value: Any) -> Any:
+        if isinstance(value, dict) and "data" in value:
+            return value["data"]
+        return value
+
+    def _group_error(self, value: Any) -> Optional[str]:
+        if isinstance(value, dict) and "error" in value:
+            return value["error"]
+        return None

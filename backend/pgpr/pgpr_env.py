@@ -33,7 +33,12 @@ class KGEnv:
 
     def __init__(self, kg: KG, driver=None, max_path_length: int = 5):
         self.kg = kg
-        self.driver = driver or GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+        if driver is not None:
+            self.driver = driver
+            self._owns_driver = False
+        else:
+            self.driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+            self._owns_driver = True
         self.max_path_length = max_path_length
         self._current_entity_key: Optional[str] = None
         self._path: List[Tuple[int, int, int]] = []  # [(h, r, t), ...]
@@ -160,5 +165,7 @@ class KGEnv:
         return [self.kg.id2relation[r] for _, r, _ in self._path]
 
     def close(self) -> None:
-        if self.driver:
+        """Close Neo4j driver only when this env created it (not when injected)."""
+        if self._owns_driver and self.driver is not None:
             self.driver.close()
+            self.driver = None

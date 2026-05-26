@@ -1,8 +1,46 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional
 
+from bson import ObjectId
+from dotenv import find_dotenv, load_dotenv
 from pymongo import MongoClient
+
+load_dotenv(find_dotenv())
+
+
+ENTITY_COLLECTIONS = {
+    "project": "projects",
+    "projects": "projects",
+    "expert": "experts",
+    "experts": "experts",
+    "funder": "funders",
+    "funders": "funders",
+    "enterprise": "enterprises",
+    "enterprises": "enterprises",
+}
+
+ENTITY_ID_FIELDS = {
+    "projects": ["project_id", "proj_id", "id"],
+    "experts": ["expert_id", "id"],
+    "funders": ["funder_id", "id"],
+    "enterprises": ["enterprise_id", "id"],
+}
+
+ENTITY_NAME_FIELDS = {
+    "projects": ["title", "name", "project_name"],
+    "experts": ["name", "full_name", "expert_name"],
+    "funders": ["name", "funder_name", "organization_name"],
+    "enterprises": ["name", "enterprise_name", "company_name"],
+}
+
+ENTITY_SUMMARY_FIELDS = {
+    "projects": ["summary", "description", "abstract", "objectives"],
+    "experts": ["summary", "bio", "description", "affiliation"],
+    "funders": ["summary", "description", "mission"],
+    "enterprises": ["summary", "description", "business_description"],
+}
 
 
 class MongoDBRepository:
@@ -13,12 +51,18 @@ class MongoDBRepository:
 
     def __init__(
         self,
-        uri: str = "mongodb://localhost:27017",
-        db_name: str = "rd_knowledge_graph",
+        uri: str | None = None,
+        db_name: str | None = None,
     ) -> None:
         # Fail fast when MongoDB is not reachable (better dev experience).
+        uri = uri or os.getenv("MONGO_URI", "mongodb://localhost:27017")
+        db_name = db_name or os.getenv("MONGO_DB_NAME", "rd_knowledge_graph")
         self.client = MongoClient(uri, serverSelectionTimeoutMS=2000)
         self.db = self.client[db_name]
+
+    def check_db_health(self) -> bool:
+        self.client.admin.command("ping")
+        return True
 
     async def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
         # Support common id field variants found in datasets.
@@ -44,3 +88,137 @@ class MongoDBRepository:
         cursor = self.db.projects.find(query).limit(limit)
         return list(cursor)
 
+    async def list_entities(
+        self,
+        entity_type: str,
+        search: Optional[str] = None,
+        limit: int = 20,
+        page: int = 1,
+    ) -> List[Dict[str, Any]]:
+        collection_name = self._collection_name(entity_type)
+        collection = self.db[collection_name]
+        query = self._build_search_query(collection_name, search)
+        skip = max(page - 1, 0) * limit
+        cursor = collection.find(query).skip(skip).limit(limit)
+        return [
+            self._normalize_entity(doc, collection_name)
+            for doc in cursor
+        ]
+
+    async def count_entities(
+        self,
+        entity_type: str,
+        search: Optional[str] = None,
+    ) -> int:
+        collection_name = self._collection_name(entity_type)
+        query = self._build_search_query(collection_name, search)
+        return int(self.db[collection_name].count_documents(query))
+
+    async def get_entity(
+        self,
+        entity_type: str,
+        entity_id: str,
+    ) -> Optional[Dict[str, Any]]:
+        collection_name = self._collection_name(entity_type)
+        collection = self.db[collection_name]
+        query = self._build_id_query(collection_name, entity_id)
+        doc = collection.find_one(query)
+        if doc is None:
+            return None
+        return self._normalize_entity(doc, collection_name, include_raw=True)
+
+    def _collection_name(self, entity_type: str) -> str:
+        key = (entity_type or "").strip().lower()
+        if key not in ENTITY_COLLECTIONS:
+            raise ValueError(f"Unsupported entity type: {entity_type}")
+        return ENTITY_COLLECTIONS[key]
+
+    def _build_id_query(self, collection_name: str, entity_id: str) -> Dict[str, Any]:
+        clauses: List[Dict[str, Any]] = [
+            {field: entity_id}
+            for field in ENTITY_ID_FIELDS.get(collection_name, ["id"])
+        ]
+        if ObjectId.is_valid(entity_id):
+            clauses.append({"_id": ObjectId(entity_id)})
+        return {"$or": clauses}
+
+    def _build_search_query(
+        self,
+        collection_name: str,
+        search: Optional[str],
+    ) -> Dict[str, Any]:
+        if not search:
+            return {}
+        fields = (
+            ENTITY_ID_FIELDS.get(collection_name, [])
+            + ENTITY_NAME_FIELDS.get(collection_name, [])
+            + ENTITY_SUMMARY_FIELDS.get(collection_name, [])
+        )
+        return {
+            "$or": [
+                {field: {"$regex": search, "$options": "i"}}
+                for field in fields
+            ]
+        }
+
+    def _normalize_entity(
+        self,
+        doc: Dict[str, Any],
+        collection_name: str,
+        include_raw: bool = False,
+    ) -> Dict[str, Any]:
+        data = self._json_safe(doc)
+        entity_type = collection_name[:-1]
+        entity_id = self._first_value(data, ENTITY_ID_FIELDS[collection_name]) or data.get("_id")
+        name = self._first_value(data, ENTITY_NAME_FIELDS[collection_name]) or entity_id
+        summary = self._first_value(data, ENTITY_SUMMARY_FIELDS[collection_name])
+        normalized = {
+            "id": str(entity_id or ""),
+            "name": str(name or ""),
+            "type": entity_type,
+            "summary": summary or "",
+            "metadata": self._extract_metadata(data, collection_name),
+        }
+        if include_raw:
+            normalized["raw"] = data
+        return normalized
+
+    def _extract_metadata(
+        self,
+        data: Dict[str, Any],
+        collection_name: str,
+    ) -> Dict[str, Any]:
+        excluded = {
+            "_id",
+            *ENTITY_ID_FIELDS[collection_name],
+            *ENTITY_NAME_FIELDS[collection_name],
+            *ENTITY_SUMMARY_FIELDS[collection_name],
+        }
+        metadata: Dict[str, Any] = {}
+        for key, value in data.items():
+            if key in excluded or value in (None, "", [], {}):
+                continue
+            metadata[key] = value
+            if len(metadata) >= 12:
+                break
+        return metadata
+
+    def _first_value(
+        self,
+        data: Dict[str, Any],
+        fields: List[str],
+    ) -> Optional[Any]:
+        for field in fields:
+            value = data.get(field)
+            if value not in (None, "", [], {}):
+                return value
+        return None
+
+    def _json_safe(self, value: Any) -> Any:
+        if isinstance(value, ObjectId):
+            return str(value)
+        if isinstance(value, list):
+            return [self._json_safe(item) for item in value]
+        if isinstance(value, dict):
+            return {key: self._json_safe(item) for key, item in value.items()}
+        return value

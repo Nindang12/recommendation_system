@@ -254,6 +254,23 @@ export default function EntityDetailPage({ params }: { params: Promise<{ type: s
             </section>
 
             <aside className="space-y-4">
+              <div className="grid gap-2">
+                {entity.type === "project" ? (
+                  <Link href={`/projects/${entity.id}/overview`}>
+                    <Button variant="outline" className="w-full justify-between">
+                      Project overview
+                      <Sparkles className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                ) : null}
+                <Link href={`/graph/neighbors?type=${entity.type}&id=${entity.id}`}>
+                  <Button variant="outline" className="w-full justify-between">
+                    Neighbor graph
+                    <GitBranch className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+
               <Card className="rounded-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">

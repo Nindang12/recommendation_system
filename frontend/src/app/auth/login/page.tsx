@@ -1,61 +1,80 @@
+"use client";
 
-'use client';
-
-import Link from 'next/link';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Database } from 'lucide-react';
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Database, Loader2, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 1000);
-  };
+    setError("");
+    try {
+      await login(email, password);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Dang nhap that bai");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="min-h-svh flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 bg-black text-white mb-4">
-            <Database className="w-8 h-8" />
+    <div className="min-h-svh bg-background p-4">
+      <div className="mx-auto grid min-h-svh max-w-6xl items-center gap-10 lg:grid-cols-[1fr_420px]">
+        <section className="hidden lg:block">
+          <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Database className="h-6 w-6" />
           </div>
-          <h1 className="text-4xl font-headline font-bold tracking-tighter">KNOWLEDGE NEXUS</h1>
-          <p className="text-muted-foreground">Access the global knowledge graph</p>
-        </div>
+          <h1 className="max-w-2xl text-5xl font-bold tracking-tight">R&D Recommendation Workspace</h1>
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Dang nhap de quan ly du an nghien cuu, tao project moi va chay goi y PGPR/XAI tren knowledge graph.
+          </p>
+        </section>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" placeholder="name@example.com" required className="border-black focus-visible:ring-black" />
+        <section className="rounded-md border bg-card p-6 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">Dang nhap</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Truy cap dashboard va workspace ca nhan.</p>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Button variant="link" className="px-0 font-normal h-auto text-muted-foreground">Forgot password?</Button>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-            <Input id="password" type="password" required className="border-black focus-visible:ring-black" />
-          </div>
-          <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={loading}>
-            {loading ? "Authenticating..." : "SIGN IN"}
-          </Button>
-        </form>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mat khau</Label>
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            {error ? <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div> : null}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+              Dang nhap
+            </Button>
+          </form>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="text-black font-bold hover:underline">
-            Register now
-          </Link>
-        </p>
+          <p className="mt-5 text-center text-sm text-muted-foreground">
+            Chua co tai khoan?{" "}
+            <Link href="/auth/register" className="font-semibold text-foreground hover:underline">
+              Dang ky
+            </Link>
+          </p>
+        </section>
       </div>
     </div>
   );
 }
+

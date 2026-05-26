@@ -1,0 +1,1128 @@
+# GIẢI THÍCH CHI TIẾT 6 LAYERS - VÍ DỤ CỤ THỂ
+
+## 🎯 **TỔNG QUAN**
+
+Mỗi layer là một "tầng" trong hệ thống, mỗi tầng có **TRÁCH NHIỆM RIÊNG**.
+
+**Ví dụ đời thường:** Giống như nhà hàng
+```
+1. Cửa hàng (API Gateway) - Đón khách, kiểm tra
+2. Nhân viên phục vụ (API Routes) - Nhận order
+3. Bếp trưởng (Service Layer) - Quyết định nấu gì
+4. Tủ lạnh (Cache/Redis) - Bếp trưởng lấy đồ nhanh khi có sẵn (song song, không bắt buộc đi qua)
+5. Kho (Repository) - Lấy nguyên liệu từ nguồn dữ liệu
+6. Chợ (Database) - Nguồn nguyên liệu gốc (MongoDB/Neo4j/...)
+```
+
+**Lưu ý kiến trúc thực tế (điểm chỉnh nhẹ):** Cache thường **được Service gọi trực tiếp** (cache-aside), không phải một “tầng đứng giữa” Service và Repository.
+
+Luồng đúng hơn:
+```
+Service
+  ├── Cache (Redis)
+  └── Repository → Database
+```
+
+---
+
+## 1️⃣ **API GATEWAY LAYER - Người gác cổng**
+
+### **Chức năng:**
+Đây là **tầng đầu tiên** mà requests từ frontend đập vào.
+
+**Nhiệm vụ:** Kiểm tra, lọc, bảo vệ hệ thống
+
+### **Ví dụ cụ thể:**
+
+#### **Tình huống 1: Rate Limiting (Chống spam)**
+
+**Vấn đề:**
+```
+User A gửi 1000 requests/giây → Server crash!
+```
+
+**API Gateway giải quyết:**
+```python
+# API Gateway config
+rate_limit = 100 requests per minute per user
+
+# Khi request đến
+if user_requests_count > 100:
+    return "429 Too Many Requests - Bạn gửi quá nhiều requests, vui lòng chờ"
+else:
+    forward request to next layer
+```
+
+**Kết quả:**
+```
+✅ User A: 50 requests/min → OK
+✅ User B: 80 requests/min → OK  
+❌ User C: 150 requests/min → BLOCKED
+```
+
+---
+
+#### **Tình huống 2: CORS (Cross-Origin Resource Sharing)**
+
+**Vấn đề:**
+```
+Frontend (https://myapp.com) gọi API (https://api.myapp.com)
+Browser block vì khác domain!
+```
+
+**API Gateway giải quyết:**
+```python
+# Cho phép frontend gọi API
+allowed_origins = [
+    "https://myapp.com",
+    "https://app.myapp.com",
+    "http://localhost:3000"  # Dev
+]
+
+# Thêm headers
+response.headers["Access-Control-Allow-Origin"] = "https://myapp.com"
+response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE"
+```
+
+**Kết quả:**
+```
+✅ myapp.com → api.myapp.com: OK
+❌ hacker.com → api.myapp.com: BLOCKED
+```
+
+---
+
+#### **Tình huống 3: Input Validation (Kiểm tra đầu vào)**
+
+**Vấn đề:**
+```
+Hacker gửi: project_id = "'; DROP TABLE users; --"
+→ SQL Injection!
+```
+
+**API Gateway kiểm tra:**
+```python
+# Validate format
+if not is_valid_project_id(project_id):
+    return "400 Bad Request - Invalid project_id format"
+
+# Kiểm tra ký tự nguy hiểm
+if contains_sql_injection(project_id):
+    return "400 Bad Request - Invalid characters detected"
+```
+
+**Kết quả:**
+```
+✅ PRJ_0001 → OK
+✅ PRJ_9999 → OK
+❌ '; DROP TABLE → BLOCKED
+```
+
+---
+
+### **Code ví dụ:**
+
+```python
+# File: app/middleware/api_gateway.py
+
+from fastapi import Request, HTTPException
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+@app.middleware("http")
+async def api_gateway_middleware(request: Request, call_next):
+    """
+    API Gateway - Tầng đầu tiên
+    """
+    # 1. Rate Limiting
+    if is_rate_limited(request.client.host):
+        raise HTTPException(status_code=429, detail="Too many requests")
+    
+    # 2. Validate request format
+    if not is_valid_request(request):
+        raise HTTPException(status_code=400, detail="Invalid request")
+    
+    # 3. Check API key (nếu cần)
+    api_key = request.headers.get("X-API-Key")
+    if not is_valid_api_key(api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    
+    # 4. Forward to next layer
+    response = await call_next(request)
+    
+    # 5. Add CORS headers
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    
+    return response
+```
+
+---
+
+## 2️⃣ **API ROUTES LAYER - Nhân viên tiếp khách**
+
+### **Chức năng:**
+Nhận requests, **chuyển đổi HTTP thành function calls**.
+
+**Nhiệm vụ:** 
+- Đọc HTTP request (GET, POST, PUT, DELETE)
+- Gọi Service Layer để xử lý
+- Trả về HTTP response
+
+### **Ví dụ cụ thể:**
+
+#### **Request từ Frontend:**
+
+```javascript
+// Frontend code (React/Vue)
+fetch('https://api.myapp.com/api/v1/recommendations/experts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        project_id: 'PRJ_0001',
+        limit: 10
+    })
+})
+```
+
+#### **API Routes xử lý:**
+
+```python
+# File: app/api/v1/endpoints/recommendations.py
+
+from fastapi import APIRouter, Depends, HTTPException
+from app.services.recommendation_service import RecommendationService
+from app.models.schemas import RecommendationRequest
+
+router = APIRouter()
+
+@router.post("/experts")
+async def recommend_experts(
+    request: RecommendationRequest,  # ← Parse JSON body
+    service: RecommendationService = Depends(get_service)
+):
+    """
+    API Route - Chỉ lo HTTP concerns
+    
+    KHÔNG xử lý logic ở đây!
+    Chỉ:
+    1. Nhận request
+    2. Gọi service
+    3. Trả response
+    """
+    try:
+        # Gọi Service Layer (tầng 3) để xử lý business logic
+        recommendations = await service.get_expert_recommendations(
+            project_id=request.project_id,
+            limit=request.limit
+        )
+        
+        # Trả về HTTP response
+        return {
+            "status": "success",
+            "data": recommendations,
+            "count": len(recommendations)
+        }
+    
+    except ValueError as e:
+        # Project không tồn tại
+        raise HTTPException(status_code=404, detail=str(e))
+    
+    except Exception as e:
+        # Lỗi khác
+        raise HTTPException(status_code=500, detail="Internal error")
+```
+
+### **Flow chi tiết:**
+
+```
+Frontend gửi:
+POST /api/v1/recommendations/experts
+{
+    "project_id": "PRJ_0001",
+    "limit": 10
+}
+
+↓ API Route nhận được
+
+1. Parse JSON → RecommendationRequest object
+2. Validate (Pydantic tự động)
+   - project_id có đúng format? ✅
+   - limit trong khoảng 1-50? ✅
+3. Gọi service.get_expert_recommendations()
+4. Nhận kết quả từ service
+5. Format thành HTTP response
+6. Return
+
+Backend trả về:
+{
+    "status": "success",
+    "data": [
+        {
+            "expert_id": "EXP_0001",
+            "name": "PGS.TS. Nguyễn",
+            "score": 0.87
+        },
+        ...
+    ],
+    "count": 10
+}
+```
+
+---
+
+### **Tại sao cần tách layer này?**
+
+**KHÔNG TỐT - Làm tất cả trong route:**
+```python
+@router.post("/experts")
+async def recommend_experts(project_id: str):
+    # ❌ Viết hết logic ở đây
+    pgpr = PGPRRecommender()
+    mongo = MongoDBRepository()
+    
+    # Validate
+    project = mongo.get_project(project_id)
+    if not project:
+        raise HTTPException(404)
+    
+    # Get recommendations
+    recs = pgpr.recommend_experts_for_project_pgpr(project_id)
+    
+    # Get XAI
+    xai = PGPRExplainer()
+    for rec in recs:
+        rec["explanation"] = xai.explain(rec)
+    
+    return recs
+```
+
+**TỐT - Chỉ lo HTTP, gọi service:**
+```python
+@router.post("/experts")
+async def recommend_experts(request: RecommendationRequest):
+    # ✅ Chỉ lo HTTP concerns
+    # Logic ở Service Layer
+    return await service.get_expert_recommendations(request.project_id)
+```
+
+**Lợi ích:**
+- ✅ API Route nhẹ, dễ đọc
+- ✅ Logic tập trung ở Service
+- ✅ Dễ test
+- ✅ Reusable (CLI, cron jobs có thể dùng Service)
+
+---
+
+## 3️⃣ **SERVICE LAYER - Bếp trưởng (Não bộ)**
+
+### **Chức năng:**
+Đây là **TÂM ĐIỂM** của hệ thống - nơi xử lý **business logic**.
+
+**Nhiệm vụ:**
+- Quyết định CÁCH LÀM
+- Phối hợp các thành phần (PGPR, XAI, Cache, DB)
+- Xử lý nghiệp vụ phức tạp
+
+### **Ví dụ cụ thể:**
+
+#### **Tình huống: User muốn recommend experts**
+
+**Service Layer workflow:**
+
+```python
+# File: app/services/recommendation_service.py
+
+class RecommendationService:
+    """
+    Service Layer - Business Logic
+    """
+    
+    def __init__(self):
+        self.pgpr = PGPRRecommender()
+        self.xai = PGPRExplainer()
+        self.cache = Cache()
+        self.mongo_repo = MongoDBRepository()
+        self.neo4j_repo = Neo4jRepository()
+    
+    async def get_expert_recommendations(
+        self,
+        project_id: str,
+        limit: int = 10
+    ):
+        """
+        BUSINESS LOGIC - Quyết định CÁC BƯỚC
+        """
+        
+        # ========== BƯỚC 1: CHECK CACHE ==========
+        # Nếu đã có trong cache → Trả luôn (nhanh!)
+        cache_key = f"recommendations:experts:{project_id}:{limit}"
+        cached_result = await self.cache.get(cache_key)
+        
+        if cached_result:
+            print(f"✅ Cache HIT - Trả kết quả ngay (50ms)")
+            return cached_result
+        
+        print(f"❌ Cache MISS - Phải tính toán (500ms)")
+        
+        # ========== BƯỚC 2: VALIDATE ==========
+        # Kiểm tra project có tồn tại không
+        project = await self.mongo_repo.get_project(project_id)
+        
+        if not project:
+            raise ValueError(f"Project {project_id} không tồn tại")
+        
+        if project.get("status") == "completed":
+            raise ValueError(f"Project đã hoàn thành, không cần thêm expert")
+        
+        # ========== BƯỚC 3: GET PGPR RECOMMENDATIONS ==========
+        print(f"🔍 Đang tìm experts bằng PGPR...")
+        
+        recommendations = self.pgpr.recommend_experts_for_project_pgpr(
+            project_id=project_id,
+            limit=limit
+        )
+        
+        if not recommendations:
+            print(f"⚠️  Không tìm thấy experts phù hợp")
+            return []
+        
+        # ========== BƯỚC 4: ENRICH VỚI XAI ==========
+        print(f"💡 Đang tạo giải thích bằng XAI...")
+        
+        for rec in recommendations:
+            # Gọi Ollama để generate explanation
+            explanation = self.xai.explain_recommendation(
+                recommendation=rec,
+                rec_type="expert",
+                source_context={
+                    "source_id": project_id,
+                    "source_type": "Project",
+                    "source_name": project.get("title")
+                }
+            )
+            
+            rec["xai_explanation"] = explanation["natural_language"]
+        
+        # ========== BƯỚC 5: ENRICH VỚI EXPERT INFO ==========
+        print(f"📊 Đang lấy thông tin chi tiết experts...")
+        
+        for rec in recommendations:
+            expert_id = rec["expert_id"]
+            
+            # Lấy thêm info từ MongoDB
+            expert_details = await self.mongo_repo.get_expert(expert_id)
+            
+            if expert_details:
+                rec["email"] = expert_details.get("email")
+                rec["phone"] = expert_details.get("phone")
+                rec["bio"] = expert_details.get("bio")
+        
+        # ========== BƯỚC 6: BUSINESS RULES ==========
+        # Apply business rules
+        
+        # Rule 1: Ưu tiên experts ở cùng location với project
+        project_location = project.get("location")
+        if project_location:
+            for rec in recommendations:
+                if rec.get("location") == project_location:
+                    rec["score"] *= 1.1  # Bonus 10%
+                    rec["same_location"] = True
+        
+        # Rule 2: Filter experts đã full schedule
+        recommendations = [
+            rec for rec in recommendations
+            if not self._is_expert_busy(rec["expert_id"])
+        ]
+        
+        # Rule 3: Sort lại theo score
+        recommendations.sort(key=lambda x: x["score"], reverse=True)
+        
+        # ========== BƯỚC 7: CACHE RESULTS ==========
+        # Lưu vào cache cho lần sau (TTL = 1 hour)
+        await self.cache.set(cache_key, recommendations, ttl=3600)
+        
+        print(f"✅ Đã cache kết quả, lần sau sẽ nhanh hơn")
+        
+        # ========== BƯỚC 8: LOG & ANALYTICS ==========
+        await self._log_recommendation_request(
+            project_id=project_id,
+            num_results=len(recommendations),
+            cache_hit=False
+        )
+        
+        return recommendations
+    
+    def _is_expert_busy(self, expert_id: str) -> bool:
+        """
+        Business rule: Check if expert đang quá tải
+        """
+        # Đếm số projects expert đang tham gia
+        active_projects = self.neo4j_repo.count_active_projects(expert_id)
+        
+        # Rule: Nếu đang tham gia >= 5 projects → busy
+        return active_projects >= 5
+```
+
+### **Flow chi tiết:**
+
+```
+User request: "Tìm expert cho PRJ_0001"
+
+Service Layer:
+├─ Bước 1: Check cache
+│  └─ Cache MISS → Tiếp tục
+│
+├─ Bước 2: Validate
+│  ├─ Project có tồn tại? ✅
+│  └─ Project status OK? ✅
+│
+├─ Bước 3: PGPR
+│  └─ Tìm 10 experts (500ms)
+│
+├─ Bước 4: XAI
+│  └─ Generate explanations cho 10 experts (2s)
+│
+├─ Bước 5: Enrich data
+│  └─ Lấy email, phone, bio từ MongoDB
+│
+├─ Bước 6: Business rules
+│  ├─ Bonus điểm cho same location
+│  ├─ Filter experts busy
+│  └─ Sort lại
+│
+├─ Bước 7: Cache
+│  └─ Lưu results (lần sau 50ms)
+│
+└─ Bước 8: Return results
+```
+
+**Thời gian:**
+- Lần 1 (cache miss): ~3 seconds
+- Lần 2+ (cache hit): ~50ms (nhanh gấp 60 lần!)
+
+---
+
+### **Tại sao Service Layer quan trọng?**
+
+**Scenario:** Thêm feature "Recommend experts qua CLI"
+
+**KHÔNG có Service Layer:**
+```python
+# ❌ Phải copy-paste code
+# app/api/routes.py
+@router.post("/experts")
+def api_get_experts(...):
+    # 100 lines of logic
+    ...
+
+# app/cli/commands.py  
+@click.command()
+def cli_get_experts(...):
+    # 100 lines DUPLICATE code
+    ...
+```
+
+**CÓ Service Layer:**
+```python
+# ✅ Reuse logic!
+# app/api/routes.py
+@router.post("/experts")
+def api_get_experts(...):
+    return service.get_expert_recommendations(...)
+
+# app/cli/commands.py
+@click.command()
+def cli_get_experts(...):
+    return service.get_expert_recommendations(...)  # Cùng logic!
+```
+
+---
+
+## 4️⃣ **CACHE LAYER - Tủ lạnh (Lưu trữ nhanh)**
+
+### **Chức năng:**
+Lưu kết quả đã tính toán để **TRẢ NHANH** lần sau.
+
+### **Vị trí đúng trong kiến trúc (song song Service):**
+Cache là hạ tầng tăng tốc, thường được Service gọi theo pattern **cache-aside**:
+```
+Service
+  ├─ (1) GET Cache → HIT thì return luôn
+  └─ (2) MISS → gọi Repository → Database → xử lý xong rồi SET Cache
+```
+Repository vẫn tập trung vào truy vấn dữ liệu nguồn (MongoDB/Neo4j/SQL), không bị “bắt buộc” phải đi xuyên qua cache.
+
+**Nhiệm vụ:**
+- Lưu kết quả tạm thời (Redis)
+- Giảm load cho Database
+- Tăng tốc độ response
+
+### **Ví dụ cụ thể:**
+
+#### **Tình huống: User F5 liên tục**
+
+**KHÔNG có Cache:**
+```
+Request 1: PRJ_0001 → Query DB → PGPR → XAI → 3 seconds
+Request 2: PRJ_0001 → Query DB → PGPR → XAI → 3 seconds (lại!)
+Request 3: PRJ_0001 → Query DB → PGPR → XAI → 3 seconds (lại!)
+
+Database: 😱 Quá tải!
+User: 😤 Chậm quá!
+```
+
+**CÓ Cache:**
+```
+Request 1: PRJ_0001 → Cache MISS → Tính toán → 3 seconds → LƯU VÀO CACHE
+Request 2: PRJ_0001 → Cache HIT → Lấy từ cache → 50ms ⚡
+Request 3: PRJ_0001 → Cache HIT → Lấy từ cache → 50ms ⚡
+
+Database: 😊 Nhàn rỗi
+User: 😃 Nhanh quá!
+```
+
+---
+
+### **Code ví dụ:**
+
+```python
+# File: app/core/cache.py
+
+import redis.asyncio as redis
+import json
+from typing import Optional, Any
+
+class Cache:
+    """
+    Redis Cache Layer
+    """
+    
+    def __init__(self):
+        self.redis = redis.from_url(
+            "redis://localhost:6379",
+            decode_responses=True
+        )
+    
+    async def get(self, key: str) -> Optional[Any]:
+        """
+        Lấy data từ cache
+        
+        Example:
+            result = await cache.get("recommendations:experts:PRJ_0001:10")
+        """
+        try:
+            value = await self.redis.get(key)
+            
+            if value:
+                print(f"✅ Cache HIT: {key}")
+                return json.loads(value)
+            else:
+                print(f"❌ Cache MISS: {key}")
+                return None
+        
+        except Exception as e:
+            print(f"⚠️  Cache error: {e}")
+            return None  # Fail gracefully
+    
+    async def set(
+        self,
+        key: str,
+        value: Any,
+        ttl: int = 3600  # 1 hour default
+    ):
+        """
+        Lưu data vào cache với TTL (Time To Live)
+        
+        Example:
+            await cache.set(
+                "recommendations:experts:PRJ_0001:10",
+                recommendations,
+                ttl=3600  # Cache 1 hour
+            )
+        """
+        try:
+            await self.redis.setex(
+                key,
+                ttl,
+                json.dumps(value, ensure_ascii=False)
+            )
+            print(f"💾 Cached: {key} (TTL: {ttl}s)")
+        
+        except Exception as e:
+            print(f"⚠️  Cache set error: {e}")
+    
+    async def delete(self, key: str):
+        """Xóa cache key"""
+        await self.redis.delete(key)
+    
+    async def clear_pattern(self, pattern: str):
+        """
+        Xóa tất cả keys theo pattern
+        
+        Example:
+            # Xóa tất cả cache của PRJ_0001
+            await cache.clear_pattern("recommendations:*:PRJ_0001:*")
+        """
+        keys = await self.redis.keys(pattern)
+        if keys:
+            await self.redis.delete(*keys)
+            print(f"🗑️  Cleared {len(keys)} cache keys")
+
+# Global cache instance
+cache = Cache()
+```
+
+---
+
+### **Sử dụng trong Service:**
+
+```python
+class RecommendationService:
+    async def get_expert_recommendations(self, project_id: str):
+        # 1. Try cache first
+        cache_key = f"recommendations:experts:{project_id}"
+        cached = await cache.get(cache_key)
+        
+        if cached:
+            return cached  # Fast path! ⚡
+        
+        # 2. Cache miss → Tính toán
+        recommendations = self.pgpr.recommend_experts_for_project_pgpr(...)
+        
+        # 3. Save to cache for next time
+        await cache.set(cache_key, recommendations, ttl=3600)
+        
+        return recommendations
+```
+
+---
+
+### **Cache Invalidation (Xóa cache khi data thay đổi):**
+
+```python
+# Khi update project
+async def update_project(project_id: str, updates: dict):
+    # 1. Update DB
+    await mongo_repo.update_project(project_id, updates)
+    
+    # 2. Clear cache cho project này
+    await cache.clear_pattern(f"recommendations:*:{project_id}:*")
+    
+    print(f"♻️  Cleared cache for {project_id} (data changed)")
+```
+
+---
+
+### **TTL Strategy (Thời gian sống của cache):**
+
+```python
+# Recommendations: 1 hour (data ít thay đổi)
+await cache.set(key, recommendations, ttl=3600)
+
+# User session: 24 hours
+await cache.set(f"session:{user_id}", session_data, ttl=86400)
+
+# Rate limiting: 1 minute
+await cache.set(f"rate:{user_id}", count, ttl=60)
+
+# Real-time data: 10 seconds
+await cache.set(f"stats:live", stats, ttl=10)
+```
+
+---
+
+## 5️⃣ **REPOSITORY LAYER - Kho hàng (Trung gian với DB)**
+
+### **Chức năng:**
+**TRỪU TƯỢNG HÓA** database access - che giấu chi tiết kỹ thuật.
+
+**Nhiệm vụ:**
+- Tách business logic khỏi DB queries
+- Dễ thay đổi database (MongoDB → PostgreSQL)
+- Tập trung queries ở một chỗ
+
+### **Ví dụ cụ thể:**
+
+#### **KHÔNG có Repository Layer:**
+
+```python
+# Service phải biết chi tiết MongoDB
+class RecommendationService:
+    async def get_expert_recommendations(self, project_id: str):
+        # ❌ Service biết quá nhiều về MongoDB
+        from pymongo import MongoClient
+        
+        client = MongoClient("mongodb://localhost:27017")
+        db = client["mydb"]
+        
+        project = db.projects.find_one({"project_id": project_id})
+        
+        if not project:
+            raise ValueError("Not found")
+        
+        # ... business logic
+```
+
+**Vấn đề:**
+- ❌ Service phụ thuộc vào MongoDB
+- ❌ Khó test (phải mock MongoDB)
+- ❌ Khó đổi database
+- ❌ Queries rải rác khắp nơi
+
+---
+
+#### **CÓ Repository Layer:**
+
+```python
+# File: app/repositories/mongodb_repo.py
+
+class MongoDBRepository:
+    """
+    Repository - Che giấu chi tiết MongoDB
+    """
+    
+    def __init__(self):
+        self.client = MongoClient("mongodb://localhost:27017")
+        self.db = self.client["mydb"]
+    
+    async def get_project(self, project_id: str) -> Optional[dict]:
+        """
+        Lấy project theo ID
+        
+        Service KHÔNG CẦN BIẾT:
+        - MongoDB syntax
+        - Collection name
+        - Index details
+        """
+        return self.db.projects.find_one({"project_id": project_id})
+    
+    async def get_expert(self, expert_id: str) -> Optional[dict]:
+        """Lấy expert theo ID"""
+        return self.db.experts.find_one({"expert_id": expert_id})
+    
+    async def update_project(self, project_id: str, updates: dict):
+        """Update project"""
+        return self.db.projects.update_one(
+            {"project_id": project_id},
+            {"$set": updates}
+        )
+    
+    async def search_projects(
+        self,
+        status: Optional[str] = None,
+        location: Optional[str] = None,
+        limit: int = 10
+    ) -> List[dict]:
+        """
+        Search projects với filters
+        """
+        query = {}
+        
+        if status:
+            query["status"] = status
+        
+        if location:
+            query["location"] = location
+        
+        return list(
+            self.db.projects.find(query).limit(limit)
+        )
+
+# File: app/repositories/neo4j_repo.py
+
+class Neo4jRepository:
+    """
+    Repository - Che giấu chi tiết Neo4j
+    """
+    
+    def __init__(self):
+        self.driver = GraphDatabase.driver(
+            "bolt://localhost:7687",
+            auth=("neo4j", "password")
+        )
+    
+    async def count_active_projects(self, expert_id: str) -> int:
+        """
+        Đếm số projects expert đang tham gia
+        """
+        with self.driver.session() as session:
+            result = session.run("""
+                MATCH (e:Expert {expert_id: $expert_id})
+                      -[:PARTICIPATES_IN]->(p:Project)
+                WHERE p.status IN ['ongoing', 'recruiting']
+                RETURN count(p) as count
+            """, expert_id=expert_id)
+            
+            record = result.single()
+            return record["count"] if record else 0
+    
+    async def get_expert_network(self, expert_id: str) -> List[dict]:
+        """
+        Lấy network của expert (collaborators)
+        """
+        with self.driver.session() as session:
+            result = session.run("""
+                MATCH (e:Expert {expert_id: $expert_id})
+                      -[:COLLABORATES_WITH]-(colleague:Expert)
+                RETURN colleague.expert_id as id,
+                       colleague.name as name
+                LIMIT 10
+            """, expert_id=expert_id)
+            
+            return [dict(record) for record in result]
+```
+
+---
+
+### **Service sử dụng Repository:**
+
+```python
+class RecommendationService:
+    def __init__(self):
+        # ✅ Service chỉ biết interface, không biết implementation
+        self.mongo_repo = MongoDBRepository()
+        self.neo4j_repo = Neo4jRepository()
+    
+    async def get_expert_recommendations(self, project_id: str):
+        # ✅ Clean, đơn giản
+        project = await self.mongo_repo.get_project(project_id)
+        
+        if not project:
+            raise ValueError("Project not found")
+        
+        # Business logic...
+        for rec in recommendations:
+            # ✅ Repository che giấu Neo4j queries
+            active_count = await self.neo4j_repo.count_active_projects(
+                rec["expert_id"]
+            )
+            
+            rec["is_busy"] = active_count >= 5
+```
+
+---
+
+### **Lợi ích:**
+
+**1. Dễ test:**
+```python
+# Mock repository, không cần real database
+class MockMongoRepository:
+    async def get_project(self, project_id):
+        return {"project_id": "PRJ_0001", "title": "Test Project"}
+
+# Test service
+service = RecommendationService()
+service.mongo_repo = MockMongoRepository()  # Inject mock
+
+result = await service.get_expert_recommendations("PRJ_0001")
+# ✅ Test mà không cần MongoDB running!
+```
+
+**2. Dễ đổi database:**
+```python
+# Đổi từ MongoDB → PostgreSQL
+# CHỈ cần viết lại Repository, Service KHÔNG ĐỔI!
+
+class PostgreSQLRepository:
+    async def get_project(self, project_id):
+        # PostgreSQL query thay vì MongoDB
+        return await db.execute(
+            "SELECT * FROM projects WHERE project_id = $1",
+            project_id
+        )
+
+# Service code KHÔNG ĐỔI!
+service.mongo_repo = PostgreSQLRepository()
+```
+
+**3. Centralized queries:**
+```python
+# TẤT CẢ MongoDB queries ở 1 file
+# Dễ optimize, dễ maintain
+# app/repositories/mongodb_repo.py ← All queries here
+```
+
+---
+
+## 6️⃣ **DATABASE LAYER - Chợ (Nguồn dữ liệu)**
+
+### **Chức năng:**
+Lưu trữ data **LÂU DÀI** và **AN TOÀN**.
+
+**Nhiệm vụ:**
+- Persist data (không mất khi restart)
+- Transaction & ACID
+- Backup & Recovery
+
+### **Ví dụ cụ thể:**
+
+#### **MongoDB (Document Store):**
+
+**Lưu gì:**
+```json
+// Collection: projects
+{
+    "project_id": "PRJ_0001",
+    "title": "Smart City IoT Platform",
+    "status": "recruiting",
+    "budget": 5000000000,
+    "location": "TP.HCM",
+    "team": [
+        {"expert_id": "EXP_0001", "role": "PI"},
+        {"expert_id": "EXP_0002", "role": "Co-PI"}
+    ],
+    "created_at": "2024-01-15",
+    "updated_at": "2024-03-16"
+}
+
+// Collection: experts
+{
+    "expert_id": "EXP_0001",
+    "name": "PGS.TS. Nguyễn Văn A",
+    "email": "nguyen@university.edu.vn",
+    "h_index": 35,
+    "bio": "Expert in IoT and Smart Cities...",
+    "skills": ["IoT", "Machine Learning", "Computer Vision"]
+}
+```
+
+**Tại sao dùng MongoDB:**
+- ✅ Flexible schema (thêm field dễ dàng)
+- ✅ Lưu nested data (team, skills)
+- ✅ Fast reads
+
+---
+
+#### **Neo4j (Graph Database):**
+
+**Lưu gì:**
+```cypher
+// Nodes
+(:Project {project_id: "PRJ_0001", title: "Smart City"})
+(:Expert {expert_id: "EXP_0001", name: "Nguyễn"})
+(:ResearchField {field_id: "IoT", name: "Internet of Things"})
+(:Funder {funder_id: "FUN_0001", name: "VinIF"})
+
+// Relationships (QUAN TRỌNG!)
+(PRJ_0001)-[:BELONGS_TO]->(IoT)
+(PRJ_0001)-[:PARTICIPATES_IN]-(EXP_0001)
+(IoT)-[:HAS_EXPERTISE_IN]-(EXP_0001)
+(VinIF)-[:FUNDS]->(PRJ_0001)
+```
+
+**Tại sao dùng Neo4j:**
+- ✅ Lưu relationships (PGPR cần!)
+- ✅ Fast graph traversal
+- ✅ Path finding queries
+
+**Query example:**
+```cypher
+// Tìm tất cả experts có thể reach từ project
+MATCH path = (p:Project {project_id: "PRJ_0001"})
+             -[*1..3]-(e:Expert)
+RETURN e.name, length(path)
+ORDER BY length(path)
+```
+
+---
+
+### **Phân công MongoDB vs Neo4j:**
+
+| Data Type | MongoDB | Neo4j |
+|-----------|---------|-------|
+| **Project details** | ✅ Lưu | ❌ Không |
+| **Expert bio** | ✅ Lưu | ❌ Không |
+| **Relationships** | ❌ Không | ✅ Lưu |
+| **PGPR paths** | ❌ Không | ✅ Lưu |
+| **Full-text search** | ✅ Dùng | ❌ Không |
+| **Graph queries** | ❌ Không | ✅ Dùng |
+
+**Strategy:**
+```python
+# Lấy project info → MongoDB
+project = mongo_repo.get_project("PRJ_0001")
+
+# Tìm PGPR paths → Neo4j
+paths = neo4j_repo.find_reasoning_paths("PRJ_0001", "EXP_0001")
+
+# Combine results
+recommendation = {
+    **project,  # From MongoDB
+    "reasoning_paths": paths  # From Neo4j
+}
+```
+
+---
+
+## 📊 **TỔNG HỢP - REQUEST FLOW HOÀN CHỈNH**
+
+### **Ví dụ: User tìm expert cho project**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ USER ACTION: Click "Find Experts" button                    │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 1: API GATEWAY                                        │
+├─────────────────────────────────────────────────────────────┤
+│ ✓ Rate limit check: OK (50/100 requests)                   │
+│ ✓ CORS check: OK (myapp.com allowed)                       │
+│ ✓ Input validation: OK (PRJ_0001 format valid)             │
+│ → Forward to Layer 2                                        │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 2: API ROUTES                                         │
+├─────────────────────────────────────────────────────────────┤
+│ POST /api/v1/recommendations/experts                        │
+│ {                                                           │
+│   "project_id": "PRJ_0001",                                 │
+│   "limit": 10                                               │
+│ }                                                           │
+│ → Call Service.get_expert_recommendations()                 │
+└─────────────────────────┬───────────────────────────────────┘
+```
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 3: SERVICE (Business Orchestration)                   │
+├─────────────────────────────────────────────────────────────┤
+│ B1. Build cache_key = recommendations:experts:PRJ_0001:10   │
+│ B2. Check Cache (Redis)  ────────────────┐                  │
+│     ├─ HIT  → return cached result       │ (fast path 50ms) │
+│     └─ MISS → continue                   │                  │
+│                                          │                  │
+│ B3. Validate project via Repository      │                  │
+│ B4. Run PGPR to get candidates           │                  │
+│ B5. Enrich XAI explanation (Ollama/LLM)  │                  │
+│ B6. Apply business rules (filter/sort)   │                  │
+│ B7. Save to Cache (SET + TTL) ───────────┘                  │
+│ B8. Return result                                           │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 5: REPOSITORY                                         │
+├─────────────────────────────────────────────────────────────┤
+│ - MongoDBRepository: get_project(), get_expert()             │
+│ - Neo4jRepository: graph queries (paths, counts, etc.)       │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 6: DATABASE                                           │
+├─────────────────────────────────────────────────────────────┤
+│ - MongoDB: lưu chi tiết Project/Expert                      │
+│ - Neo4j: lưu quan hệ/graph traversal cho PGPR                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Tóm tắt “Cache song song Service”:**
+- Service là nơi quyết định **cache key**, **TTL**, và **invalidation**.
+- Cache giúp “đi đường tắt” khi đã có kết quả, còn khi MISS thì Service vẫn gọi Repository → Database như bình thường.

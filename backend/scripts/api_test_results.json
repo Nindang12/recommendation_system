@@ -1,0 +1,3401 @@
+{
+  "base_url": "http://127.0.0.1:8000",
+  "started_at": "2026-05-23T05:04:15.194496+00:00",
+  "tests": {
+    "root": {
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 88,
+      "body": {
+        "status": "ok",
+        "message": "Hệ thống PGPR Backend đang chạy trơn tru!"
+      }
+    },
+    "health": {
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 71,
+      "body": {
+        "status": "ok",
+        "services": {
+          "mongodb": "connected",
+          "neo4j": "connected",
+          "redis": "connected",
+          "pgpr": "ready"
+        }
+      }
+    },
+    "openapi": {
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 21,
+      "body": {
+        "openapi": "3.1.0",
+        "info": {
+          "title": "R&D Recommendation API",
+          "description": "Hệ thống gợi ý PGPR + XAI cho lĩnh vực R&D",
+          "version": "1.0.0"
+        },
+        "paths": {
+          "/api/v1/recommendations/experts": {
+            "post": {
+              "tags": [
+                "Recommendations"
+              ],
+              "summary": "Recommend experts for a project using PGPR + XAI",
+              "description": "API Route - HTTP only:\n- parse & validate input\n- delegate to Service Layer\n- format HTTP response",
+              "operationId": "recommend_experts_api_v1_recommendations_experts_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/RecommendationRequest"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/RecommendationResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/recommendations/funders": {
+            "post": {
+              "tags": [
+                "Recommendations"
+              ],
+              "summary": "Recommend funders for a project using PGPR + XAI",
+              "description": "Recommend funders from a source project.",
+              "operationId": "recommend_funders_for_project_api_v1_recommendations_funders_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/RecommendationRequest"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/RecommendationResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/recommendations/policy": {
+            "post": {
+              "tags": [
+                "Recommendations"
+              ],
+              "summary": "Generic policy-based recommendation for all supported entity types",
+              "operationId": "recommend_by_policy_api_v1_recommendations_policy_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/RecommendationRequest"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/RecommendationResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/recommendations/projects/{project_id}/overview": {
+            "post": {
+              "tags": [
+                "Recommendations"
+              ],
+              "summary": "Recommend experts, funders, enterprises and similar projects for one project",
+              "description": "API Route - HTTP only. Business orchestration is handled by RecommendationService.",
+              "operationId": "recommend_project_overview_api_v1_recommendations_projects__project_id__overview_post",
+              "parameters": [
+                {
+                  "name": "project_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "title": "Project Id"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "default": 3,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "language",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "string",
+                    "default": "vi",
+                    "title": "Language"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "title": "Response Recommend Project Overview Api V1 Recommendations Projects  Project Id  Overview Post"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/recommendations/explain": {
+            "post": {
+              "tags": [
+                "Recommendations"
+              ],
+              "summary": "Generate on-demand LLM explanation for a specific recommendation",
+              "operationId": "explain_recommendation_api_v1_recommendations_explain_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ExplainRecommendationRequest"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Response Explain Recommendation Api V1 Recommendations Explain Post"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/health": {
+            "get": {
+              "tags": [
+                "Health"
+              ],
+              "summary": "Health Check",
+              "operationId": "health_check_api_v1_health_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Response Health Check Api V1 Health Get"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/entities/projects": {
+            "get": {
+              "tags": [
+                "Entities"
+              ],
+              "summary": "List Projects",
+              "operationId": "list_projects_api_v1_entities_projects_get",
+              "parameters": [
+                {
+                  "name": "search",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Search"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 20,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "page",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Page"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "title": "Response List Projects Api V1 Entities Projects Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/entities/experts": {
+            "get": {
+              "tags": [
+                "Entities"
+              ],
+              "summary": "List Experts",
+              "operationId": "list_experts_api_v1_entities_experts_get",
+              "parameters": [
+                {
+                  "name": "search",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Search"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 20,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "page",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Page"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "title": "Response List Experts Api V1 Entities Experts Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/entities/funders": {
+            "get": {
+              "tags": [
+                "Entities"
+              ],
+              "summary": "List Funders",
+              "operationId": "list_funders_api_v1_entities_funders_get",
+              "parameters": [
+                {
+                  "name": "search",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Search"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 20,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "page",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Page"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "title": "Response List Funders Api V1 Entities Funders Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/entities/enterprises": {
+            "get": {
+              "tags": [
+                "Entities"
+              ],
+              "summary": "List Enterprises",
+              "operationId": "list_enterprises_api_v1_entities_enterprises_get",
+              "parameters": [
+                {
+                  "name": "search",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Search"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 20,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "page",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Page"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "title": "Response List Enterprises Api V1 Entities Enterprises Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/entities/{entity_type}/{entity_id}": {
+            "get": {
+              "tags": [
+                "Entities"
+              ],
+              "summary": "Get Entity Detail",
+              "operationId": "get_entity_detail_api_v1_entities__entity_type___entity_id__get",
+              "parameters": [
+                {
+                  "name": "entity_type",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "title": "Entity Type"
+                  }
+                },
+                {
+                  "name": "entity_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "title": "Entity Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "title": "Response Get Entity Detail Api V1 Entities  Entity Type   Entity Id  Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/": {
+            "get": {
+              "summary": "Read Root",
+              "operationId": "read_root__get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "components": {
+          "schemas": {
+            "ExplainRecommendationRequest": {
+              "properties": {
+                "recommendation": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Recommendation",
+                  "description": "The recommendation object to explain"
+                },
+                "target_type": {
+                  "type": "string",
+                  "enum": [
+                    "project",
+                    "expert",
+                    "funder",
+                    "enterprise"
+                  ],
+                  "title": "Target Type",
+                  "description": "The type of the recommended entity"
+                },
+                "source_context": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Source Context",
+                  "description": "Context about the source node"
+                },
+                "language": {
+                  "type": "string",
+                  "title": "Language",
+                  "description": "Language for natural-language explanations",
+                  "default": "vi"
+                }
+              },
+              "type": "object",
+              "required": [
+                "recommendation",
+                "target_type"
+              ],
+              "title": "ExplainRecommendationRequest"
+            },
+            "ExplanationSchema": {
+              "properties": {
+                "natural_language": {
+                  "type": "string",
+                  "title": "Natural Language",
+                  "description": "Human-readable explanation text"
+                },
+                "visualization": {
+                  "type": "string",
+                  "title": "Visualization",
+                  "description": "Visualization payload or URL"
+                }
+              },
+              "type": "object",
+              "required": [
+                "natural_language",
+                "visualization"
+              ],
+              "title": "ExplanationSchema"
+            },
+            "HTTPValidationError": {
+              "properties": {
+                "detail": {
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationError"
+                  },
+                  "type": "array",
+                  "title": "Detail"
+                }
+              },
+              "type": "object",
+              "title": "HTTPValidationError"
+            },
+            "RecommendationItem": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "title": "Id",
+                  "description": "Recommended object identifier"
+                },
+                "name": {
+                  "type": "string",
+                  "title": "Name",
+                  "description": "Recommended object display name"
+                },
+                "score": {
+                  "type": "number",
+                  "title": "Score"
+                },
+                "explanation": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ExplanationSchema"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Structured explanation for this recommendation"
+                },
+                "metrics": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Metrics",
+                  "description": "Additional ranking metrics used by recommendation engine"
+                },
+                "expert_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Expert Id"
+                },
+                "xai_explanation": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Xai Explanation"
+                },
+                "extra": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Extra"
+                },
+                "reasoning_paths": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Reasoning Paths",
+                  "description": "List of reasoning paths generated by PGPR"
+                },
+                "path_diversity": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Path Diversity",
+                  "description": "Number of paths connecting the entities"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "score"
+              ],
+              "title": "RecommendationItem"
+            },
+            "RecommendationRequest": {
+              "properties": {
+                "project_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Project Id",
+                  "description": "Project identifier (e.g. PRJ_0001)"
+                },
+                "expert_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Expert Id",
+                  "description": "Expert identifier when recommending projects for an expert"
+                },
+                "limit": {
+                  "type": "integer",
+                  "maximum": 100.0,
+                  "minimum": 1.0,
+                  "title": "Limit",
+                  "description": "Maximum number of recommendations",
+                  "default": 5
+                },
+                "language": {
+                  "type": "string",
+                  "title": "Language",
+                  "description": "Language for natural-language explanations",
+                  "default": "vi"
+                },
+                "source_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Source Id",
+                  "description": "Generic source id for policy-based recommendation"
+                },
+                "source_type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "project",
+                        "expert",
+                        "funder",
+                        "enterprise"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Source Type",
+                  "description": "Source entity type in policy graph"
+                },
+                "target_type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "project",
+                        "expert",
+                        "funder",
+                        "enterprise"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Target Type",
+                  "description": "Target entity type to recommend in policy graph"
+                }
+              },
+              "type": "object",
+              "title": "RecommendationRequest"
+            },
+            "RecommendationResponse": {
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "title": "Status"
+                },
+                "data": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecommendationItem"
+                  },
+                  "type": "array",
+                  "title": "Data"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0.0,
+                  "title": "Count"
+                }
+              },
+              "type": "object",
+              "required": [
+                "status",
+                "data",
+                "count"
+              ],
+              "title": "RecommendationResponse"
+            },
+            "ValidationError": {
+              "properties": {
+                "loc": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "title": "Location"
+                },
+                "msg": {
+                  "type": "string",
+                  "title": "Message"
+                },
+                "type": {
+                  "type": "string",
+                  "title": "Error Type"
+                },
+                "input": {
+                  "title": "Input"
+                },
+                "ctx": {
+                  "type": "object",
+                  "title": "Context"
+                }
+              },
+              "type": "object",
+              "required": [
+                "loc",
+                "msg",
+                "type"
+              ],
+              "title": "ValidationError"
+            }
+          }
+        }
+      }
+    },
+    "policy": [
+      {
+        "name": "Project->Expert",
+        "request": {
+          "source_id": "prj_001",
+          "source_type": "project",
+          "target_type": "expert"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "exp_002",
+                "name": "TS. Trần Thị B",
+                "score": 0.6,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **83 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.9%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 1.1%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.6%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+                },
+                "metrics": {
+                  "h_index": 10,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_002",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **83 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.05871865309026052,
+                    "length": 2
+                  },
+                  {
+                    "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.011275561275849512,
+                    "length": 4
+                  },
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.005854931847840669,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 83
+              },
+              {
+                "id": "exp_003",
+                "name": "TS. Phạm Minh C",
+                "score": 0.41,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **41.0%** (Tốt)\n\nTìm thấy **46 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.4%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 0.6%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.3%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+                },
+                "metrics": {
+                  "h_index": 9,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_003",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **41.0%** (Tốt)\n\nTìm thấy **46 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.03397862688971201,
+                    "length": 2
+                  },
+                  {
+                    "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.006466506065754866,
+                    "length": 4
+                  },
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.0031021501858860246,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 46
+              },
+              {
+                "id": "exp_004",
+                "name": "PGS.TS. Lê Thu D",
+                "score": 0.27,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **27.0%** (Khá)\n\nTìm thấy **33 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 1.5%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> PARTICIPATES_IN\n\nPath 2 (Score: 1.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> HAS_EXPERIENCE_IN\n\nPath 3 (Score: 0.8%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> CREATES\n  └─> DEVELOPS\n\n```"
+                },
+                "metrics": {
+                  "h_index": 11,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_004",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **27.0%** (Khá)\n\nTìm thấy **33 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> PARTICIPATES_IN",
+                    "score": 0.015239539116178629,
+                    "length": 3
+                  },
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> HAS_EXPERIENCE_IN",
+                    "score": 0.010374632259451266,
+                    "length": 4
+                  },
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> CREATES -> DEVELOPS",
+                    "score": 0.00824266138405653,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 33
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "exp_002",
+            "name": "TS. Trần Thị B",
+            "score": 0.6,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 83,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Project->Funder",
+        "request": {
+          "source_id": "prj_001",
+          "source_type": "project",
+          "target_type": "funder"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "fnd_002",
+                "name": "National Technology Development Fund (NATIF)",
+                "score": 0.99,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **National Technology Development Fund (NATIF)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **98 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.09)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 8.9%):\n  ┌─ TARGETS\n  ├─> OPERATES_IN\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\nPath 2 (Score: 0.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ TARGETS\n  ├─> TARGETS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **National Technology Development Fund (NATIF)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **98 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.09)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                    "score": 0.08942375082803895,
+                    "length": 4
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0011108838592975509,
+                    "length": 2
+                  },
+                  {
+                    "path": "TARGETS -> TARGETS -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.00033071861834258934,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 98
+              },
+              {
+                "id": "fnd_003",
+                "name": "Vietnam Digital Innovation Grant (VDIG)",
+                "score": 0.36,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **36.0%** (Khá)\n\nTìm thấy **29 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 2.4%):\n  ┌─ TARGETS\n  ├─> OPERATES_IN\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\nPath 2 (Score: 0.0%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **36.0%** (Khá)\n\nTìm thấy **29 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                    "score": 0.024229136150961148,
+                    "length": 4
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0003738978185290117,
+                    "length": 2
+                  },
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                    "score": 4.715103363544465e-05,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 29
+              },
+              {
+                "id": "fnd_005",
+                "name": "National EdTech Fund",
+                "score": 0.15,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **National EdTech Fund** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **15.0%** (Trung bình)\n\nTìm thấy **1 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: được hỗ trợ",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.0%):\n  ┌─ FOCUSES_ON\n  └─> SUPPORTS\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **National EdTech Fund** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **15.0%** (Trung bình)\n\nTìm thấy **1 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: được hỗ trợ",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "FOCUSES_ON -> SUPPORTS",
+                    "score": 3.7087703361487684e-05,
+                    "length": 2
+                  }
+                ],
+                "path_diversity": 1
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "fnd_002",
+            "name": "National Technology Development Fund (NATIF)",
+            "score": 0.99,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 98,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Project->Enterprise",
+        "request": {
+          "source_id": "prj_001",
+          "source_type": "project",
+          "target_type": "enterprise"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "ent_002",
+                "name": "VinaSmart Factory Tech",
+                "score": 0.8,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **61 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.07)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 6.7%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.0%):\n  ┌─ FUNDS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_REGION\n  └─> LOCATED_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **61 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.07)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.06669618174521731,
+                    "length": 4
+                  },
+                  {
+                    "path": "FUNDS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.000371343299513951,
+                    "length": 3
+                  },
+                  {
+                    "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_REGION -> LOCATED_IN",
+                    "score": 0.0002023777562370455,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 61
+              },
+              {
+                "id": "ent_005",
+                "name": "LearnNext EdTech",
+                "score": 0.54,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **LearnNext EdTech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **54.0%** (Tốt)\n\nTìm thấy **29 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.9%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **LearnNext EdTech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **54.0%** (Tốt)\n\nTìm thấy **29 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.03941927743138829,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 29
+              },
+              {
+                "id": "ent_003",
+                "name": "SecurePay Analytics JSC",
+                "score": 0.45,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **45.0%** (Tốt)\n\nTìm thấy **42 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.3%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ TARGETS\n  ├─> TARGETS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **45.0%** (Tốt)\n\nTìm thấy **42 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.03320363633644985,
+                    "length": 4
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0013246791408554142,
+                    "length": 2
+                  },
+                  {
+                    "path": "TARGETS -> TARGETS -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.00022311119303217337,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 42
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "ent_002",
+            "name": "VinaSmart Factory Tech",
+            "score": 0.8,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 61,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Project->Project",
+        "request": {
+          "source_id": "prj_001",
+          "source_type": "project",
+          "target_type": "project"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 5,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "prj_004",
+                "name": "AgriVision for Coffee Disease Monitoring",
+                "score": 0.833,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **83.3%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "location": "VN-Tây Nguyên",
+                  "status": "ongoing",
+                  "budget": 160000
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **83.3%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "prj_002",
+                "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+                "score": 0.667,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **66.7%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "location": "VN-Bắc Trung Bộ",
+                  "status": "ongoing",
+                  "budget": 180000
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **66.7%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "prj_003",
+                "name": "SecurePay AI Fraud Intelligence",
+                "score": 0.5,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "location": "VN-Đồng bằng sông Hồng",
+                  "status": "ongoing",
+                  "budget": 140000
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "prj_004",
+            "name": "AgriVision for Coffee Disease Monitoring",
+            "score": 0.833,
+            "has_reasoning_paths": false,
+            "reasoning_paths_count": 0,
+            "path_diversity": 0,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Expert->Project",
+        "request": {
+          "source_id": "exp_001",
+          "source_type": "expert",
+          "target_type": "project"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "prj_004",
+                "name": "AgriVision for Coffee Disease Monitoring",
+                "score": 0.2,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho bạn vì:\n\nĐộ phù hợp tổng thể: **20.0%** (Khá)\n\nTìm thấy **13 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.8%):\n  ┌─ HAS_EXPERIENCE_IN\n  └─> FOCUSES_ON_TOPIC\n\nPath 2 (Score: 0.4%):\n  ┌─ DEVELOPS\n  ├─> DEVELOPS\n  ├─> HAS_EXPERIENCE_IN\n  └─> FOCUSES_ON_TOPIC\n\nPath 3 (Score: 0.1%):\n  ┌─ WORK_FOR\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 160000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho bạn vì:\n\nĐộ phù hợp tổng thể: **20.0%** (Khá)\n\nTìm thấy **13 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "HAS_EXPERIENCE_IN -> FOCUSES_ON_TOPIC",
+                    "score": 0.007955913747560493,
+                    "length": 2
+                  },
+                  {
+                    "path": "DEVELOPS -> DEVELOPS -> HAS_EXPERIENCE_IN -> FOCUSES_ON_TOPIC",
+                    "score": 0.004422525819246325,
+                    "length": 4
+                  },
+                  {
+                    "path": "WORK_FOR -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                    "score": 0.0009603286767949195,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 13
+              },
+              {
+                "id": "prj_006",
+                "name": "SmartRoute for Urban Fleet Optimization",
+                "score": 0.16,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **SmartRoute for Urban Fleet Optimization** cho bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **7 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.2%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 0.1%):\n  ┌─ DEVELOPS\n  ├─> DEVELOPS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  └─> FUNDS\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 155000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **SmartRoute for Urban Fleet Optimization** cho bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **7 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0017745452056243656,
+                    "length": 2
+                  },
+                  {
+                    "path": "DEVELOPS -> DEVELOPS -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0011990241891754062,
+                    "length": 4
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN -> FUNDS",
+                    "score": 0.00037152824566479996,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 7
+              },
+              {
+                "id": "prj_002",
+                "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+                "score": 0.16,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **5 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tham gia, cộng tác",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.1%):\n  ┌─ HAS_ACCESS_TO\n  └─> REQUIRES_DATA\n\nPath 2 (Score: 0.1%):\n  ┌─ COLLABORATES_WITH\n  └─> PARTICIPATES_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 180000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **5 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tham gia, cộng tác",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "HAS_ACCESS_TO -> REQUIRES_DATA",
+                    "score": 0.0008094065706776858,
+                    "length": 2
+                  },
+                  {
+                    "path": "COLLABORATES_WITH -> PARTICIPATES_IN",
+                    "score": 0.0005569483128826455,
+                    "length": 2
+                  }
+                ],
+                "path_diversity": 5
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "prj_004",
+            "name": "AgriVision for Coffee Disease Monitoring",
+            "score": 0.2,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 13,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Expert->Funder",
+        "request": {
+          "source_id": "exp_001",
+          "source_type": "expert",
+          "target_type": "funder"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "fnd_001",
+                "name": "Vietnam Innovation Fund (VINIF)",
+                "score": 0.8,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Innovation Fund (VINIF)** cho bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "type": "NGO"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Innovation Fund (VINIF)** cho bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "fnd_003",
+                "name": "Vietnam Digital Innovation Grant (VDIG)",
+                "score": 0.6,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "type": "Government"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "fnd_004",
+                "name": "Agri Innovation Program Vietnam",
+                "score": 0.4,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Agri Innovation Program Vietnam** cho bạn vì:\n\nĐộ phù hợp tổng thể: **40.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "type": "NGO"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Agri Innovation Program Vietnam** cho bạn vì:\n\nĐộ phù hợp tổng thể: **40.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với chuyên gia\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "fnd_001",
+            "name": "Vietnam Innovation Fund (VINIF)",
+            "score": 0.8,
+            "has_reasoning_paths": false,
+            "reasoning_paths_count": 0,
+            "path_diversity": 0,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Expert->Enterprise",
+        "request": {
+          "source_id": "exp_001",
+          "source_type": "expert",
+          "target_type": "enterprise"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 23,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "ent_007",
+                "name": "GreenGrid Solutions",
+                "score": 0.65,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **GreenGrid Solutions** cho bạn vì:\n\nĐộ phù hợp tổng thể: **65.0%** (Rất tốt)\n\nTìm thấy **55 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.05)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.0%):\n  ┌─ HAS_APPLICATION_EXPERIENCE_IN\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **GreenGrid Solutions** cho bạn vì:\n\nĐộ phù hợp tổng thể: **65.0%** (Rất tốt)\n\nTìm thấy **55 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.05)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "HAS_APPLICATION_EXPERIENCE_IN -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.04979990046091283,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 55
+              },
+              {
+                "id": "ent_002",
+                "name": "VinaSmart Factory Tech",
+                "score": 0.63,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho bạn vì:\n\nĐộ phù hợp tổng thể: **63.0%** (Rất tốt)\n\nTìm thấy **50 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.05)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: cộng tác",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 4.9%):\n  ┌─ HAS_APPLICATION_EXPERIENCE_IN\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.0%):\n  ┌─ COLLABORATES_WITH\n  ├─> HAS_APPLICATION_EXPERIENCE_IN\n  └─> OPERATES_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho bạn vì:\n\nĐộ phù hợp tổng thể: **63.0%** (Rất tốt)\n\nTìm thấy **50 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.05)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: cộng tác",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "HAS_APPLICATION_EXPERIENCE_IN -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.04886766491964302,
+                    "length": 4
+                  },
+                  {
+                    "path": "COLLABORATES_WITH -> HAS_APPLICATION_EXPERIENCE_IN -> OPERATES_IN",
+                    "score": 0.00022779309283350307,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 50
+              },
+              {
+                "id": "ent_003",
+                "name": "SecurePay Analytics JSC",
+                "score": 0.5,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **29 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.7%):\n  ┌─ HAS_APPLICATION_EXPERIENCE_IN\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.1%):\n  ┌─ HAS_APPLICATION_EXPERIENCE_IN\n  ├─> TARGETS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ OWNS_DATA\n  ├─> HAS_ACCESS_TO\n  └─> WORK_FOR\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **29 cách khác nhau** để kết nối doanh nghiệp này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "HAS_APPLICATION_EXPERIENCE_IN -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                    "score": 0.03733641072716343,
+                    "length": 4
+                  },
+                  {
+                    "path": "HAS_APPLICATION_EXPERIENCE_IN -> TARGETS -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.00054966213137947,
+                    "length": 4
+                  },
+                  {
+                    "path": "OWNS_DATA -> HAS_ACCESS_TO -> WORK_FOR",
+                    "score": 5.642393420685521e-06,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 29
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "ent_007",
+            "name": "GreenGrid Solutions",
+            "score": 0.65,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 1,
+            "path_diversity": 55,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Expert->Expert",
+        "request": {
+          "source_id": "exp_001",
+          "source_type": "expert",
+          "target_type": "expert"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "exp_002",
+                "name": "TS. Trần Thị B",
+                "score": 0.99,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **678 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.33)**\nKết nối qua: cộng tác\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 33.3%):\n  ┌─ COLLABORATES_WITH\n\nPath 2 (Score: 0.5%):\n  ┌─ OWNS_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.0%):\n  ┌─ HAS_SKILL\n  └─> HAS_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": 10,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_002",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **678 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.33)**\nKết nối qua: cộng tác\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "COLLABORATES_WITH",
+                    "score": 0.332939771221898,
+                    "length": 1
+                  },
+                  {
+                    "path": "OWNS_DATA -> HAS_ACCESS_TO",
+                    "score": 0.005446704814204447,
+                    "length": 2
+                  },
+                  {
+                    "path": "HAS_SKILL -> HAS_SKILL",
+                    "score": 0.00041207690797924457,
+                    "length": 2
+                  }
+                ],
+                "path_diversity": 678
+              },
+              {
+                "id": "exp_001",
+                "name": "PGS.TS. Nguyễn Văn A",
+                "score": 0.99,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Nguyễn Văn A** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **265 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.23)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 23.4%):\n  ┌─ DEVELOPS\n  └─> DEVELOPS\n\nPath 2 (Score: 0.7%):\n  ┌─ HAS_ACCESS_TO\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.5%):\n  ┌─ HAS_SKILL\n  └─> HAS_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": 12,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_001",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Nguyễn Văn A** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **265 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.23)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "DEVELOPS -> DEVELOPS",
+                    "score": 0.23354949064160216,
+                    "length": 2
+                  },
+                  {
+                    "path": "HAS_ACCESS_TO -> HAS_ACCESS_TO",
+                    "score": 0.007242818408326091,
+                    "length": 2
+                  },
+                  {
+                    "path": "HAS_SKILL -> HAS_SKILL",
+                    "score": 0.005131220652926414,
+                    "length": 2
+                  }
+                ],
+                "path_diversity": 265
+              },
+              {
+                "id": "exp_003",
+                "name": "TS. Phạm Minh C",
+                "score": 0.29,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho bạn vì:\n\nĐộ phù hợp tổng thể: **29.0%** (Khá)\n\nTìm thấy **31 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 1.7%):\n  ┌─ OWNS_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 1.3%):\n  ┌─ HAS_ACCESS_TO\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.1%):\n  ┌─ HAS_SKILL\n  └─> HAS_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": 9,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_003",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho bạn vì:\n\nĐộ phù hợp tổng thể: **29.0%** (Khá)\n\nTìm thấy **31 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "OWNS_DATA -> HAS_ACCESS_TO",
+                    "score": 0.016681238519659133,
+                    "length": 2
+                  },
+                  {
+                    "path": "HAS_ACCESS_TO -> HAS_ACCESS_TO",
+                    "score": 0.013327443834474435,
+                    "length": 2
+                  },
+                  {
+                    "path": "HAS_SKILL -> HAS_SKILL",
+                    "score": 0.0009097521033882604,
+                    "length": 2
+                  }
+                ],
+                "path_diversity": 31
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "exp_002",
+            "name": "TS. Trần Thị B",
+            "score": 0.99,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 678,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Enterprise->Expert",
+        "request": {
+          "source_id": "ent_001",
+          "source_type": "enterprise",
+          "target_type": "expert"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "exp_005",
+                "name": "TS. Vũ Quốc E",
+                "score": 0.72,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Vũ Quốc E** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **72.0%** (Rất tốt)\n\nTìm thấy **121 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.08)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 8.3%):\n  ┌─ REQUIRES_SKILL\n  └─> HAS_SKILL\n\nPath 2 (Score: 1.0%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  ├─> REQUIRES_SKILL\n  └─> HAS_SKILL\n\nPath 3 (Score: 0.8%):\n  ┌─ PARTNERS_WITH\n  ├─> REQUIRES_SKILL\n  └─> HAS_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": 8,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_005",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Vũ Quốc E** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **72.0%** (Rất tốt)\n\nTìm thấy **121 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.08)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "REQUIRES_SKILL -> HAS_SKILL",
+                    "score": 0.08293458463958829,
+                    "length": 2
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN -> REQUIRES_SKILL -> HAS_SKILL",
+                    "score": 0.010060647864299452,
+                    "length": 4
+                  },
+                  {
+                    "path": "PARTNERS_WITH -> REQUIRES_SKILL -> HAS_SKILL",
+                    "score": 0.008308817105214679,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 121
+              },
+              {
+                "id": "exp_003",
+                "name": "TS. Phạm Minh C",
+                "score": 0.42,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **42.0%** (Tốt)\n\nTìm thấy **148 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.7%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 1.5%):\n  ┌─ PARTNERS_WITH\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.8%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": 9,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_003",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **42.0%** (Tốt)\n\nTìm thấy **148 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.05670060933510615,
+                    "length": 2
+                  },
+                  {
+                    "path": "PARTNERS_WITH -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                    "score": 0.014866228746533114,
+                    "length": 3
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.008180491585757217,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 148
+              },
+              {
+                "id": "exp_009",
+                "name": "TS. Nguyễn Mai K",
+                "score": 0.36,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Nguyễn Mai K** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **36.0%** (Khá)\n\nTìm thấy **64 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.9%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 0.5%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.3%):\n  ┌─ PARTNERS_WITH\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+                },
+                "metrics": {
+                  "h_index": 5,
+                  "budget": null,
+                  "status": null
+                },
+                "expert_id": "exp_009",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Nguyễn Mai K** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **36.0%** (Khá)\n\nTìm thấy **64 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.03855760191619182,
+                    "length": 2
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0054879068552149924,
+                    "length": 4
+                  },
+                  {
+                    "path": "PARTNERS_WITH -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.0034174636998985397,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 64
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "exp_005",
+            "name": "TS. Vũ Quốc E",
+            "score": 0.72,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 121,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Enterprise->Project",
+        "request": {
+          "source_id": "ent_001",
+          "source_type": "enterprise",
+          "target_type": "project"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "prj_005",
+                "name": "LearnPath AI for Personalized Curriculum",
+                "score": 0.99,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **LearnPath AI for Personalized Curriculum** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **173 cách khác nhau** để kết nối dự án này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.14)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nKết nối qua: tài trợ\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 13.7%):\n  ┌─ REQUIRES_SKILL\n  ├─> HAS_SKILL\n  └─> PARTICIPATES_IN\n\nPath 2 (Score: 0.8%):\n  ┌─ LOCATED_IN\n  ├─> FOCUSES_ON_REGION\n  └─> FUNDS\n\nPath 3 (Score: 0.7%):\n  ┌─ REQUIRES_SKILL\n  ├─> HAS_SKILL\n  ├─> HAS_SKILL\n  └─> REQUIRES_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 130000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **LearnPath AI for Personalized Curriculum** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **173 cách khác nhau** để kết nối dự án này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.14)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nKết nối qua: tài trợ\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "REQUIRES_SKILL -> HAS_SKILL -> PARTICIPATES_IN",
+                    "score": 0.13726888427565861,
+                    "length": 3
+                  },
+                  {
+                    "path": "LOCATED_IN -> FOCUSES_ON_REGION -> FUNDS",
+                    "score": 0.00820419043167958,
+                    "length": 3
+                  },
+                  {
+                    "path": "REQUIRES_SKILL -> HAS_SKILL -> HAS_SKILL -> REQUIRES_SKILL",
+                    "score": 0.0073837590122986674,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 173
+              },
+              {
+                "id": "prj_004",
+                "name": "AgriVision for Coffee Disease Monitoring",
+                "score": 0.78,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **78.0%** (Rất tốt)\n\nTìm thấy **120 cách khác nhau** để kết nối dự án này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.08)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 2% – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 8.4%):\n  ┌─ FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\nPath 2 (Score: 1.7%):\n  ┌─ REQUIRES_SKILL\n  ├─> REQUIRES_SKILL\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\nPath 3 (Score: 0.4%):\n  ┌─ REQUIRES_SKILL\n  ├─> HAS_SKILL\n  ├─> HAS_SKILL\n  └─> REQUIRES_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 160000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **78.0%** (Rất tốt)\n\nTìm thấy **120 cách khác nhau** để kết nối dự án này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.08)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 2% – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                    "score": 0.08377689333720238,
+                    "length": 2
+                  },
+                  {
+                    "path": "REQUIRES_SKILL -> REQUIRES_SKILL -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                    "score": 0.016798882291803454,
+                    "length": 4
+                  },
+                  {
+                    "path": "REQUIRES_SKILL -> HAS_SKILL -> HAS_SKILL -> REQUIRES_SKILL",
+                    "score": 0.004405151968037661,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 120
+              },
+              {
+                "id": "prj_003",
+                "name": "SecurePay AI Fraud Intelligence",
+                "score": 0.23,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **23.0%** (Khá)\n\nTìm thấy **66 cách khác nhau** để kết nối dự án này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 2.7%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 0.9%):\n  ┌─ REQUIRES_SKILL\n  ├─> REQUIRES_SKILL\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.5%):\n  ┌─ REQUIRES_SKILL\n  ├─> HAS_SKILL\n  ├─> HAS_SKILL\n  └─> REQUIRES_SKILL\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 140000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **23.0%** (Khá)\n\nTìm thấy **66 cách khác nhau** để kết nối dự án này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.026578291300426545,
+                    "length": 2
+                  },
+                  {
+                    "path": "REQUIRES_SKILL -> REQUIRES_SKILL -> LOCATED_IN -> LOCATED_IN",
+                    "score": 0.009163319956708731,
+                    "length": 4
+                  },
+                  {
+                    "path": "REQUIRES_SKILL -> HAS_SKILL -> HAS_SKILL -> REQUIRES_SKILL",
+                    "score": 0.005459196673236898,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 66
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "prj_005",
+            "name": "LearnPath AI for Personalized Curriculum",
+            "score": 0.99,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 173,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Enterprise->Funder",
+        "request": {
+          "source_id": "ent_001",
+          "source_type": "enterprise",
+          "target_type": "funder"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "fnd_001",
+                "name": "Vietnam Innovation Fund (VINIF)",
+                "score": 0.8,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Innovation Fund (VINIF)** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với doanh nghiệp\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "type": "NGO"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Innovation Fund (VINIF)** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với doanh nghiệp\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "fnd_003",
+                "name": "Vietnam Digital Innovation Grant (VDIG)",
+                "score": 0.6,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với doanh nghiệp\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "type": "Government"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với doanh nghiệp\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "fnd_004",
+                "name": "Agri Innovation Program Vietnam",
+                "score": 0.4,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Agri Innovation Program Vietnam** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **40.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với doanh nghiệp\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "type": "NGO"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Agri Innovation Program Vietnam** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **40.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối quỹ này với doanh nghiệp\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "fnd_001",
+            "name": "Vietnam Innovation Fund (VINIF)",
+            "score": 0.8,
+            "has_reasoning_paths": false,
+            "reasoning_paths_count": 0,
+            "path_diversity": 0,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Enterprise->Enterprise",
+        "request": {
+          "source_id": "ent_001",
+          "source_type": "enterprise",
+          "target_type": "enterprise"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "ent_002",
+                "name": "VinaSmart Factory Tech",
+                "score": 0.833,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **83.3%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với doanh nghiệp\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": null,
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **83.3%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với doanh nghiệp\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "ent_003",
+                "name": "SecurePay Analytics JSC",
+                "score": 0.667,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **66.7%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với doanh nghiệp\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": null,
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **66.7%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với doanh nghiệp\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "ent_004",
+                "name": "AgriSense Vietnam Co.,Ltd",
+                "score": 0.5,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **AgriSense Vietnam Co.,Ltd** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với doanh nghiệp\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": null,
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **AgriSense Vietnam Co.,Ltd** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với doanh nghiệp\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "ent_002",
+            "name": "VinaSmart Factory Tech",
+            "score": 0.833,
+            "has_reasoning_paths": false,
+            "reasoning_paths_count": 0,
+            "path_diversity": 0,
+            "has_explanation": true,
+            "has_metrics": false,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Funder->Expert",
+        "request": {
+          "source_id": "fnd_001",
+          "source_type": "funder",
+          "target_type": "expert"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "exp_001",
+                "name": "PGS.TS. Nguyễn Văn A",
+                "score": 0.9,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Nguyễn Văn A** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **90.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối chuyên gia này với quỹ\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "location": "VN-Đông Nam Bộ",
+                  "h_index": 12,
+                  "citations": 1200,
+                  "publications": 45
+                },
+                "expert_id": "exp_001",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Nguyễn Văn A** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **90.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối chuyên gia này với quỹ\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "exp_002",
+                "name": "TS. Trần Thị B",
+                "score": 0.8,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối chuyên gia này với quỹ\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "location": "VN-Bắc Trung Bộ",
+                  "h_index": 10,
+                  "citations": 950,
+                  "publications": 38
+                },
+                "expert_id": "exp_002",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối chuyên gia này với quỹ\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "exp_003",
+                "name": "TS. Phạm Minh C",
+                "score": 0.7,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **70.0%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối chuyên gia này với quỹ\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": {
+                  "location": "VN-Đồng bằng sông Hồng",
+                  "h_index": 9,
+                  "citations": 640,
+                  "publications": 29
+                },
+                "expert_id": "exp_003",
+                "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **70.0%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối chuyên gia này với quỹ\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "exp_001",
+            "name": "PGS.TS. Nguyễn Văn A",
+            "score": 0.9,
+            "has_reasoning_paths": false,
+            "reasoning_paths_count": 0,
+            "path_diversity": 0,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Funder->Project",
+        "request": {
+          "source_id": "fnd_001",
+          "source_type": "funder",
+          "target_type": "project"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "prj_004",
+                "name": "AgriVision for Coffee Disease Monitoring",
+                "score": 0.99,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **363 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.36)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: được hỗ trợ",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 35.9%):\n  ┌─ SUPPORTS_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\nPath 2 (Score: 0.4%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> OPERATES_IN\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\nPath 3 (Score: 0.3%):\n  ┌─ SUPPORTS_TOPIC\n  ├─> HAS_EXPERIENCE_IN\n  ├─> HAS_EXPERIENCE_IN\n  └─> FOCUSES_ON_TOPIC\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 160000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **363 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.36)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: được hỗ trợ",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "SUPPORTS_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                    "score": 0.3593728797784001,
+                    "length": 4
+                  },
+                  {
+                    "path": "FOCUSES_ON_SECTORS -> OPERATES_IN -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                    "score": 0.0039009125136083736,
+                    "length": 4
+                  },
+                  {
+                    "path": "SUPPORTS_TOPIC -> HAS_EXPERIENCE_IN -> HAS_EXPERIENCE_IN -> FOCUSES_ON_TOPIC",
+                    "score": 0.003319967862751773,
+                    "length": 4
+                  }
+                ],
+                "path_diversity": 363
+              },
+              {
+                "id": "prj_002",
+                "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+                "score": 0.19,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **19.0%** (Trung bình)\n\nTìm thấy **15 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.7%):\n  ┌─ SUPPORTS_TOPIC\n  ├─> HAS_EXPERIENCE_IN\n  ├─> HAS_ACCESS_TO\n  └─> REQUIRES_DATA\n\nPath 2 (Score: 0.1%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> HAS_APPLICATION_EXPERIENCE_IN\n  ├─> HAS_ACCESS_TO\n  └─> REQUIRES_DATA\n\nPath 3 (Score: 0.1%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> FUNDS\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 180000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **19.0%** (Trung bình)\n\nTìm thấy **15 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "SUPPORTS_TOPIC -> HAS_EXPERIENCE_IN -> HAS_ACCESS_TO -> REQUIRES_DATA",
+                    "score": 0.006744665138663689,
+                    "length": 4
+                  },
+                  {
+                    "path": "FOCUSES_ON_SECTORS -> HAS_APPLICATION_EXPERIENCE_IN -> HAS_ACCESS_TO -> REQUIRES_DATA",
+                    "score": 0.0014625665593253872,
+                    "length": 4
+                  },
+                  {
+                    "path": "FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> FUNDS",
+                    "score": 0.0012526851135030402,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 15
+              },
+              {
+                "id": "prj_003",
+                "name": "SecurePay AI Fraud Intelligence",
+                "score": 0.16,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **8 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ",
+                  "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.2%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> FUNDS\n\nPath 2 (Score: 0.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ FOCUSES_ON_REGION\n  ├─> FOCUSES_ON_REGION\n  └─> FUNDS\n\n```"
+                },
+                "metrics": {
+                  "h_index": null,
+                  "budget": 140000,
+                  "status": "ongoing"
+                },
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **8 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ",
+                "extra": null,
+                "reasoning_paths": [
+                  {
+                    "path": "FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> FUNDS",
+                    "score": 0.0022348532624791016,
+                    "length": 3
+                  },
+                  {
+                    "path": "LOCATED_IN -> LOCATED_IN",
+                    "score": 0.001274991555034512,
+                    "length": 2
+                  },
+                  {
+                    "path": "FOCUSES_ON_REGION -> FOCUSES_ON_REGION -> FUNDS",
+                    "score": 0.00031833763640619914,
+                    "length": 3
+                  }
+                ],
+                "path_diversity": 8
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "prj_004",
+            "name": "AgriVision for Coffee Disease Monitoring",
+            "score": 0.99,
+            "has_reasoning_paths": true,
+            "reasoning_paths_count": 3,
+            "path_diversity": 363,
+            "has_explanation": true,
+            "has_metrics": true,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      },
+      {
+        "name": "Funder->Enterprise",
+        "request": {
+          "source_id": "fnd_001",
+          "source_type": "funder",
+          "target_type": "enterprise"
+        },
+        "response": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 4,
+          "body": {
+            "status": "success",
+            "data": [
+              {
+                "id": "ent_001",
+                "name": "TechMed Solutions VN",
+                "score": 0.857,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **TechMed Solutions VN** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **85.7%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với quỹ\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": null,
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **TechMed Solutions VN** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **85.7%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với quỹ\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "ent_002",
+                "name": "VinaSmart Factory Tech",
+                "score": 0.714,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **71.4%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với quỹ\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": null,
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **71.4%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với quỹ\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              },
+              {
+                "id": "ent_003",
+                "name": "SecurePay Analytics JSC",
+                "score": 0.571,
+                "explanation": {
+                  "natural_language": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **57.1%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với quỹ\n\n**Lý do chính:**",
+                  "visualization": "No paths to visualize"
+                },
+                "metrics": null,
+                "expert_id": null,
+                "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **57.1%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối doanh nghiệp này với quỹ\n\n**Lý do chính:**",
+                "extra": null,
+                "reasoning_paths": [],
+                "path_diversity": 0
+              }
+            ],
+            "count": 3
+          }
+        },
+        "shape": {
+          "count": 3,
+          "sample": {
+            "id": "ent_001",
+            "name": "TechMed Solutions VN",
+            "score": 0.857,
+            "has_reasoning_paths": false,
+            "reasoning_paths_count": 0,
+            "path_diversity": 0,
+            "has_explanation": true,
+            "has_metrics": false,
+            "keys": [
+              "expert_id",
+              "explanation",
+              "extra",
+              "id",
+              "metrics",
+              "name",
+              "path_diversity",
+              "reasoning_paths",
+              "score",
+              "xai_explanation"
+            ]
+          },
+          "missing_required": []
+        }
+      }
+    ],
+    "overview": {
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 18,
+      "body": {
+        "status": "success",
+        "source": {
+          "id": "prj_001",
+          "type": "project",
+          "name": "prj_001"
+        },
+        "data": {
+          "experts": [
+            {
+              "expert_id": "exp_002",
+              "name": "TS. Trần Thị B",
+              "score": 0.6,
+              "reasoning_paths": [
+                {
+                  "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "score": 0.05871865309026052,
+                  "length": 2
+                },
+                {
+                  "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "score": 0.011275561275849512,
+                  "length": 4
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "score": 0.005854931847840669,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 83,
+              "metrics": {
+                "h_index": 10,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **83 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.9%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 1.1%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.6%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **83 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "id": "exp_002"
+            },
+            {
+              "expert_id": "exp_003",
+              "name": "TS. Phạm Minh C",
+              "score": 0.41,
+              "reasoning_paths": [
+                {
+                  "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "score": 0.03397862688971201,
+                  "length": 2
+                },
+                {
+                  "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "score": 0.006466506065754866,
+                  "length": 4
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "score": 0.0031021501858860246,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 46,
+              "metrics": {
+                "h_index": 9,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **41.0%** (Tốt)\n\nTìm thấy **46 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.4%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 0.6%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.3%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **41.0%** (Tốt)\n\nTìm thấy **46 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "id": "exp_003"
+            },
+            {
+              "expert_id": "exp_004",
+              "name": "PGS.TS. Lê Thu D",
+              "score": 0.27,
+              "reasoning_paths": [
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> PARTICIPATES_IN",
+                  "score": 0.015239539116178629,
+                  "length": 3
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> HAS_EXPERIENCE_IN",
+                  "score": 0.010374632259451266,
+                  "length": 4
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> CREATES -> DEVELOPS",
+                  "score": 0.00824266138405653,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 33,
+              "metrics": {
+                "h_index": 11,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **27.0%** (Khá)\n\nTìm thấy **33 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 1.5%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> PARTICIPATES_IN\n\nPath 2 (Score: 1.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> HAS_EXPERIENCE_IN\n\nPath 3 (Score: 0.8%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> CREATES\n  └─> DEVELOPS\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **27.0%** (Khá)\n\nTìm thấy **33 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "id": "exp_004"
+            }
+          ],
+          "funders": [
+            {
+              "funder_id": "fnd_002",
+              "name": "National Technology Development Fund (NATIF)",
+              "score": 0.99,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                  "score": 0.08942375082803895,
+                  "length": 4
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "score": 0.0011108838592975509,
+                  "length": 2
+                },
+                {
+                  "path": "TARGETS -> TARGETS -> LOCATED_IN -> LOCATED_IN",
+                  "score": 0.00033071861834258934,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 98,
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý quỹ tài trợ **National Technology Development Fund (NATIF)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **98 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.09)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 8.9%):\n  ┌─ TARGETS\n  ├─> OPERATES_IN\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\nPath 2 (Score: 0.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ TARGETS\n  ├─> TARGETS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **National Technology Development Fund (NATIF)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **98 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.09)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "id": "fnd_002"
+            },
+            {
+              "funder_id": "fnd_003",
+              "name": "Vietnam Digital Innovation Grant (VDIG)",
+              "score": 0.36,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                  "score": 0.024229136150961148,
+                  "length": 4
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "score": 0.0003738978185290117,
+                  "length": 2
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                  "score": 4.715103363544465e-05,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 29,
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **36.0%** (Khá)\n\nTìm thấy **29 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 2.4%):\n  ┌─ TARGETS\n  ├─> OPERATES_IN\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\nPath 2 (Score: 0.0%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **36.0%** (Khá)\n\nTìm thấy **29 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "id": "fnd_003"
+            },
+            {
+              "funder_id": "fnd_005",
+              "name": "National EdTech Fund",
+              "score": 0.15,
+              "reasoning_paths": [
+                {
+                  "path": "FOCUSES_ON -> SUPPORTS",
+                  "score": 3.7087703361487684e-05,
+                  "length": 2
+                }
+              ],
+              "path_diversity": 1,
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý quỹ tài trợ **National EdTech Fund** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **15.0%** (Trung bình)\n\nTìm thấy **1 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: được hỗ trợ",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.0%):\n  ┌─ FOCUSES_ON\n  └─> SUPPORTS\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **National EdTech Fund** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **15.0%** (Trung bình)\n\nTìm thấy **1 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: được hỗ trợ",
+              "id": "fnd_005"
+            }
+          ],
+          "enterprises": [
+            {
+              "enterprise_id": "ent_002",
+              "name": "VinaSmart Factory Tech",
+              "score": 0.8,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "score": 0.06669618174521731,
+                  "length": 4
+                },
+                {
+                  "path": "FUNDS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "score": 0.000371343299513951,
+                  "length": 3
+                },
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_REGION -> LOCATED_IN",
+                  "score": 0.0002023777562370455,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 61,
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **61 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.07)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 6.7%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.0%):\n  ┌─ FUNDS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_REGION\n  └─> LOCATED_IN\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **80.0%** (Xuất sắc)\n\nTìm thấy **61 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.07)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "id": "ent_002"
+            },
+            {
+              "enterprise_id": "ent_005",
+              "name": "LearnNext EdTech",
+              "score": 0.54,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "score": 0.03941927743138829,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 29,
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý doanh nghiệp **LearnNext EdTech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **54.0%** (Tốt)\n\nTìm thấy **29 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.9%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **LearnNext EdTech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **54.0%** (Tốt)\n\nTìm thấy **29 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án",
+              "id": "ent_005"
+            },
+            {
+              "enterprise_id": "ent_003",
+              "name": "SecurePay Analytics JSC",
+              "score": 0.45,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "score": 0.03320363633644985,
+                  "length": 4
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "score": 0.0013246791408554142,
+                  "length": 2
+                },
+                {
+                  "path": "TARGETS -> TARGETS -> LOCATED_IN -> LOCATED_IN",
+                  "score": 0.00022311119303217337,
+                  "length": 4
+                }
+              ],
+              "path_diversity": 42,
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **45.0%** (Tốt)\n\nTìm thấy **42 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.3%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ TARGETS\n  ├─> TARGETS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+              },
+              "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **45.0%** (Tốt)\n\nTìm thấy **42 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "id": "ent_003"
+            }
+          ],
+          "similar_projects": [
+            {
+              "project_id": "prj_004",
+              "name": "AgriVision for Coffee Disease Monitoring",
+              "score": 0.833,
+              "reasoning_paths": [],
+              "path_diversity": 0,
+              "metrics": {
+                "location": "VN-Tây Nguyên",
+                "status": "ongoing",
+                "budget": 160000
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **83.3%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "visualization": "No paths to visualize"
+              },
+              "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **83.3%** (Xuất sắc)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+              "id": "prj_004"
+            },
+            {
+              "project_id": "prj_002",
+              "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+              "score": 0.667,
+              "reasoning_paths": [],
+              "path_diversity": 0,
+              "metrics": {
+                "location": "VN-Bắc Trung Bộ",
+                "status": "ongoing",
+                "budget": 180000
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **66.7%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "visualization": "No paths to visualize"
+              },
+              "xai_explanation": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **66.7%** (Rất tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+              "id": "prj_002"
+            },
+            {
+              "project_id": "prj_003",
+              "name": "SecurePay AI Fraud Intelligence",
+              "score": 0.5,
+              "reasoning_paths": [],
+              "path_diversity": 0,
+              "metrics": {
+                "location": "VN-Đồng bằng sông Hồng",
+                "status": "ongoing",
+                "budget": 140000
+              },
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "visualization": "No paths to visualize"
+              },
+              "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **50.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+              "id": "prj_003"
+            }
+          ]
+        },
+        "errors": {
+          "experts": null,
+          "funders": null,
+          "enterprises": null,
+          "similar_projects": null
+        }
+      }
+    },
+    "experts_legacy": {
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 5,
+      "body": {
+        "status": "success",
+        "data": [
+          {
+            "id": "exp_002",
+            "name": "TS. Trần Thị B",
+            "score": 0.6,
+            "explanation": {
+              "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **83 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.9%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 1.1%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.6%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+            },
+            "metrics": {
+              "h_index": 10,
+              "budget": null,
+              "status": null
+            },
+            "expert_id": "exp_002",
+            "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **60.0%** (Rất tốt)\n\nTìm thấy **83 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+            "extra": null,
+            "reasoning_paths": [
+              {
+                "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                "score": 0.05871865309026052,
+                "length": 2
+              },
+              {
+                "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                "score": 0.011275561275849512,
+                "length": 4
+              },
+              {
+                "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                "score": 0.005854931847840669,
+                "length": 4
+              }
+            ],
+            "path_diversity": 83
+          },
+          {
+            "id": "exp_003",
+            "name": "TS. Phạm Minh C",
+            "score": 0.41,
+            "explanation": {
+              "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **41.0%** (Tốt)\n\nTìm thấy **46 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.4%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 0.6%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.3%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+            },
+            "metrics": {
+              "h_index": 9,
+              "budget": null,
+              "status": null
+            },
+            "expert_id": "exp_003",
+            "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **41.0%** (Tốt)\n\nTìm thấy **46 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+            "extra": null,
+            "reasoning_paths": [
+              {
+                "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                "score": 0.03397862688971201,
+                "length": 2
+              },
+              {
+                "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                "score": 0.006466506065754866,
+                "length": 4
+              },
+              {
+                "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                "score": 0.0031021501858860246,
+                "length": 4
+              }
+            ],
+            "path_diversity": 46
+          },
+          {
+            "id": "exp_004",
+            "name": "PGS.TS. Lê Thu D",
+            "score": 0.27,
+            "explanation": {
+              "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **27.0%** (Khá)\n\nTìm thấy **33 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 1.5%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> PARTICIPATES_IN\n\nPath 2 (Score: 1.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> HAS_EXPERIENCE_IN\n\nPath 3 (Score: 0.8%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> CREATES\n  └─> DEVELOPS\n\n```"
+            },
+            "metrics": {
+              "h_index": 11,
+              "budget": null,
+              "status": null
+            },
+            "expert_id": "exp_004",
+            "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **27.0%** (Khá)\n\nTìm thấy **33 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+            "extra": null,
+            "reasoning_paths": [
+              {
+                "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> PARTICIPATES_IN",
+                "score": 0.015239539116178629,
+                "length": 3
+              },
+              {
+                "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> HAS_EXPERIENCE_IN",
+                "score": 0.010374632259451266,
+                "length": 4
+              },
+              {
+                "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> CREATES -> DEVELOPS",
+                "score": 0.00824266138405653,
+                "length": 4
+              }
+            ],
+            "path_diversity": 33
+          }
+        ],
+        "count": 3
+      }
+    }
+  },
+  "sample_ids": {
+    "project": "prj_001",
+    "expert": "exp_001",
+    "funder": "fnd_001",
+    "enterprise": "ent_001"
+  },
+  "finished_at": "2026-05-23T05:04:15.627681+00:00"
+}

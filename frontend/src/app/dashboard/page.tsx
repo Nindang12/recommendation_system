@@ -32,10 +32,10 @@ import {
   EntityType,
   ExplanationResponse,
   getRecommendationExplanation,
-  getRecommendationVisualization,
   HealthResponse,
   RecommendationItem,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import {
   Dialog,
   DialogContent,
@@ -145,7 +145,7 @@ function ConfidenceBlock({ confidence }: { confidence: Record<string, unknown> }
   const componentEntries = Object.entries(components);
 
   return (
-    <div className="rounded-md border bg-background p-4">
+    <div className="min-w-0 overflow-hidden rounded-md border bg-background p-4">
       <div className="grid gap-4 md:grid-cols-[180px_1fr]">
         <div className="rounded-md bg-secondary/50 p-4 text-center">
           <div className="text-xs font-semibold uppercase text-muted-foreground">Confidence</div>
@@ -230,10 +230,91 @@ function getPathLength(path: unknown, parts: string[]) {
   return parts.length;
 }
 
-function ReasoningPathCard({ path, index }: { path: unknown; index: number }) {
+type PathNodeView = {
+  role: "Source" | "Evidence" | "Target";
+  label: string;
+  subtitle: string;
+};
+
+function getPathNodeLabels(path: unknown, relationCount: number) {
+  if (path && typeof path === "object") {
+    const record = path as Record<string, unknown>;
+    const entities = record.entities ?? record.entity_names ?? record.nodes;
+    if (Array.isArray(entities) && entities.length >= 2) {
+      return entities.map((entity) => {
+        if (entity && typeof entity === "object") {
+          const node = entity as Record<string, unknown>;
+          return String(node.name ?? node.label ?? node.id ?? "Node");
+        }
+        return String(entity);
+      });
+    }
+  }
+
+  const labels = ["Source"];
+  for (let index = 1; index < relationCount; index += 1) {
+    labels.push(`Evidence ${index}`);
+  }
+  labels.push("Target");
+  return labels;
+}
+
+function compactNodeLabel(value: string, max = 18) {
+  return value.length > max ? `${value.slice(0, Math.max(1, max - 3))}...` : value;
+}
+
+function buildPathNodes(
+  path: unknown,
+  relationCount: number,
+  source: ApiEntity | null,
+  target: RecommendationItem,
+): PathNodeView[] {
+  const labels = getPathNodeLabels(path, relationCount);
+  const sourcePathLabel = labels[0] && labels[0] !== "Source" ? labels[0] : "";
+  const targetPathLabel =
+    labels[labels.length - 1] && labels[labels.length - 1] !== "Target" ? labels[labels.length - 1] : "";
+  const sourceLabel = sourcePathLabel || source?.name || source?.id || "Source";
+  const targetLabel = targetPathLabel || target.name || target.id || "Target";
+  const evidenceLabels = labels.slice(1, Math.max(1, labels.length - 1));
+
+  return [
+    {
+      role: "Source",
+      label: sourceLabel,
+      subtitle: source ? `${source.type}: ${source.id}` : "source entity",
+    },
+    ...Array.from({ length: Math.max(relationCount - 1, 0) }).map((_, evidenceIndex) => ({
+      role: "Evidence" as const,
+      label: evidenceLabels[evidenceIndex] || `Evidence ${evidenceIndex + 1}`,
+      subtitle: "intermediate node",
+    })),
+    {
+      role: "Target",
+      label: targetLabel,
+      subtitle: `${target.type || "target"}: ${target.id}`,
+    },
+  ];
+}
+
+function ReasoningPathCard({
+  path,
+  index,
+  source,
+  target,
+}: {
+  path: unknown;
+  index: number;
+  source: ApiEntity | null;
+  target: RecommendationItem;
+}) {
   const parts = getPathParts(path);
   const score = getPathScore(path);
   const length = getPathLength(path, parts);
+  const pathNodes = buildPathNodes(path, parts.length, source, target);
+  const graphWidth = Math.max(620, pathNodes.length * 170 + Math.max(pathNodes.length - 1, 0) * 120);
+  const nodeGap = graphWidth / Math.max(pathNodes.length, 1);
+  const nodeY = 78;
+  const nodeRadius = 38;
 
   return (
     <div className="rounded-md border bg-background p-4">
@@ -252,15 +333,114 @@ function ReasoningPathCard({ path, index }: { path: unknown; index: number }) {
       </div>
 
       {parts.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {parts.map((part, partIndex) => (
-            <div key={`${part}-${partIndex}`} className="flex items-center gap-2">
-              <Badge variant="outline" className="rounded-md bg-secondary/40 px-2 py-1 text-xs">
-                {humanizeRelation(part)}
-              </Badge>
-              {partIndex < parts.length - 1 ? <span className="text-muted-foreground">→</span> : null}
-            </div>
-          ))}
+        <div className="w-full max-w-full overflow-x-auto overflow-y-hidden rounded-md bg-slate-50 p-4">
+          <svg
+            viewBox={`0 0 ${graphWidth} 170`}
+            className="h-[170px] max-w-none shrink-0"
+            style={{ width: `${graphWidth}px` }}
+            role="img"
+          >
+            <defs>
+              {parts.map((_, partIndex) => (
+                <marker
+                  key={partIndex}
+                  id={`kg-path-arrow-${index}-${partIndex}`}
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="8"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L0,8 L8,4 z" fill="#64748b" />
+                </marker>
+              ))}
+            </defs>
+
+            {parts.map((part, partIndex) => {
+              const fromX = nodeGap / 2 + partIndex * nodeGap;
+              const toX = nodeGap / 2 + (partIndex + 1) * nodeGap;
+              const lineStart = fromX + nodeRadius + 12;
+              const lineEnd = toX - nodeRadius - 12;
+              const labelX = (lineStart + lineEnd) / 2;
+
+              return (
+                <g key={`${part}-${partIndex}`}>
+                  <rect
+                    x={labelX - 56}
+                    y={nodeY - 48}
+                    width="112"
+                    height="24"
+                    rx="4"
+                    className="fill-white stroke-slate-200"
+                  />
+                  <text x={labelX} y={nodeY - 32} textAnchor="middle" className="fill-slate-700 text-[11px] font-semibold">
+                    {compactNodeLabel(humanizeRelation(part), 20)}
+                  </text>
+                  <line
+                    x1={lineStart}
+                    y1={nodeY}
+                    x2={lineEnd}
+                    y2={nodeY}
+                    stroke="#64748b"
+                    strokeWidth="1.6"
+                    markerEnd={`url(#kg-path-arrow-${index}-${partIndex})`}
+                  />
+                </g>
+              );
+            })}
+
+            {pathNodes.map((node, nodeIndex) => {
+              const x = nodeGap / 2 + nodeIndex * nodeGap;
+              const isSource = node.role === "Source";
+              const isTarget = node.role === "Target";
+
+              return (
+                <g key={`${node.role}-${nodeIndex}`} className="group cursor-help">
+                  <title>{`${node.role}: ${node.label} (${node.subtitle})`}</title>
+                  <circle
+                    cx={x}
+                    cy={nodeY}
+                    r={nodeRadius}
+                    className={
+                      isSource
+                        ? "fill-cyan-100 stroke-cyan-700"
+                        : isTarget
+                          ? "fill-emerald-100 stroke-emerald-700"
+                          : "fill-white stroke-slate-400"
+                    }
+                    strokeWidth="2.4"
+                  />
+                  <text x={x} y={nodeY - 7} textAnchor="middle" className="fill-slate-900 text-[11px] font-bold">
+                    {node.role}
+                  </text>
+                  <text x={x} y={nodeY + 8} textAnchor="middle" className="fill-slate-900 text-[10px] font-semibold">
+                    {compactNodeLabel(node.label, 14)}
+                  </text>
+                  <text x={x} y={nodeY + 56} textAnchor="middle" className="fill-slate-500 text-[10px]">
+                    {compactNodeLabel(node.subtitle, 24)}
+                  </text>
+                  <g className="pointer-events-none opacity-0 transition-opacity group-hover:opacity-100">
+                    <rect
+                      x={x - 120}
+                      y={nodeY - 76}
+                      width="240"
+                      height="36"
+                      rx="5"
+                      className="fill-slate-950 stroke-slate-700"
+                    />
+                    <text
+                      x={x}
+                      y={nodeY - 54}
+                      textAnchor="middle"
+                      className="fill-white text-[11px] font-semibold"
+                    >
+                      {compactNodeLabel(node.label, 34)}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
+          </svg>
         </div>
       ) : (
         <pre className="whitespace-pre-wrap break-words text-sm">{formatJsonBlock(path)}</pre>
@@ -269,32 +449,8 @@ function ReasoningPathCard({ path, index }: { path: unknown; index: number }) {
   );
 }
 
-function VisualizationBlock({ text }: { text: string }) {
-  const cleaned = cleanXaiText(text)
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith("=") && !line.toLowerCase().includes("reasoning paths visualization"));
-
-  if (cleaned.length === 0) return null;
-
-  return (
-    <div className="space-y-2 rounded-md border bg-secondary/30 p-4">
-      {cleaned.map((line, index) => {
-        const isPathTitle = /^Path\s+\d+/i.test(line);
-        return (
-          <div
-            key={`${line}-${index}`}
-            className={isPathTitle ? "pt-2 text-sm font-semibold text-foreground first:pt-0" : "pl-3 text-sm text-muted-foreground"}
-          >
-            {line.replace(/[┌└├─>]/g, "").replace(/^\s+/, "")}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState("");
   const [sourceType, setSourceType] = useState<EntityType>("project");
@@ -310,6 +466,7 @@ export default function DashboardPage() {
   const [generatedExplanation, setGeneratedExplanation] = useState<ExplanationResponse["data"] | null>(null);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
   const [explanationError, setExplanationError] = useState("");
+  const [recommendationMode, setRecommendationMode] = useState<"public" | "personal">("public");
 
   useEffect(() => {
     api
@@ -334,7 +491,21 @@ export default function DashboardPage() {
     setSelectedSource(source);
 
     try {
-      const result = await api.recommend(nextSourceId, nextSourceType, nextTargetType, Number(limit) || 5);
+      const linkedEntityType = user?.linked_entity?.type?.toLowerCase();
+      const isOwnLinkedSource =
+        Boolean(user?.linked_entity?.id) &&
+        user?.linked_entity?.id === nextSourceId &&
+        linkedEntityType === nextSourceType;
+      const nextMode = isOwnLinkedSource ? "personal" : "public";
+      setRecommendationMode(nextMode);
+      const result = await api.recommend(
+        nextSourceId,
+        nextSourceType,
+        nextTargetType,
+        Number(limit) || 5,
+        nextMode,
+        user?.id,
+      );
       setRecommendations(normalizeRecommendations(result));
     } catch (error) {
       setRecommendationError(error instanceof Error ? error.message : "Goi recommendation that bai");
@@ -516,6 +687,11 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 <Label>Source ID</Label>
                 <Input value={sourceId} onChange={(event) => setSourceId(event.target.value)} placeholder="prj_001" />
+                {user?.linked_entity?.id === sourceId && user?.linked_entity?.type?.toLowerCase() === sourceType ? (
+                  <p className="text-xs text-muted-foreground">
+                    Day la ho so lien ket voi tai khoan hien tai, he thong se chay o personal mode.
+                  </p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -546,6 +722,23 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
+
+              <Separator />
+
+              <div className="grid gap-2">
+                <Link href={`/projects/${sourceId || "prj_001"}/overview`}>
+                  <Button variant="outline" className="w-full justify-between">
+                    Project overview
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href={`/graph/neighbors?type=${sourceType}&id=${sourceId || "prj_001"}`}>
+                  <Button variant="outline" className="w-full justify-between">
+                    Neighbor graph
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
 
@@ -558,9 +751,14 @@ export default function DashboardPage() {
                     Ket qua duoc rut gon de de doc. Bam giai thich chi tiet de xem XAI day du.
                   </p>
                 </div>
-                <Badge variant="outline" className="rounded-md">
-                  {recommendations.length} ket qua
-                </Badge>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Badge variant={recommendationMode === "personal" ? "secondary" : "outline"} className="rounded-md">
+                    {recommendationMode} mode
+                  </Badge>
+                  <Badge variant="outline" className="rounded-md">
+                    {recommendations.length} ket qua
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -660,7 +858,7 @@ export default function DashboardPage() {
           }
         }}
       >
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto rounded-md">
+        <DialogContent className="max-h-[88vh] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto rounded-md lg:max-w-6xl xl:max-w-7xl">
           <DialogHeader>
             <DialogTitle>Giai thich XAI chi tiet</DialogTitle>
             <DialogDescription>
@@ -669,7 +867,7 @@ export default function DashboardPage() {
           </DialogHeader>
 
           {selectedExplanation ? (
-            <div className="space-y-5">
+            <div className="min-w-0 space-y-5">
               <div className="rounded-md border bg-secondary/40 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -736,7 +934,7 @@ export default function DashboardPage() {
               </section>
 
               {generatedExplanation?.confidence ? (
-                <section className="space-y-3">
+                <section className="min-w-0 space-y-3">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     Confidence
                   </h3>
@@ -749,20 +947,17 @@ export default function DashboardPage() {
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     Reasoning paths
                   </h3>
-                  <div className="space-y-2">
+                  <div className="min-w-0 space-y-2">
                     {selectedExplanation.reasoning_paths.map((path, index) => (
-                      <ReasoningPathCard key={index} path={path} index={index} />
+                      <ReasoningPathCard
+                        key={index}
+                        path={path}
+                        index={index}
+                        source={selectedSource}
+                        target={selectedExplanation}
+                      />
                     ))}
                   </div>
-                </section>
-              ) : null}
-
-              {(generatedExplanation?.visualization || getRecommendationVisualization(selectedExplanation)) ? (
-                <section className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    Visualization text
-                  </h3>
-                  <VisualizationBlock text={generatedExplanation?.visualization || getRecommendationVisualization(selectedExplanation)} />
                 </section>
               ) : null}
             </div>

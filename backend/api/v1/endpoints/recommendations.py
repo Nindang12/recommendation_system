@@ -40,6 +40,8 @@ async def recommend_experts(
             target_type="expert",
             limit=request.limit,
             language=request.language,
+            mode=request.mode,
+            current_user_id=request.current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -74,6 +76,8 @@ async def recommend_funders_for_project(
             target_type="funder",
             limit=request.limit,
             language=request.language,
+            mode=request.mode,
+            current_user_id=request.current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -108,6 +112,8 @@ async def recommend_by_policy(
             target_type=request.target_type,
             limit=request.limit,
             language=request.language,
+            mode=request.mode,
+            current_user_id=request.current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -120,6 +126,30 @@ async def recommend_by_policy(
         logger.exception("Unhandled error in recommend_by_policy")
         raise HTTPException(status_code=500, detail="Internal error") from exc
 
+
+@router.post(
+    "/projects/{project_id}/overview",
+    summary="Recommend experts, funders, enterprises and similar projects for one project",
+)
+async def recommend_project_overview(
+    project_id: str,
+    limit: int = 3,
+    language: str = "vi",
+    service: RecommendationService = Depends(get_recommendation_service),
+) -> Dict[str, Any]:
+    """
+    API Route - HTTP only. Business orchestration is handled by RecommendationService.
+    """
+    try:
+        return await service.get_project_overview(
+            project_id=project_id,
+            limit=limit,
+            language=language,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Unhandled error in recommend_project_overview")
+        raise HTTPException(status_code=500, detail="Internal error") from exc
+
 @router.post(
     "/explain",
     summary="Generate on-demand LLM explanation for a specific recommendation",
@@ -129,11 +159,12 @@ async def explain_recommendation(
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> Dict[str, Any]:
     try:
-        explanation = await service.explain_single_recommendation(
+        explanation = await service.explain_recommendation(
             recommendation=request.recommendation,
             target_type=request.target_type,
             source_context=request.source_context,
             language=request.language,
+            mode=request.mode,
         )
         return {
             "status": "success",

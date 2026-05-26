@@ -1,188 +1,156 @@
 # Hệ thống khuyến nghị R&D dựa trên đồ thị kiến thức
 
-Hệ thống khuyến nghị sử dụng đồ thị kiến thức (Knowledge Graph) để kết nối hiệu quả giữa chuyên gia, doanh nghiệp, quỹ tài trợ và dự án R&D.
+Hệ thống khuyến nghị sử dụng Knowledge Graph (Neo4j), dữ liệu nghiệp vụ (MongoDB), thuật toán **PGPR** (Policy-Guided Path Reasoning) và **XAI** để gợi ý và giải thích kết nối giữa dự án, chuyên gia, quỹ tài trợ và doanh nghiệp.
 
-## 📋 Tổng quan
+## Kiến trúc (đã chốt)
 
-Dự án bao gồm 2 module chính:
-
-1. **`add_data/`** - Module quản lý dữ liệu: MongoDB → Neo4j
-2. **`pgpr_method/`** - Module PGPR (Policy-Guided Path Reasoning): Thuật toán khuyến nghị với khả năng giải thích
-
-## 🚀 Cài đặt
-
-### Yêu cầu hệ thống
-
-- Python 3.8+
-- MongoDB 4.4+
-- Neo4j 5.0+
-- PyTorch (cho PGPR)
-
-### Cài đặt dependencies
-
-```bash
-# Cài đặt dependencies cho module quản lý dữ liệu
-cd add_data
-pip install -r requirements.txt
-
-# Cài đặt dependencies cho module PGPR
-cd ../pgpr_method
-pip install -r requirements.txt
-# Hoặc cài đặt từ root:
-pip install neo4j python-dotenv pymongo numpy torch
+```text
+Frontend
+   → FastAPI Router
+   → Service Layer
+        ├─ EntityService → MongoRepository → MongoDB
+        └─ RecommendationService → PGPRRecommender / XAI
+                                      → PGPRGraphRepository → Neo4j
 ```
 
-### Cấu hình
+- **API entity** (danh sách, chi tiết): không qua PGPR.
+- **API recommendation**: qua PGPR; mọi Cypher inference nằm trong `PGPRGraphRepository`.
 
-1. Copy file `.env.example` thành `.env` (nếu có) hoặc tạo file `.env` với nội dung:
+Tài liệu chi tiết:
+
+| File | Nội dung |
+|------|----------|
+| [KIEN_TRUC_DA_CHOT.md](KIEN_TRUC_DA_CHOT.md) | Kiến trúc lớp, luồng API, DI, hướng dẫn test |
+| [KE_HOACH_HOAN_THIEN_HE_THONG.md](KE_HOACH_HOAN_THIEN_HE_THONG.md) | Lộ trình hoàn thiện hệ thống |
+| [NHAT_KY_REFACTOR_PGPR.md](NHAT_KY_REFACTOR_PGPR.md) | Nhật ký refactor PGPR + kết quả test API |
+| [CHECKLIST_REFACTOR_KIEN_TRUC_PGPR.md](CHECKLIST_REFACTOR_KIEN_TRUC_PGPR.md) | Checklist refactor từng phase |
+
+## Yêu cầu
+
+- Python 3.10+
+- MongoDB 4.4+
+- Neo4j 5.0+
+- Redis (tùy chọn, cache)
+- PyTorch (PGPR policy)
+- Ollama (tùy chọn, giải thích LLM)
+
+## Cấu hình
+
+Tạo file `.env` tại thư mục gốc dự án (hoặc `backend/`):
 
 ```env
-# MongoDB
 MONGO_URI=mongodb://localhost:27017
 MONGO_DB_NAME=rd_recommendation_system
 
-# Neo4j
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=your_password
+
+# Tùy chọn
+OLLAMA_MODEL=llama3
 ```
 
-2. Đảm bảo MongoDB và Neo4j đang chạy
-
-## 📖 Hướng dẫn sử dụng
-
-### Bước 1: Khởi tạo MongoDB
+## Chuẩn bị dữ liệu
 
 ```bash
 cd add_data
+pip install -r requirements.txt
 python init_mongodb.py
-```
-
-### Bước 2: Seed dữ liệu mẫu (tùy chọn)
-
-```bash
 python seed_data.py --force
-```
-
-### Bước 3: Đồng bộ MongoDB → Neo4j
-
-```bash
 python mongo_to_neo4j.py --clear
 ```
 
-### Bước 4: Chạy PGPR
+## Chạy Backend API
 
-Xem chi tiết trong [`pgpr_method/PGPR_README.md`](pgpr_method/PGPR_README.md)
+```powershell
+cd backend
+pip install neo4j python-dotenv pymongo numpy torch fastapi uvicorn redis httpx
+
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+- Swagger: http://127.0.0.1:8000/docs  
+- Health: http://127.0.0.1:8000/api/v1/health  
+
+### API chính
+
+| Method | Endpoint | Mô tả |
+|--------|----------|--------|
+| GET | `/api/v1/health` | Trạng thái MongoDB, Neo4j, Redis, PGPR |
+| GET | `/api/v1/entities/projects` | Danh sách dự án (MongoDB) |
+| GET | `/api/v1/entities/experts` | Danh sách chuyên gia |
+| GET | `/api/v1/entities/{type}/{id}` | Chi tiết entity |
+| POST | `/api/v1/recommendations/policy` | Gợi ý theo policy PGPR (mọi cặp entity) |
+| POST | `/api/v1/recommendations/experts` | Gợi ý chuyên gia cho dự án (legacy) |
+| POST | `/api/v1/recommendations/projects/{id}/overview` | Overview 4 nhóm gợi ý |
+| POST | `/api/v1/explanations` | Giải thích (mode: rule / llm / auto) |
+| GET | `/api/v1/graph/paths` | Reasoning paths Cypher giữa 2 entity |
+
+Ví dụ request policy:
+
+```json
+{
+  "source_id": "prj_001",
+  "source_type": "project",
+  "target_type": "expert",
+  "limit": 5,
+  "language": "vi"
+}
+```
+
+## Test API recommendation
+
+Server phải đang chạy (`uvicorn` như trên):
+
+```powershell
+cd backend
+python scripts/test_recommendation_api.py
+```
+
+Kết quả mong đợi: `policy total: 15 pass, 0 fail`. Chi tiết: `backend/scripts/api_test_results.json`.
+
+## Train PGPR (tùy chọn)
+
+Pipeline train vẫn chạy từ `backend/pgpr/` (truy cập Neo4j trực tiếp khi build KG — không qua API):
 
 ```bash
-cd pgpr_method
-
-# Bước 1: Chuẩn bị KG và embedding
+cd backend/pgpr
 python run_pgpr.py --step 1
-
-# Bước 2: Train policy
 python run_pgpr.py --step 2
-
-# Bước 3: Gợi ý chuyên gia cho project
-python run_pgpr.py --step 3 --project_id PRJ_0001
-
-# Hoặc chạy tất cả (bước 1 + 2)
-python run_pgpr.py --all
+python run_pgpr.py --step 3 --project_id prj_001
 ```
 
-## 📁 Cấu trúc thư mục
+Xem thêm: [backend/pgpr/PGPR_README.md](backend/pgpr/PGPR_README.md).
 
-```
+## Cấu trúc thư mục
+
+```text
 Đồ án/
-├── add_data/                    # Module quản lý dữ liệu
-│   ├── .env                     # Cấu hình MongoDB & Neo4j
-│   ├── init_mongodb.py          # Khởi tạo MongoDB collections
-│   ├── mongo_to_neo4j.py        # Đồng bộ MongoDB → Neo4j
-│   ├── seed_data.py             # Seed dữ liệu mẫu
-│   ├── seed_data.txt            # Dữ liệu mẫu
-│   └── requirements.txt         # Dependencies
-│
-├── pgpr_method/                 # Module PGPR
-│   ├── .env                     # Cấu hình Neo4j
-│   ├── pgpr_data/               # Dữ liệu KG & model
-│   │   ├── vocab.json           # Entity & relation vocabularies
-│   │   ├── triples.txt          # Knowledge graph triples
-│   │   ├── entity_emb.npy       # Entity embeddings
-│   │   ├── relation_emb.npy     # Relation embeddings
-│   │   └── policy.pt            # Trained policy model
-│   │
-│   ├── pgpr_kg.py               # Export KG, train embeddings
-│   ├── pgpr_env.py              # RL environment
-│   ├── pgpr_policy.py           # Policy network
-│   ├── pgpr_train.py            # Training script
-│   ├── pgpr_recommendation.py   # Recommendation engine (IMPROVED)
-│   ├── recommendation_engine.py # Unified recommendation engine
-│   ├── run_pgpr.py              # Script chạy từng bước
-│   └── PGPR_README.md           # Hướng dẫn PGPR
-│
-├── Thiet_ke_do_thi_kien_thuc_RS_nghien_cuu_sua.md  # Thiết kế chi tiết
-├── KIEM_TRA_CAU_TRUC.md         # Báo cáo kiểm tra cấu trúc
-└── README.md                     # File này
+├── add_data/                 # MongoDB init, seed, sync → Neo4j
+├── backend/
+│   ├── main.py               # FastAPI app
+│   ├── api/
+│   │   ├── deps.py           # Singleton PGPRGraphRepository, PGPRRecommender
+│   │   └── v1/endpoints/     # health, entities, recommendations
+│   ├── services/             # Entity, Recommendation, Health
+│   ├── repositories/
+│   │   ├── mongodb_repo.py
+│   │   ├── neo4j_repo.py     # Health / query chung
+│   │   └── pgpr_graph_repo.py # Neo4j cho PGPR inference
+│   ├── pgpr/                 # PGPR engine, policy, XAI, pgpr_data/
+│   └── scripts/
+│       └── test_recommendation_api.py
+├── KIEN_TRUC_DA_CHOT.md
+├── KE_HOACH_HOAN_THIEN_HE_THONG.md
+├── NHAT_KY_REFACTOR_PGPR.md
+└── README.md
 ```
 
-## 🔧 Các tính năng chính
+## Tài liệu khác
 
-### Module `add_data/`
-- Khởi tạo MongoDB collections với indexes tối ưu
-- Seed dữ liệu mẫu (experts, projects, funders, enterprises)
-- Đồng bộ dữ liệu từ MongoDB sang Neo4j
-- Tạo constraints và indexes trong Neo4j
-
-### Module `pgpr_method/`
-- Export knowledge graph từ Neo4j
-- Train TransE embeddings cho entities và relations
-- Train policy network với REINFORCE algorithm
-- Khuyến nghị với khả năng giải thích (explainable recommendations)
-- Hỗ trợ multiple algorithms: traditional, PGPR, hybrid
-
-## 📚 Tài liệu
-
-- [Thiết kế đồ thị kiến thức](Thiet_ke_do_thi_kien_thuc_RS_nghien_cuu_sua.md) - Thiết kế chi tiết về schema và relationships
-- [PGPR README](pgpr_method/PGPR_README.md) - Hướng dẫn sử dụng PGPR
-- [Báo cáo kiểm tra cấu trúc](KIEM_TRA_CAU_TRUC.md) - Đánh giá cấu trúc file
-
-## 🧪 Testing
-
-```bash
-# Test MongoDB connection
-cd add_data
-python init_mongodb.py
-
-# Test Neo4j sync
-python mongo_to_neo4j.py --skip-verify
-
-# Test PGPR recommendation
-cd ../pgpr_method
-python run_pgpr.py --step 3 --project_id PRJ_0001
-```
-
-## 📝 Lưu ý
-
-- Đảm bảo MongoDB và Neo4j đang chạy trước khi chạy scripts
-- File `.env` chứa thông tin nhạy cảm, không commit lên git
-- Dữ liệu trong `pgpr_data/` được tạo sau khi chạy `run_pgpr.py --step 1`
-
-## 🤝 Đóng góp
-
-1. Fork dự án
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
-
-## 📄 License
-
-[Thêm license nếu có]
-
-## 👥 Tác giả
-
-[Thêm thông tin tác giả]
+- [Thiết kế đồ thị kiến thức](Thiet_ke_do_thi_kien_thuc_RS_nghien_cuu_sua.md)
+- [PGPR quy trình](backend/pgpr/PGPR_QUY_TRINH_HOAT_DONG.md)
 
 ---
 
-**Lưu ý:** Đây là dự án nghiên cứu về hệ thống khuyến nghị dựa trên đồ thị kiến thức cho hệ sinh thái R&D.
+Dự án nghiên cứu — hệ thống gợi ý có giải thích trên Knowledge Graph cho hệ sinh thái R&D.

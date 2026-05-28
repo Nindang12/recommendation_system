@@ -137,6 +137,73 @@ class PGPRGraphRepository:
                 """
                 self.run_write(query, entity_id=entity_id, topic_id=topic_id, topic_name=topic_name)
 
+    def upsert_skill_relationships(self, entity_type: str, entity_id: str, skills: List[str]) -> None:
+        label = self._safe_label(entity_type)
+        id_prop = self._id_prop(label)
+        relations = {
+            "Expert": "HAS_SKILL",
+            "Enterprise": "USES_SKILL",
+            "Funder": "SUPPORTS_SKILL",
+            "Project": "REQUIRES_SKILL",
+        }
+        relation = relations.get(label, "HAS_SKILL")
+        for skill in skills or []:
+            skill_id = str(skill).strip()
+            if not skill_id:
+                continue
+            skill_name = skill_id.replace("-", " ").title()
+            query = f"""
+            MATCH (n:{label} {{{id_prop}: $entity_id}})
+            MERGE (s:Skill {{skill_id: $skill_id}})
+            ON CREATE SET s.created_at = datetime(),
+                          s.visibility = "public",
+                          s.participation_scope = "public",
+                          s.trust_weight = 1.0
+            SET s.name = coalesce(s.name, $skill_name),
+                s.label = coalesce(s.label, $skill_name),
+                s.updated_at = datetime()
+            MERGE (n)-[r:{relation}]->(s)
+            SET r.provisional_sync_version = 1,
+                r.updated_at = datetime()
+            """
+            self.run_write(query, entity_id=entity_id, skill_id=skill_id, skill_name=skill_name)
+
+    def upsert_location_relationship(self, entity_type: str, entity_id: str, location: Dict[str, Any]) -> None:
+        label = self._safe_label(entity_type)
+        id_prop = self._id_prop(label)
+        country = str(location.get("country") or "VN").strip()
+        province = str(location.get("province") or "").strip()
+        district = str(location.get("district") or "").strip()
+        location_id = "::".join([item for item in [country, province, district] if item])
+        if not location_id:
+            return
+        location_name = ", ".join([item for item in [district, province, country] if item])
+        query = f"""
+        MATCH (n:{label} {{{id_prop}: $entity_id}})
+        MERGE (l:Location {{location_id: $location_id}})
+        ON CREATE SET l.created_at = datetime(),
+                      l.visibility = "public",
+                      l.participation_scope = "public",
+                      l.trust_weight = 1.0
+        SET l.name = coalesce(l.name, $location_name),
+            l.country = $country,
+            l.province = $province,
+            l.district = $district,
+            l.updated_at = datetime()
+        MERGE (n)-[r:LOCATED_IN]->(l)
+        SET r.provisional_sync_version = 1,
+            r.updated_at = datetime()
+        """
+        self.run_write(
+            query,
+            entity_id=entity_id,
+            location_id=location_id,
+            location_name=location_name,
+            country=country,
+            province=province,
+            district=district,
+        )
+
     def update_entity_verification_status(
         self,
         entity_type: str,
@@ -237,8 +304,8 @@ class PGPRGraphRepository:
                    [n in nodes | coalesce(
                        n.name, n.title, n.label,
                        n.project_id, n.expert_id, n.funder_id, n.enterprise_id,
-                       n.field_id, n.industry_name, n.tech_id,
-                       elementId(n)
+                       n.topic_id, n.direction_id, n.field_id, n.industry_id,
+                       n.location_id, elementId(n)
                    )] as entity_names,
                    length(path) as path_length
             LIMIT {limit}
@@ -312,10 +379,10 @@ class PGPRGraphRepository:
               elementId(n)
             ),
             label: coalesce(
-              n.name, n.title, n.label, n.industry_name, n.country_name,
-              n.topic_name, n.direction_name,
+              n.name, n.title, n.label,
               n.project_id, n.expert_id, n.funder_id, n.enterprise_id,
-              elementId(n)
+              n.topic_id, n.direction_id, n.field_id, n.industry_id,
+              n.location_id, elementId(n)
             ),
             type: labels(n)[0],
             properties: properties(n)

@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   api,
@@ -51,11 +50,23 @@ const entityOptions: Array<{ type: EntityType; label: string; collectionLabel: s
   { type: "enterprise", label: "Enterprise", collectionLabel: "Enterprises", icon: Building2 },
 ];
 
-const demoSources = [
-  { id: "prj_001", type: "project" as EntityType, name: "Demo Project -> Expert", target: "expert" as EntityType },
-  { id: "prj_001", type: "project" as EntityType, name: "Demo Project -> Funder", target: "funder" as EntityType },
-  { id: "prj_001", type: "project" as EntityType, name: "Demo Project -> Enterprise", target: "enterprise" as EntityType },
-];
+const multiTargetTypes: EntityType[] = ["project", "expert", "enterprise", "funder"];
+
+function getEntityOption(type: EntityType) {
+  return entityOptions.find((option) => option.type === type) ?? entityOptions[0];
+}
+
+function getUserSourceEntity(user: ReturnType<typeof useAuth>["user"]): ApiEntity | null {
+  const linked = user?.linked_entity;
+  const linkedType = linked?.type?.toLowerCase() as EntityType | undefined;
+  if (!linked?.id || !linkedType || !multiTargetTypes.includes(linkedType)) return null;
+
+  return {
+    id: linked.id,
+    name: linked.name || user?.full_name || linked.id,
+    type: linkedType,
+  };
+}
 
 function statusTone(value?: string) {
   if (!value) return "bg-slate-100 text-slate-700";
@@ -453,12 +464,10 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState("");
-  const [sourceType, setSourceType] = useState<EntityType>("project");
-  const [targetType, setTargetType] = useState<EntityType>("expert");
-  const [sourceId, setSourceId] = useState("prj_001");
-  const [sourceName, setSourceName] = useState("prj_001");
   const [limit, setLimit] = useState("5");
-  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
+  const [activeTargetType, setActiveTargetType] = useState<EntityType>("project");
+  const [recommendationGroups, setRecommendationGroups] = useState<Partial<Record<EntityType, RecommendationItem[]>>>({});
+  const [groupErrors, setGroupErrors] = useState<Partial<Record<EntityType, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [recommendationError, setRecommendationError] = useState("");
   const [selectedSource, setSelectedSource] = useState<ApiEntity | null>(null);
@@ -476,37 +485,57 @@ export default function DashboardPage() {
   }, []);
 
   const healthServices = useMemo(() => Object.entries(health?.services ?? {}), [health]);
+  const sourceEntity = useMemo(() => getUserSourceEntity(user), [user]);
+  const recommendations = recommendationGroups[activeTargetType] ?? [];
+  const totalRecommendationCount = useMemo(
+    () => Object.values(recommendationGroups).reduce((total, items) => total + (items?.length ?? 0), 0),
+    [recommendationGroups],
+  );
 
-  async function runRecommendation(nextSourceId = sourceId, nextSourceType = sourceType, nextTargetType = targetType) {
+  async function runMultiRecommendation() {
+    if (!sourceEntity) {
+      setRecommendationError("Tai khoan hien tai chua co linked entity de lam source recommendation.");
+      return;
+    }
+
     setIsLoading(true);
     setRecommendationError("");
-    setRecommendations([]);
-
-    const source: ApiEntity = {
-      id: nextSourceId,
-      name: sourceName || nextSourceId,
-      type: nextSourceType,
-    };
-
-    setSelectedSource(source);
+    setGroupErrors({});
+    setRecommendationGroups({});
+    setSelectedSource(sourceEntity);
+    setRecommendationMode("personal");
 
     try {
-      const linkedEntityType = user?.linked_entity?.type?.toLowerCase();
-      const isOwnLinkedSource =
-        Boolean(user?.linked_entity?.id) &&
-        user?.linked_entity?.id === nextSourceId &&
-        linkedEntityType === nextSourceType;
-      const nextMode = isOwnLinkedSource ? "personal" : "public";
-      setRecommendationMode(nextMode);
-      const result = await api.recommend(
-        nextSourceId,
-        nextSourceType,
-        nextTargetType,
-        Number(limit) || 5,
-        nextMode,
-        user?.id,
+      const settledResults = await Promise.allSettled(
+        multiTargetTypes.map(async (targetType) => {
+          const response = await api.recommend(
+            sourceEntity.id,
+            sourceEntity.type,
+            targetType,
+            Number(limit) || 5,
+            "personal",
+            user?.id,
+          );
+          return [targetType, normalizeRecommendations(response)] as const;
+        }),
       );
-      setRecommendations(normalizeRecommendations(result));
+
+      const nextGroups: Partial<Record<EntityType, RecommendationItem[]>> = {};
+      const nextErrors: Partial<Record<EntityType, string>> = {};
+
+      settledResults.forEach((result, index) => {
+        const targetType = multiTargetTypes[index];
+        if (result.status === "fulfilled") {
+          nextGroups[targetType] = result.value[1];
+        } else {
+          nextGroups[targetType] = [];
+          nextErrors[targetType] = result.reason instanceof Error ? result.reason.message : "Goi recommendation that bai";
+        }
+      });
+
+      setRecommendationGroups(nextGroups);
+      setGroupErrors(nextErrors);
+      setActiveTargetType(multiTargetTypes.find((type) => (nextGroups[type]?.length ?? 0) > 0) ?? "project");
     } catch (error) {
       setRecommendationError(error instanceof Error ? error.message : "Goi recommendation that bai");
     } finally {
@@ -514,22 +543,14 @@ export default function DashboardPage() {
     }
   }
 
-  function applyDemo(demo: (typeof demoSources)[number]) {
-    setSourceType(demo.type);
-    setTargetType(demo.target);
-    setSourceId(demo.id);
-    setSourceName(demo.id);
-    void runRecommendation(demo.id, demo.type, demo.target);
-  }
-
   async function requestDetailedExplanation(item: RecommendationItem, forceRefresh = false) {
-    const source: ApiEntity = selectedSource ?? {
-      id: sourceId,
-      name: sourceName || sourceId,
-      type: sourceType,
-    };
+    const source = selectedSource ?? sourceEntity;
+    if (!source) {
+      setExplanationError("Khong tim thay source entity cua tai khoan hien tai.");
+      return;
+    }
     const mode = "auto";
-    const resolvedTargetType = item.type ?? targetType;
+    const resolvedTargetType = item.type ?? activeTargetType;
 
     setExplanationError("");
     setGeneratedExplanation(null);
@@ -579,10 +600,10 @@ export default function DashboardPage() {
               </Badge>
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Dashboard demo he thong goi y R&D</h1>
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Dashboard goi y R&D ca nhan</h1>
               <p className="mt-2 max-w-3xl text-muted-foreground">
-                Giao dien tap trung vao luong bao ve do an: kiem tra backend, duyet entity, chay PGPR recommendation,
-                xem score, explanation va reasoning paths.
+                He thong tu dung ho so dang dang nhap lam source, chay multi recommendation mot luot cho project,
+                expert, enterprise va funder.
               </p>
             </div>
           </div>
@@ -637,7 +658,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="font-semibold">{option.collectionLabel}</div>
-                    <div className="text-sm text-muted-foreground">Browse data</div>
+                    <div className="text-sm text-muted-foreground">Browse & recommend</div>
                   </div>
                 </CardContent>
               </Card>
@@ -648,97 +669,101 @@ export default function DashboardPage() {
         <section className="grid gap-4 lg:grid-cols-[420px_1fr]">
           <Card className="rounded-md">
             <CardHeader>
-              <CardTitle className="text-lg">Recommendation workspace</CardTitle>
+              <CardTitle className="text-lg">Multi recommendation workspace</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Source type</Label>
-                  <Select value={sourceType} onValueChange={(value) => setSourceType(value as EntityType)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {entityOptions.map((option) => (
-                        <SelectItem key={option.type} value={option.type}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Target type</Label>
-                  <Select value={targetType} onValueChange={(value) => setTargetType(value as EntityType)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {entityOptions.map((option) => (
-                        <SelectItem key={option.type} value={option.type}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="rounded-md border bg-secondary/30 p-4">
+                <div className="text-xs font-semibold uppercase text-muted-foreground">Source dang dung</div>
+                {sourceEntity ? (
+                  <div className="mt-3 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-lg font-semibold leading-snug">{sourceEntity.name}</div>
+                        <div className="mt-1 break-all text-xs text-muted-foreground">ID: {sourceEntity.id}</div>
+                      </div>
+                      <Badge variant="secondary" className="rounded-md">
+                        {sourceEntity.type}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-md border bg-background p-2">
+                        <div className="text-muted-foreground">Scope</div>
+                        <div className="mt-1 font-semibold">
+                          {user?.linked_entity?.participation_scope ?? "unknown"}
+                        </div>
+                      </div>
+                      <div className="rounded-md border bg-background p-2">
+                        <div className="text-muted-foreground">KG status</div>
+                        <div className="mt-1 font-semibold">{user?.linked_entity?.kg_sync_status ?? "unknown"}</div>
+                      </div>
+                    </div>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Source nay thuoc tai khoan hien tai nen recommendation chay o personal mode.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                    Tai khoan chua co linked entity. Hay hoan thien profile hoac dang nhap bang expert/enterprise/funder
+                    da duoc tao.
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>Source ID</Label>
-                <Input value={sourceId} onChange={(event) => setSourceId(event.target.value)} placeholder="prj_001" />
-                {user?.linked_entity?.id === sourceId && user?.linked_entity?.type?.toLowerCase() === sourceType ? (
-                  <p className="text-xs text-muted-foreground">
-                    Day la ho so lien ket voi tai khoan hien tai, he thong se chay o personal mode.
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Limit</Label>
+                <Label>Limit moi nhom</Label>
                 <Input value={limit} onChange={(event) => setLimit(event.target.value)} inputMode="numeric" />
               </div>
 
-              <Button className="w-full gap-2" onClick={() => void runRecommendation()} disabled={isLoading}>
+              <Button className="w-full gap-2" onClick={() => void runMultiRecommendation()} disabled={isLoading || !sourceEntity}>
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Chay PGPR recommendation
+                Goi y tat ca nhom
               </Button>
 
               <Separator />
 
-              <div className="space-y-2">
-                <div className="text-sm font-semibold">Quick demo</div>
-                <div className="grid gap-2">
-                  {demoSources.map((demo) => (
+              <div className="grid gap-2">
+                {multiTargetTypes.map((type) => {
+                  const option = getEntityOption(type);
+                  const count = recommendationGroups[type]?.length ?? 0;
+                  const Icon = option.icon;
+                  return (
                     <Button
-                      key={`${demo.id}-${demo.target}`}
-                      variant="outline"
+                      key={type}
+                      type="button"
+                      variant={activeTargetType === type ? "default" : "outline"}
                       className="justify-between"
-                      onClick={() => applyDemo(demo)}
+                      onClick={() => setActiveTargetType(type)}
                     >
-                      {demo.name}
-                      <ArrowRight className="h-4 w-4" />
+                      <span className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        {option.collectionLabel}
+                      </span>
+                      <Badge variant={activeTargetType === type ? "secondary" : "outline"} className="rounded-md">
+                        {count}
+                      </Badge>
                     </Button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
 
               <Separator />
 
-              <div className="grid gap-2">
-                <Link href={`/projects/${sourceId || "prj_001"}/overview`}>
-                  <Button variant="outline" className="w-full justify-between">
-                    Project overview
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href={`/graph/neighbors?type=${sourceType}&id=${sourceId || "prj_001"}`}>
-                  <Button variant="outline" className="w-full justify-between">
-                    Neighbor graph
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
+              {sourceEntity ? (
+                <div className="grid gap-2">
+                  <Link href={`/graph/neighbors?type=${sourceEntity.type}&id=${sourceEntity.id}`}>
+                    <Button variant="outline" className="w-full justify-between">
+                      Xem neighbor graph cua toi
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href={`/search?type=${activeTargetType}`}>
+                    <Button variant="outline" className="w-full justify-between">
+                      Duyet entities de recommend rieng
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -746,9 +771,9 @@ export default function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="text-lg">Recommendation results</CardTitle>
+                  <CardTitle className="text-lg">{getEntityOption(activeTargetType).collectionLabel} recommendations</CardTitle>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Ket qua duoc rut gon de de doc. Bam giai thich chi tiet de xem XAI day du.
+                    Ket qua theo source la entity dang dang nhap. Bam giai thich chi tiet de xem XAI day du.
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2">
@@ -756,7 +781,7 @@ export default function DashboardPage() {
                     {recommendationMode} mode
                   </Badge>
                   <Badge variant="outline" className="rounded-md">
-                    {recommendations.length} ket qua
+                    {totalRecommendationCount} tong ket qua
                   </Badge>
                 </div>
               </div>
@@ -771,7 +796,12 @@ export default function DashboardPage() {
                   <Search className="h-8 w-8 text-muted-foreground" />
                   <div>
                     <div className="font-semibold">Chua co ket qua</div>
-                    <div className="text-sm text-muted-foreground">Nhap source ID hoac dung quick demo de goi backend.</div>
+                    <div className="text-sm text-muted-foreground">
+                      Bam "Goi y tat ca nhom" de chay PGPR theo ho so dang nhap.
+                    </div>
+                    {groupErrors[activeTargetType] ? (
+                      <div className="mt-2 max-w-xl text-xs text-rose-700">{groupErrors[activeTargetType]}</div>
+                    ) : null}
                   </div>
                 </div>
               ) : (
@@ -785,11 +815,11 @@ export default function DashboardPage() {
                               Rank #{index + 1}
                             </Badge>
                             <Badge variant="secondary" className="rounded-md">
-                              {item.type ?? targetType}
+                              {item.type ?? activeTargetType}
                             </Badge>
                           </div>
                           <Link
-                            href={`/entities/${item.type ?? targetType}/${item.id}`}
+                            href={`/entities/${item.type ?? activeTargetType}/${item.id}`}
                             className="block text-lg font-semibold leading-snug hover:underline"
                           >
                             {item.name || item.id}
@@ -815,6 +845,28 @@ export default function DashboardPage() {
                       </div>
 
                       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        {item.scoring_method ? (
+                          <Badge
+                            variant={item.scoring_method === "pgpr_policy" ? "default" : "secondary"}
+                            className="rounded-md"
+                          >
+                            {item.scoring_method === "pgpr_policy"
+                              ? "PGPR policy"
+                              : item.scoring_method === "cypher_fallback"
+                                ? "Cypher fallback"
+                                : item.scoring_method}
+                          </Badge>
+                        ) : null}
+                        {item.data_quality_level ? (
+                          <Badge variant="outline" className="rounded-md">
+                            Data {item.data_quality_level}
+                          </Badge>
+                        ) : null}
+                        {item.uses_provisional_data ? (
+                          <Badge variant="outline" className="rounded-md border-amber-300 text-amber-800">
+                            Unverified
+                          </Badge>
+                        ) : null}
                         <Badge variant="outline" className="rounded-md gap-1">
                           <Network className="h-3 w-3" />
                           {item.reasoning_paths?.length ?? 0} paths
@@ -825,13 +877,16 @@ export default function DashboardPage() {
                           </Badge>
                         ) : null}
                       </div>
+                      {item.fallback_reason ? (
+                        <p className="mt-2 text-xs text-amber-800">{item.fallback_reason}</p>
+                      ) : null}
 
                       <div className="mt-4 flex flex-wrap gap-2">
                         <Button variant="default" size="sm" onClick={() => void openDetailedExplanation(item)}>
                           Giai thich chi tiet
                         </Button>
                         {selectedSource ? (
-                          <Link href={`/entities/${item.type ?? targetType}/${item.id}`}>
+                          <Link href={`/entities/${item.type ?? activeTargetType}/${item.id}`}>
                             <Button variant="outline" size="sm">
                               Xem chi tiet
                             </Button>

@@ -128,6 +128,42 @@ async def recommend_by_policy(
 
 
 @router.post(
+    "/entity",
+    response_model=RecommendationResponse,
+    summary="Evaluate one specific target entity for the current source entity",
+)
+async def recommend_specific_entity(
+    request: RecommendationRequest,
+    service: RecommendationService = Depends(get_recommendation_service),
+) -> RecommendationResponse:
+    if not request.source_id or not request.source_type or not request.target_type or not request.target_id:
+        raise HTTPException(
+            status_code=422,
+            detail="source_id, source_type, target_type, target_id are required for /entity",
+        )
+    try:
+        results = await service.evaluate_target_entity(
+            source_id=request.source_id,
+            source_type=request.source_type,
+            target_id=request.target_id,
+            target_type=request.target_type,
+            language=request.language,
+            mode=request.mode,
+            current_user_id=request.current_user_id,
+        )
+        return RecommendationResponse(
+            status="success",
+            data=results,
+            count=len(results),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Unhandled error in recommend_specific_entity")
+        raise HTTPException(status_code=500, detail="Internal error") from exc
+
+
+@router.post(
     "/projects/{project_id}/overview",
     summary="Recommend experts, funders, enterprises and similar projects for one project",
 )

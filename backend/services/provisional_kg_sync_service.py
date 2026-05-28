@@ -49,7 +49,17 @@ class ProvisionalKGSyncService:
             self.graph_repo.upsert_topic_relationships(
                 entity_type=entity_type,
                 entity_id=entity_id,
-                topic_ids=self._kg_topic_ids(list(entity.get("research_topics") or [])),
+                topic_ids=self._kg_topic_ids(self._entity_topics(entity_type, entity)),
+            )
+            self.graph_repo.upsert_skill_relationships(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                skills=self._entity_skills(entity_type, entity),
+            )
+            self.graph_repo.upsert_location_relationship(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                location=self._entity_location(entity),
             )
             updated = self.repo.update_entity_status(
                 entity_type,
@@ -83,6 +93,81 @@ class ProvisionalKGSyncService:
                 if topic_id and topic_id not in topic_ids:
                     topic_ids.append(topic_id)
         return topic_ids
+
+    def _get_path(self, data: Dict[str, Any], path: str) -> Any:
+        current: Any = data or {}
+        for part in path.split("."):
+            if isinstance(current, dict):
+                current = current.get(part)
+            else:
+                return None
+        return current
+
+    def _first_value(self, *values: Any) -> Any:
+        for value in values:
+            if value not in (None, "", [], {}):
+                return value
+        return None
+
+    def _names_from_items(self, value: Any) -> list[str]:
+        names: list[str] = []
+        if not isinstance(value, list):
+            return names
+        for item in value:
+            if isinstance(item, dict):
+                name = item.get("id") or item.get("name") or item.get("topic") or item.get("skill")
+            else:
+                name = item
+            if name and str(name) not in names:
+                names.append(str(name))
+        return names
+
+    def _entity_topics(self, entity_type: str, entity: Dict[str, Any]) -> list[str]:
+        candidates = {
+            "expert": [
+                entity.get("research_topics"),
+                self._get_path(entity, "research_capacity.research_topics"),
+            ],
+            "enterprise": [
+                entity.get("research_topics"),
+                self._get_path(entity, "rd_profile.rd_focus_topics"),
+            ],
+            "funder": [
+                entity.get("research_topics"),
+                self._get_path(entity, "funding_strategy.funding_topics"),
+            ],
+            "project": [
+                entity.get("research_topics"),
+                self._get_path(entity, "basic_info.research_topics"),
+            ],
+        }.get(str(entity_type).lower(), [])
+        topics: list[str] = []
+        for value in candidates:
+            for name in self._names_from_items(value):
+                if name not in topics:
+                    topics.append(name)
+        return topics
+
+    def _entity_skills(self, entity_type: str, entity: Dict[str, Any]) -> list[str]:
+        candidates = [
+            entity.get("skills"),
+            entity.get("custom_skills"),
+            self._get_path(entity, "research_capacity.technology"),
+            self._get_path(entity, "research_capacity.skills_methods"),
+            self._get_path(entity, "requirements_and_timeline.required_skills"),
+        ]
+        skills: list[str] = []
+        for value in candidates:
+            for name in self._names_from_items(value):
+                if name not in skills:
+                    skills.append(name)
+        return skills
+
+    def _entity_location(self, entity: Dict[str, Any]) -> Dict[str, Any]:
+        location = self._first_value(entity.get("location"), self._get_path(entity, "basic_info.location"))
+        if isinstance(location, dict):
+            return dict(location)
+        return {}
 
     def verify_entity(self, entity_type: str, entity_id: str) -> Dict[str, Any]:
         state = st.verified_state()
@@ -152,14 +237,43 @@ class ProvisionalKGSyncService:
         )
         return {
             **state,
-            "name": entity.get("name") or entity.get("title") or "",
-            "title": entity.get("title") or entity.get("name") or "",
-            "email": entity.get("email", ""),
+            "name": self._first_value(
+                entity.get("name"),
+                entity.get("title"),
+                self._get_path(entity, "basic_info.name"),
+                self._get_path(entity, "basic_info.title"),
+            )
+            or "",
+            "title": self._first_value(
+                entity.get("title"),
+                self._get_path(entity, "basic_info.title"),
+                entity.get("name"),
+                self._get_path(entity, "basic_info.name"),
+            )
+            or "",
+            "email": self._first_value(
+                entity.get("email"),
+                self._get_path(entity, "contact_info.email"),
+                (self._get_path(entity, "contact_info.emails") or [None])[0]
+                if isinstance(self._get_path(entity, "contact_info.emails"), list)
+                else None,
+            )
+            or "",
             "user_id": entity.get("user_id") or entity.get("owner_id") or entity.get("owner_user_id"),
             "owner_user_id": entity.get("owner_user_id") or entity.get("owner_id"),
             "owner_entity_id": entity.get("owner_entity_id"),
             "source": entity.get("source", "user_registration"),
-            "summary": entity.get("summary") or entity.get("description") or "",
+            "summary": self._first_value(
+                entity.get("summary"),
+                entity.get("description"),
+                self._get_path(entity, "basic_info.description"),
+            )
+            or "",
+            "country": self._first_value(entity.get("country"), self._get_path(entity, "basic_info.location.country_code"), "VN"),
+            "province": self._first_value(entity.get("province"), self._get_path(entity, "basic_info.location.region"), ""),
+            "district": self._first_value(entity.get("district"), self._get_path(entity, "basic_info.location.city"), ""),
+            "skills": self._entity_skills(entity_type, entity),
+            "custom_skills": list(entity.get("custom_skills") or []),
             "active": entity.get("active", True),
             "kg_sync_status": entity.get("kg_sync_status")
             if entity.get("kg_sync_status") == st.KG_MERGE_REQUIRED

@@ -472,6 +472,7 @@ class PGPRRecommender:
                 for entity in entities
             ]
 
+        path_source = path.get("source") or "pgpr_policy"
         return {
             "path": path.get("explanation") or " -> ".join(relations),
             "relations": list(relations),
@@ -480,6 +481,7 @@ class PGPRRecommender:
             "entities": list(entities),
             "score": round(float(path.get("score", path.get("path_score", 0.0))), 3),
             "length": int(path.get("length", len(relations))),
+            "source": path_source,
         }
 
     def _resolve_policy_path_entities(self, entity_keys: List[str]) -> List[Dict[str, Any]]:
@@ -529,8 +531,15 @@ class PGPRRecommender:
                 "score": round(score, 3),
                 "reasoning_paths": reasoning_paths,
                 "path_diversity": len(reasoning_paths),
+                "scoring_method": "cypher_fallback",
                 "metrics": {},
             }
+            if not reasoning_paths:
+                rec["fallback_reason"] = (
+                    "Ket qua tu tim kiem heuristic/Cypher tren do thi. "
+                    "Khong co duong ly do day du tren Knowledge Graph."
+                )
+                rec["score"] = min(rec["score"], 0.55)
 
             # Preserve any useful extra fields from candidate query
             metrics = {}
@@ -1609,21 +1618,28 @@ class PGPRRecommender:
             if not info:
                 continue
 
+            reasoning_paths = [
+                self._build_path_payload(p)
+                for p in item["top_paths"]
+            ]
             rec = {
                 f"{target_type.lower()}_id": t_id,
                 "name": info.get("name", info.get("title", "N/A")),
                 "score": round(item["score"], 3),
-                "reasoning_paths": [
-                    self._build_path_payload(p)
-                    for p in item["top_paths"]
-                ],
+                "reasoning_paths": reasoning_paths,
                 "path_diversity": item["n_paths"],
+                "scoring_method": "pgpr_policy",
                 "metrics": {
                     "h_index": info.get("h_index"),
                     "budget": info.get("budget"),
                     "status": info.get("status"),
                 },
             }
+            if not reasoning_paths:
+                rec["fallback_reason"] = (
+                    "PGPR policy tim thay muc do phu hop nhung chua co duong ly do chi tiet."
+                )
+                rec["score"] = min(rec["score"], 0.55)
             if rec["score"] >= min_score:
                 recommendations.append(rec)
 

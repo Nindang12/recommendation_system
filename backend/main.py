@@ -9,7 +9,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.deps import get_pgpr_graph_repo
-from api.v1.endpoints import admin, auth, entities, evaluation, explanations, graph, health, recommendations
+from api.v1.endpoints import admin, auth, entities, evaluation, explanations, graph, health, recommendations, taxonomy
+from services.auth_service import AuthService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,6 +23,7 @@ logger = logging.getLogger("backend")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Application startup complete.")
+    _ensure_root_admin()
     yield
     try:
         get_pgpr_graph_repo().close()
@@ -40,6 +42,32 @@ def _cors_origins() -> list[str]:
     raw = os.getenv("CORS_ORIGINS", "http://localhost:9002,http://127.0.0.1:9002")
     origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
     return origins or ["http://localhost:9002"]
+
+
+def _ensure_root_admin() -> None:
+    email = os.getenv("ROOT_ADMIN_EMAIL", "admin@example.com").strip().lower()
+    password = os.getenv("ROOT_ADMIN_PASSWORD", "Admin@123456")
+    name = os.getenv("ROOT_ADMIN_NAME", "System Root Admin")
+    try:
+        service = AuthService()
+        existing = service.repo.find_user_by_email(email)
+        if existing:
+            if existing.get("account_role") != "root_admin":
+                service.repo.set_user_account_role(str(existing["_id"]), "root_admin")
+                logger.info("Updated root admin account role: %s", email)
+            return
+        service.create_admin_user(
+            {
+                "email": email,
+                "password": password,
+                "full_name": name,
+                "role": "expert",
+            },
+            account_role="root_admin",
+        )
+        logger.info("Created root admin account: %s", email)
+    except Exception as exc:
+        logger.warning("Could not ensure root admin account: %s", exc)
 
 
 app.add_middleware(
@@ -110,6 +138,11 @@ app.include_router(
     admin.router,
     prefix="/api/v1/admin",
     tags=["Admin"],
+)
+app.include_router(
+    taxonomy.router,
+    prefix="/api/v1/taxonomy",
+    tags=["Taxonomy"],
 )
 
 

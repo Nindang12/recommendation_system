@@ -5,22 +5,9 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-EntityType = Literal["project", "expert", "funder", "enterprise"]
+from models.research_taxonomy import ALLOWED_RESEARCH_TOPICS
 
-ALLOWED_RESEARCH_TOPICS = {
-    "ai-healthcare",
-    "computer-vision",
-    "machine-learning",
-    "deep-learning",
-    "natural-language-processing",
-    "iot",
-    "data-science",
-    "knowledge-graph",
-    "robotics",
-    "renewable-energy",
-    "smart-manufacturing",
-    "cybersecurity",
-}
+EntityType = Literal["project", "expert", "funder", "enterprise"]
 
 
 class RecommendationRequest(BaseModel):
@@ -48,6 +35,10 @@ class RecommendationRequest(BaseModel):
     target_type: Optional[EntityType] = Field(
         default=None,
         description="Target entity type to recommend in policy graph",
+    )
+    target_id: Optional[str] = Field(
+        default=None,
+        description="Specific target entity id when evaluating one selected entity",
     )
     mode: Literal["personal", "public", "admin_debug"] = Field(
         "public",
@@ -101,6 +92,14 @@ class RecommendationItem(BaseModel):
     data_quality_level: Optional[str] = None
     data_quality_notes: Optional[List[str]] = None
     verification_badges: Optional[Dict[str, Any]] = None
+    scoring_method: Optional[str] = Field(
+        default=None,
+        description="pgpr_policy | cypher_fallback | hybrid",
+    )
+    fallback_reason: Optional[str] = Field(
+        default=None,
+        description="Human-readable reason when reasoning_paths are missing or weak",
+    )
 
 
 class RecommendationResponse(BaseModel):
@@ -188,10 +187,18 @@ class UserPublic(BaseModel):
     full_name: str
     username: str = ""
     role: str = "expert"
+    account_role: str = "user"
     organization: str = ""
     phone: str = ""
     address: str = ""
+    country: str = "VN"
+    province: str = ""
+    district: str = ""
+    skills: List[str] = Field(default_factory=list)
+    custom_skills: List[str] = Field(default_factory=list)
     bio: str = ""
+    social_links: Dict[str, str] = Field(default_factory=dict)
+    profile_data: Dict[str, Any] = Field(default_factory=dict)
     research_interests: List[str] = Field(default_factory=list)
     custom_research_topics: List[str] = Field(default_factory=list)
     linked_entity: Optional[Dict[str, Any]] = None
@@ -210,7 +217,14 @@ class RegisterRequest(BaseModel):
     organization: str = ""
     phone: str = ""
     address: str = ""
+    country: str = "VN"
+    province: str = ""
+    district: str = ""
+    skills: List[str] = Field(default_factory=list)
+    custom_skills: List[str] = Field(default_factory=list)
     bio: str = ""
+    social_links: Dict[str, str] = Field(default_factory=dict)
+    profile_data: Dict[str, Any] = Field(default_factory=dict)
     research_interests: List[str] = Field(default_factory=list)
     custom_research_topics: List[str] = Field(default_factory=list)
 
@@ -226,6 +240,14 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+class AdminCreateUserRequest(BaseModel):
+    email: str
+    password: str = Field(..., min_length=6)
+    full_name: str
+    username: str = ""
+    role: Literal["expert", "enterprise", "funder"] = "expert"
 
 
 class AuthData(BaseModel):
@@ -245,7 +267,14 @@ class ProfileUpdateRequest(BaseModel):
     organization: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
+    country: Optional[str] = None
+    province: Optional[str] = None
+    district: Optional[str] = None
+    skills: Optional[List[str]] = None
+    custom_skills: Optional[List[str]] = None
     bio: Optional[str] = None
+    social_links: Optional[Dict[str, str]] = None
+    profile_data: Optional[Dict[str, Any]] = None
     research_interests: Optional[List[str]] = None
     custom_research_topics: Optional[List[str]] = None
 

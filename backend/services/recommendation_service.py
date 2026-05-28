@@ -86,7 +86,7 @@ class RecommendationService:
         source_label = self._to_policy_label(source_type)
         target_label = self._to_policy_label(target_type)
         cache_key = (
-            f"recommendations:v3:{target_label.lower()}_for_{source_label.lower()}:"
+            f"recommendations:v4:{target_label.lower()}_for_{source_label.lower()}:"
             f"{source_id}:{limit}:{language}:{mode}:{current_user_id or ''}"
         )
 
@@ -138,10 +138,24 @@ class RecommendationService:
             recommendations=recommendations,
             target_label=target_label,
         )
+        recommendations = self._apply_scoring_metadata(recommendations)
 
         # 6. Enrich with extra profile/graph info (keep hook for later).
         recommendations = await self._enrich_with_profiles_and_graph(
             recommendations=recommendations,
+        )
+
+        method_counts: Dict[str, int] = {}
+        for rec in recommendations:
+            method = str(rec.get("scoring_method") or "unknown")
+            method_counts[method] = method_counts.get(method, 0) + 1
+        logger.info(
+            "Recommendation %s -> %s mode=%s count=%d methods=%s",
+            source_label,
+            target_label,
+            mode,
+            len(recommendations),
+            method_counts,
         )
 
         # 7. Save to cache (avoid caching empty results)
@@ -215,6 +229,115 @@ class RecommendationService:
                 "similar_projects": self._group_error(similar_projects),
             },
         }
+
+    async def evaluate_target_entity(
+        self,
+        source_id: str,
+        source_type: str,
+        target_id: str,
+        target_type: str,
+        language: str = "vi",
+        mode: str = "public",
+        current_user_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        source_label = self._to_policy_label(source_type)
+        target_label = self._to_policy_label(target_type)
+
+        ranked_candidates = await self.get_recommendations_by_policy(
+            source_id=source_id,
+            source_type=source_type,
+            target_type=target_type,
+            limit=100,
+            language=language,
+            mode=mode,
+            current_user_id=current_user_id,
+        )
+        for rank, candidate in enumerate(ranked_candidates, start=1):
+            if str(candidate.get("id")) == str(target_id):
+                item = dict(candidate)
+                item["requested_target_id"] = target_id
+                item["matched_requested_entity"] = True
+                item["matched_rank"] = rank
+                return [item]
+
+        try:
+            target_entity = await self.mongo_repo.get_entity(target_type, target_id)
+        except Exception as exc:
+            logger.warning("Mongo error while loading target entity %s/%s: %s", target_type, target_id, exc)
+            target_entity = None
+
+        target_name = (
+            (target_entity or {}).get("name")
+            or (target_entity or {}).get("title")
+            or (target_entity or {}).get("summary")
+            or target_id
+        )
+
+        graph_repo = getattr(self.recommender, "graph_repo", None)
+        paths: List[Dict[str, Any]] = []
+        if graph_repo is not None and hasattr(self.recommender, "find_reasoning_paths_cypher"):
+            try:
+                paths = self.recommender.find_reasoning_paths_cypher(
+                    source_id=source_id,
+                    source_type=source_label,
+                    target_id=target_id,
+                    target_type=target_label,
+                    limit=5,
+                    mode=mode,
+                    current_user_id=current_user_id,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Could not evaluate target entity path %s/%s -> %s/%s: %s",
+                    source_type,
+                    source_id,
+                    target_type,
+                    target_id,
+                    exc,
+                )
+
+        top_path_score = 0.0
+        if paths:
+            top_path_score = max(float(path.get("score", 0.0) or 0.0) for path in paths)
+
+        item: Dict[str, Any] = {
+            "id": target_id,
+            "name": str(target_name),
+            "type": target_type,
+            "score": round(min(max(top_path_score, 0.0), 0.65), 6),
+            "reasoning_paths": paths,
+            "path_diversity": len(paths),
+            "scoring_method": "target_path_analysis",
+            "requested_target_id": target_id,
+            "matched_requested_entity": False,
+        }
+        if not paths:
+            item["fallback_reason"] = (
+                "Khong tim thay reasoning path truc tiep giua source va target trong KG hien tai. "
+                "Entity nay khong nam trong top recommendation theo target type."
+            )
+
+        evaluated = self._apply_provisional_rules(
+            recommendations=[item],
+            source_id=source_id,
+            source_label=source_label,
+            target_label=target_label,
+            mode=mode,
+            current_user_id=current_user_id,
+        )
+        evaluated = await self._enrich_with_xai(
+            source_context={
+                "source_id": source_id,
+                "source_type": source_label,
+                "source_name": source_id,
+            },
+            target_type=target_label,
+            recommendations=evaluated,
+            language=language,
+        )
+        evaluated = self._normalize_recommendations(evaluated, target_label)
+        evaluated = self._apply_scoring_metadata(evaluated)
+        return evaluated
 
     async def _run_pgpr_dispatch(
         self,
@@ -446,6 +569,8 @@ class RecommendationService:
             explanation["provisional_nodes_count"] = int(recommendation.get("provisional_nodes_count", 0) or 0)
             explanation["data_quality_notes"] = recommendation.get("data_quality_notes") or []
             explanation["verification_badges"] = recommendation.get("verification_badges") or {}
+            explanation["scoring_method"] = recommendation.get("scoring_method")
+            explanation["fallback_reason"] = recommendation.get("fallback_reason")
             if recommendation.get("uses_provisional_data"):
                 note = (
                     "Goi y nay co su dung du lieu chua xac thuc. "
@@ -454,6 +579,17 @@ class RecommendationService:
                 existing = explanation.get("natural_language")
                 if isinstance(existing, str) and note not in existing:
                     explanation["natural_language"] = f"{existing}\n\n{note}"
+            scoring_method = str(recommendation.get("scoring_method") or "")
+            if scoring_method == "cypher_fallback":
+                fallback_note = (
+                    "Diem so va giai thich dua tren heuristic/Cypher tren do thi, "
+                    "khong phai PGPR policy day du. Khong nen coi la ket qua chac chan."
+                )
+                if recommendation.get("fallback_reason"):
+                    fallback_note = f"{fallback_note}\n\n{recommendation['fallback_reason']}"
+                existing = explanation.get("natural_language")
+                if isinstance(existing, str) and fallback_note not in existing:
+                    explanation["natural_language"] = f"{existing}\n\n{fallback_note}"
         return explanation
 
     async def _explain_llm(
@@ -477,6 +613,41 @@ class RecommendationService:
                 rec_type=target_type.lower(),
                 source_context=source_context,
             )
+
+    def _apply_scoring_metadata(
+        self,
+        recommendations: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Infer scoring_method, fallback_reason and cap scores without evidence paths."""
+        score_cap_without_paths = 0.55
+        out: List[Dict[str, Any]] = []
+        for rec in recommendations:
+            item = dict(rec)
+            paths = item.get("reasoning_paths") or []
+            method = item.get("scoring_method")
+            if not method:
+                if paths and any((p.get("source") == "cypher_fallback") for p in paths if isinstance(p, dict)):
+                    method = "cypher_fallback"
+                elif paths:
+                    method = "pgpr_policy"
+                else:
+                    method = "cypher_fallback"
+                item["scoring_method"] = method
+            if not paths and not item.get("fallback_reason"):
+                item["fallback_reason"] = (
+                    "Khong tim thay duong ly do tren Knowledge Graph. "
+                    "Diem so co the tu heuristic va chua du tin cay."
+                )
+            if not paths:
+                capped = min(float(item.get("score", 0.0) or 0.0), score_cap_without_paths)
+                item["score"] = round(capped, 6)
+                if item.get("final_score") is not None:
+                    item["final_score"] = round(
+                        min(float(item.get("final_score", capped) or capped), score_cap_without_paths),
+                        6,
+                    )
+            out.append(item)
+        return out
 
     def _normalize_recommendations(
         self,

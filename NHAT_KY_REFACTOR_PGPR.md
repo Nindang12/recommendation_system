@@ -2015,3 +2015,2968 @@ PASS
 - Source user moi van la `unverified`, nen recommendation tra `data_quality_level = medium`.
 - Ket qua nay di qua Cypher/Heuristic fallback vi node user moi chua co trong vocab/policy embedding PGPR da train.
 - Ve sau neu muon PGPR policy model tinh diem day du cho node moi, can co pipeline update vocab/triples/embedding/policy hoac thiet ke online feature scoring rieng.
+
+---
+
+# Phase 10 - Audit checklist hoan thien he thong (2026-05-27)
+
+Muc tieu: doi chieu `CHECKLIST_HOAN_THIEN_HE_THONG_MOI.md` voi code hien tai, hoan thien cac muc uu tien 1-4, cap nhat checklist va ghi nhat ky.
+
+## 10.1 Ket qua audit tong quan
+
+| Nhom | Trang thai | Ghi chu |
+|------|------------|---------|
+| Recommendation on dinh | **Da cai tien** | `scoring_method`, `fallback_reason`, cap score khi khong co paths |
+| Warning/logging backend | **Da lam** | Sua Cypher label; log API + log phuong phap scoring |
+| Provisional KG Sync | **~80%** | Topic/owner OK; skill/location/industry sync day du chua |
+| Duplicate matching | **MVP** | Thieu Scopus; claim UI day du chua |
+| Admin UI | **MVP xong** | Trang `/admin` + detail + audit log |
+| Auth/Profile | **~85%** | 3 role register; profile status OK |
+| Frontend recommendation UX | **~90%** | Badge scoring/data quality/fallback tren dashboard |
+| XAI / Graph / Overview | **Da co** | Thieu admin_debug toggle graph, filter graph |
+| Evaluation | **MVP** | Trang summary; chua pipeline metric |
+| Testing tu dong | **Chua** | Chi compile + typecheck |
+| Deploy | **Chua** | `.env.example` backend co |
+
+Checklist file da cap nhat: `CHECKLIST_HOAN_THIEN_HE_THONG_MOI.md`.
+
+## 10.2 Backend — scoring_method va fallback_reason
+
+### Van de
+
+- Response recommendation chua phan biet ro PGPR policy vs Cypher/heuristic.
+- Mot so item co score cao nhung `reasoning_paths` rong.
+- XAI co the noi qua chac khi dung fallback.
+
+### Da sua
+
+| File | Noi dung |
+|------|----------|
+| `backend/pgpr/pgpr_recommendation.py` | Gan `scoring_method=pgpr_policy` hoac `cypher_fallback`; `fallback_reason` khi khong co paths; cap score <= 0.55; path co field `source` |
+| `backend/services/recommendation_service.py` | `_apply_scoring_metadata()`; cache key `v4`; log `methods={...}`; XAI canh bao khi `cypher_fallback` |
+| `backend/models/schemas.py` | Them `scoring_method`, `fallback_reason` |
+
+### Luong metadata
+
+```text
+PGPRRecommender
+  -> scoring_method tren tung item
+RecommendationService._apply_provisional_rules
+  -> trust_weight, data_quality_level
+RecommendationService._apply_scoring_metadata
+  -> fallback_reason, cap score neu khong co paths
+RecommendationService._enrich_with_xai
+  -> canh bao provisional + fallback
+```
+
+## 10.3 Backend — lam sach Neo4j property warnings
+
+### File
+
+`backend/repositories/pgpr_graph_repo.py`
+
+### Sua
+
+- `find_reasoning_paths`: bo `n.industry_name`, `n.tech_id` khoi `coalesce` entity names.
+- `find_entity_neighbors`: bo `n.topic_name`, `n.direction_name`, `n.industry_name`, `n.country_name`; dung `topic_id`, `industry_id`, `location_id`, ...
+
+Muc dich: giam warning Neo4j "property key does not exist" khi schema khong co field do.
+
+## 10.4 Backend — Admin API list/detail/audit
+
+### File
+
+| File | Endpoint / ham |
+|------|----------------|
+| `backend/repositories/auth_repo.py` | `list_entities_for_admin()`, `list_admin_audit_logs()` |
+| `backend/api/v1/endpoints/admin.py` | `GET /entities`, `GET /entities/{type}/{id}`, `GET /audit-logs` |
+
+Cac endpoint POST verify/reject/disable/retry/merge **da co tu Phase 7**.
+
+## 10.5 Frontend — Admin UI
+
+### File moi
+
+| File | Mo ta |
+|------|-------|
+| `frontend/src/app/admin/page.tsx` | Danh sach entity + filter KG/type + audit log |
+| `frontend/src/app/admin/entities/[type]/[id]/page.tsx` | Detail + Verify/Reject/Disable/Retry/Merge + ly do |
+
+### File sua
+
+| File | Noi dung |
+|------|----------|
+| `frontend/src/lib/api.ts` | Admin client methods + types |
+| `frontend/src/components/navigation/navbar.tsx` | Link Admin khi da login |
+| `frontend/src/app/dashboard/page.tsx` | Badge scoring method, data quality, unverified, fallback_reason |
+
+**Luu y bao mat:** Admin UI/API MVP — moi user dang nhap deu goi duoc admin (chua co role `admin`).
+
+## 10.6 Kiem tra da chay
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models pgpr
+```
+
+Ket qua: **PASS**
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua: **PASS**
+
+Smoke TestClient (Neo4j khong chay tren may audit):
+
+- `GET /api/v1/health` -> 200
+- `POST /api/v1/recommendations/policy` -> 200, `count=0` (Neo4j refused) — logic logging `methods={}` van chay
+
+Khi Neo4j/Mongo san sang, nen chay lai:
+
+```powershell
+cd backend
+python scripts/test_recommendation_api.py
+```
+
+## 10.7 Viec con lai sau Phase 10
+
+1. Evaluation pipeline that (`backend/evaluation/`) voi Precision@5, NDCG@5, ...
+2. Test tu dong pytest cho auth, provisional sync, visibility, admin.
+3. Role admin that + bao ve endpoint `/api/v1/admin/*`.
+4. Sync skill/location/industry cho enterprise/funder/project provisional.
+5. UI map custom topic -> topic chuan (admin).
+6. Graph UI: toggle `admin_debug`, filter/search node.
+7. Docker compose + deploy + `.env.production` frontend.
+8. Log recommendation cache hit/miss (tuong tu explanation cache).
+
+---
+
+# Phase 11 - Phan quyen admin goc va admin thuong (2026-05-27)
+
+Muc tieu: sua Admin UI/API tu trang MVP "moi user dang nhap deu vao duoc" thanh co phan quyen that:
+
+```text
+user -> khong vao duoc admin
+admin -> quan tri entity/KG
+root_admin -> quan tri entity/KG + tao/promote/demote admin
+```
+
+## 11.1 Tach quyen he thong khoi role nghiep vu
+
+### Van de
+
+Truoc do field `role` dang duoc dung cho nghiep vu:
+
+```text
+expert | enterprise | funder
+```
+
+Neu dung tiep `role=admin` thi se pha luong tao/link entity.
+
+### Da lam
+
+Them field moi:
+
+```text
+account_role = user | admin | root_admin
+```
+
+File da sua:
+
+```text
+backend/models/schemas.py
+backend/services/auth_service.py
+frontend/src/lib/api.ts
+```
+
+Muc dich:
+
+- `role` van la loai entity nghiep vu.
+- `account_role` moi la quyen he thong.
+- User expert/enterprise/funder van hoat dong binh thuong.
+
+## 11.2 Root admin tu dong duoc tao boi he thong
+
+### Da lam
+
+Them logic startup trong:
+
+```text
+backend/main.py
+```
+
+Khi backend startup:
+
+```text
+doc ROOT_ADMIN_EMAIL tu env
+neu email chua co -> tao user account_role=root_admin
+neu email da co nhung chua phai root_admin -> update thanh root_admin
+```
+
+Them bien env mau:
+
+```text
+ROOT_ADMIN_EMAIL=admin@example.com
+ROOT_ADMIN_PASSWORD=Admin@123456
+ROOT_ADMIN_NAME=System Root Admin
+```
+
+File:
+
+```text
+backend/.env.example
+```
+
+Muc dich:
+
+- Demo khong can tao admin thu cong trong database.
+- He thong luon co mot root admin goc de quan tri.
+
+## 11.3 Script tao root admin
+
+File moi:
+
+```text
+backend/scripts/create_root_admin.py
+```
+
+Tac dung:
+
+```powershell
+python scripts/create_root_admin.py
+```
+
+Script se:
+
+- Doc `ROOT_ADMIN_EMAIL`, `ROOT_ADMIN_PASSWORD`, `ROOT_ADMIN_NAME`.
+- Tao root admin neu chua co.
+- Neu user email da co thi promote len `root_admin`.
+
+Muc dich:
+
+- Co cach seed admin ro rang khi deploy/demo.
+- Khong phu thuoc hoan toan vao startup.
+
+## 11.4 Bao ve Admin API
+
+### Da lam
+
+Them dependency:
+
+```text
+get_current_admin_user
+get_current_root_admin
+```
+
+File:
+
+```text
+backend/api/deps.py
+```
+
+Quyen:
+
+```text
+get_current_admin_user:
+  chap nhan admin/root_admin
+
+get_current_root_admin:
+  chi chap nhan root_admin
+```
+
+Sua Admin API:
+
+```text
+backend/api/v1/endpoints/admin.py
+```
+
+Ket qua:
+
+- `/api/v1/admin/entities/*` can `admin` hoac `root_admin`.
+- `/api/v1/admin/audit-logs` can `admin` hoac `root_admin`.
+- `/api/v1/admin/kg-sync/*` can `admin` hoac `root_admin`.
+- `/api/v1/admin/users/*` chi `root_admin`.
+
+Muc dich:
+
+- User thuong khong the verify/reject/merge entity.
+- Root admin moi co quyen tao admin khac.
+
+## 11.5 API quan ly admin users
+
+Them repository methods:
+
+```text
+AuthRepository.list_users_for_admin()
+AuthRepository.set_user_account_role()
+```
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Them API:
+
+```http
+GET  /api/v1/admin/users
+POST /api/v1/admin/users/create-admin
+POST /api/v1/admin/users/{user_id}/promote-admin
+POST /api/v1/admin/users/{user_id}/demote-admin
+```
+
+Quyen:
+
+```text
+root_admin only
+```
+
+Muc dich:
+
+- Root admin xem danh sach user.
+- Root admin tao admin moi.
+- Root admin promote user thanh admin.
+- Root admin demote admin ve user.
+- Khong cho demote root admin.
+
+## 11.6 Frontend Admin UI
+
+File da sua:
+
+```text
+frontend/src/components/navigation/navbar.tsx
+frontend/src/app/admin/page.tsx
+frontend/src/lib/api.ts
+```
+
+Thay doi:
+
+- Navbar chi hien link Admin neu:
+
+```text
+account_role = admin | root_admin
+```
+
+- Trang `/admin` chan user thuong.
+- Root admin thay them khu vuc `Quan ly admin`.
+- Root admin co form tao admin moi.
+- Root admin co nut:
+  - Promote admin
+  - Demote user
+
+Muc dich:
+
+- Giao dien khong lam user thuong thay chuc nang khong co quyen.
+- Root admin co luong quan tri admin ngay tren web.
+
+## 11.7 Kiem tra da chay
+
+### Compile/backend
+
+```powershell
+python -m compileall main.py api services repositories models scripts/create_root_admin.py
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 25 - Bat dau scale-up Cold-Start Hybrid Recommendation (2026-05-28)
+
+Muc tieu:
+
+- Bat dau trien khai ke hoach scale-up cold-start theo thu tu an toan.
+- Chua them RabbitMQ/embedding vao luong chay chinh ngay.
+- Truoc tien dong bang response hien tai cua recommendation de sau nay so sanh va tranh lam vo PGPR/frontend.
+
+## 25.1 Tao baseline recommendation snapshot script
+
+Da tao file:
+
+```text
+backend/scripts/baseline_recommendation_snapshot.py
+```
+
+Da lam:
+
+- Script goi `GET /api/v1/health`.
+- Script tu lay sample entity id tu:
+  - `/api/v1/entities/projects`
+  - `/api/v1/entities/experts`
+  - `/api/v1/entities/funders`
+  - `/api/v1/entities/enterprises`
+- Script goi cac case recommendation hien tai qua:
+  - `POST /api/v1/recommendations/policy`
+- Script luu response day du vao:
+
+```text
+backend/scripts/baseline_recommendation_snapshot.json
+```
+
+- Script tom tat shape cua item recommendation:
+  - `id`
+  - `name`
+  - `score`
+  - `reasoning_paths`
+  - `explanation`
+  - `xai_explanation`
+  - `scoring_method`
+  - `uses_provisional_data`
+  - `data_quality_level`
+
+Lam the de:
+
+- Co baseline truoc khi them RabbitMQ/GraphSAGE-lite/hybrid ranking.
+- Sau moi phase co the so sanh response shape cu co bi vo khong.
+- Bao ve frontend hien tai, vi dashboard/entities dang phu thuoc cac field cu.
+
+Lenh chay du kien:
+
+```powershell
+cd backend
+python scripts/baseline_recommendation_snapshot.py
+```
+
+Ghi chu:
+
+- Khi ghi nhat ky nay, backend localhost `127.0.0.1:8000` chua chay nen snapshot chua duoc tao thanh cong.
+- Can bat backend + MongoDB + Neo4j roi chay script nay truoc khi vao Phase 1.
+
+## 25.2 Tao checklist scale-up cold-start hybrid
+
+Da tao file:
+
+```text
+CHECKLIST_SCALE_UP_COLD_START_HYBRID.md
+```
+
+Noi dung checklist:
+
+- Phase 0 - Safety Baseline.
+- Phase 1 - Embedding Schema + Migration/Backfill.
+- Phase 2 - RabbitMQ Optional Infrastructure.
+- Phase 3 - Worker + GraphSAGE-lite.
+- Phase 4 - Outbox Reliability.
+- Phase 5 - Candidate Safety + Embedding Search.
+- Phase 6 - Hybrid Recommendation Backward Compatible.
+- Phase 7 - Admin/Monitoring.
+- Phase 8 - GraphSAGE Real Model.
+- Phase 9 - Evaluation + Production.
+
+Lam the de:
+
+- Co danh sach viec can lam theo thu tu nho, de kiem soat rui ro.
+- Moi phase deu co file du kien va test bat buoc.
+- Dam bao RabbitMQ/worker/GraphSAGE that khong duoc lam qua som khi chua co baseline va GraphSAGE-lite on dinh.
+
+## 25.3 Tinh trang sau buoc nay
+
+Da hoan thanh:
+
+- [x] Khao sat project.
+- [x] Tao script snapshot baseline.
+- [x] Tao checklist scale-up cold-start hybrid.
+- [x] Ghi nhat ky cong viec va muc dich.
+
+Chua lam:
+
+- [ ] Chua them RabbitMQ.
+- [ ] Chua them embedding schema vao database.
+- [ ] Chua tao worker.
+- [ ] Chua doi recommendation scoring.
+- [ ] Chua chay baseline snapshot vi backend hien khong ket noi duoc o `127.0.0.1:8000`.
+
+# Phase 28 - Fix hien thi matched existing entity tren Profile (2026-05-27)
+
+Van de:
+
+- Khi user dang ky trung voi entity co san, he thong link dung `matched_existing`.
+- Nhung linked entity trong UI van fallback theo state cua entity user-created:
+  - `kg_sync_status = not_synced`
+  - `participation_scope = owner_only`
+  - `trust_weight = 0.5`
+- Profile cung khong co thong bao nao noi ro tai khoan da duoc link voi ho so co san.
+
+Nguyen nhan:
+
+- Du lieu crawl/seed cu trong MongoDB co the khong co cac field provisional moi nhu `trust_weight`, `kg_sync_status`, `participation_scope`.
+- `_linked_entity_response()` dung default cho entity moi tao, nen entity matched existing bi hien nham la chua sync/chua tin cay.
+
+Da lam:
+
+File:
+
+```text
+backend/services/auth_service.py
+frontend/src/app/profile/page.tsx
+```
+
+- Neu `match_status = matched_existing`, backend fallback linked entity thanh state cua entity co san:
+  - `kg_sync_status = synced_verified`
+  - `entity_verification_status = verified`
+  - `visibility = public`
+  - `participation_scope = public`
+  - `recommendable_as_target = true`
+  - `allow_as_intermediate_node = true`
+  - `trust_weight = 1.0`
+- UI Profile them thong bao mau xanh:
+  - he thong da tim thay ho so co san
+  - tai khoan da lien ket voi entity do
+  - entity co the dung cho recommendation voi trust weight day du
+
+Lam the de:
+
+- Matched existing khong bi nham voi provisional entity moi tao.
+- User hieu vi sao ho so cua minh duoc link voi data co san.
+- Trust weight hien dung hon cho data crawl/seed da ton tai trong he thong.
+
+Kiem tra:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 27 - Them mo ta field va fix profile form bi chop khi nhap (2026-05-27)
+
+Muc tieu: form dong trong Profile phai de hieu hon voi nguoi dung, dong thoi khong bi nhap nhay/chop moi khi user go thay doi.
+
+Da lam:
+
+- Mo rong `RoleField` tren frontend voi:
+  - `description`
+  - `placeholder`
+- Renderer hien mo ta ngan duoi label cho field thuong va field array object.
+- Them placeholder cho cac field de user biet nen nhap gi.
+- Bo sung mo ta cu the cho cac field de gay nham lan:
+  - `Research capacity / Cong nghe`
+  - `Ten cong nghe`
+  - `Ky nang/phuong phap`
+  - `Nhu cau cong nghe`
+  - `Huong tai tro`
+- Sua GSAP ScrollTrigger tren Profile:
+  - Khong chay animation khi dang edit.
+  - Khong phu thuoc vao `profile` state nua.
+  - Khi user go input, page khong bi animate/reveal lai gay cam giac reload.
+
+Lam the de:
+
+- User hieu "Cong nghe" la framework/nen tang/tool/thiet bi cu the nhu PyTorch, Neo4j, Docker, CUDA.
+- Trai nghiem nhap lieu muot hon, khong con bi chop moi lan state thay doi.
+
+Kiem tra:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 26 - Tao form dong theo schema doi tuong trong Profile (2026-05-27)
+
+Da lam:
+
+- Profile detail form duoc chuyen sang form dong theo `expert`, `enterprise`, `funder`.
+- Them renderer cho field `array<object>` voi nut `Them muc` va nut xoa tung item.
+- Them select option cho cac field nen chuan hoa: gioi tinh, hoc ham/hoc vi, muc do thanh thao, trang thai, loai tai tro.
+- Expert co cac section: basic info, identifiers/contact, academic profile, research capacity, academic metrics, activities/outputs.
+- Enterprise co cac section: basic info/metrics, representatives, R&D profile, outputs/investment/relations.
+- Funder co cac section: basic info/representatives, funding strategy, programs/history/impact.
+- Backend `auth_repo.py` dong bo `profile_data` ve entity nested tuong ung, thay vi chi luu trong `app_users.profile_data`.
+
+Lam the de:
+
+- User co the nhap du lieu co cau truc giong schema mau trong `add_data`.
+- Cac field array object khong con phai nhap JSON/textarea thu cong.
+- Entity MongoDB sau khi update co the phuc vu convert sang Neo4j va PGPR recommendation tot hon.
+
+Kiem tra:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 26 - Tao form dong theo schema doi tuong trong Profile (2026-05-27)
+
+Muc tieu: phan chinh sua thong tin chi tiet khong con la vai field don le, ma tro thanh form dong theo tung doi tuong `expert`, `enterprise`, `funder`, bam "Them muc" cho cac truong dang array object, va dung select cho cac field nen chuan hoa.
+
+## 26.1 Mo rong schema form tren frontend
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Mo rong `RoleField.kind` de ho tro:
+  - `text`
+  - `number`
+  - `textarea`
+  - `date`
+  - `select`
+  - `array`
+- Them cac option chuan:
+  - `genderOptions`
+  - `academicRankOptions`
+  - `proficiencyOptions`
+  - `statusOptions`
+  - `fundingTypeOptions`
+- Tao `schemaRoleSections` rieng cho tung doi tuong.
+
+Lam the de:
+
+- Form co the sinh UI tu schema cau hinh.
+- Sau nay them field trong `add_data` chi can them vao config, khong can viet lai UI tung input.
+
+## 26.2 Expert dynamic form
+
+Da them cac nhom:
+
+- `Basic info`
+- `Identifiers va lien he`
+- `Academic profile`
+- `Research capacity`
+- `Academic metrics`
+- `Activities and outputs`
+
+Ho tro array object:
+
+- `academic_profile.degrees`
+- `academic_profile.affiliation_history`
+- `research_capacity.technology`
+- `research_capacity.skills_methods`
+- `research_capacity.applied_industries`
+- `activities_and_outputs.list_outputs`
+- `activities_and_outputs.collaborators`
+- `activities_and_outputs.grant_history`
+- `activities_and_outputs.projects_participation`
+
+## 26.3 Enterprise dynamic form
+
+Da them cac nhom:
+
+- `Basic info va metrics`
+- `Representatives`
+- `R&D profile`
+- `Outputs, investment va relations`
+
+Ho tro array object:
+
+- `basic_info.industries`
+- `organization_metrics.certifications`
+- `rd_profile.rd_focus_directions`
+- `rd_profile.technology_needs`
+- `rd_profile.rd_capacity.labs`
+- `rd_profile.rd_capacity.equipment`
+- `investment_and_markets.investment_history`
+- `outputs_and_transfers.commercialized_assets`
+- `outputs_and_transfers.patent_outputs`
+- `relations.rd_projects`
+- `relations.worked_experts`
+
+## 26.4 Funder dynamic form
+
+Da them cac nhom:
+
+- `Basic info va representatives`
+- `Funding strategy`
+- `Programs, history va impact`
+
+Ho tro array object:
+
+- `representatives`
+- `funding_strategy.funding_directions`
+- `funding_strategy.focus_regions`
+- `funding_strategy.focus_sectors`
+- `programs`
+- `funding_history.funded_projects`
+- `funding_history.annual_grant_history`
+
+## 26.5 Renderer cho array object
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Them `renderRoleField()`.
+- Them `renderScalarField()`.
+- Them nut `Them muc` cho field `array`.
+- Them nut xoa tung item bang icon trash.
+- Moi item trong array render theo cac field con duoc khai bao trong schema.
+
+Lam the de:
+
+- User nhap duoc du lieu co cau truc thay vi textarea JSON.
+- Du lieu luu vao `profile_data` dung dang nested object/array gan voi schema `add_data`.
+
+## 26.6 Dong bo profile_data ve entity nested
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Khi user update profile, repository khong chi luu trong `app_users.profile_data`.
+- Cac section trong `profile_data` duoc day ve entity nested tuong ung:
+  - Expert: `academic_profile`, `research_capacity`, `academic_metrics`, `activities_and_outputs`, `governance`
+  - Enterprise: `representatives`, `rd_profile`, `organization_metrics`, `investment_and_markets`, `outputs_and_transfers`, `relations`, `governance`
+  - Funder: `representatives`, `funding_strategy`, `programs`, `funding_history`, `impact_metrics`, `relations`, `governance`
+- Giu lai cac field he thong/provisional KG o top-level.
+
+Lam the de:
+
+- Form dong khong chi hien tren UI ma that su cap nhat entity MongoDB theo schema nested.
+- Du lieu sau khi user bo sung co the phuc vu pipeline MongoDB -> Neo4j va PGPR recommendation.
+
+## 26.7 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 25 - Them research topic taxonomy va auto-map research direction (2026-05-27)
+
+Muc tieu: he thong co danh muc `research topic` chuan, moi topic biet no thuoc `research_directions` nao. Khi user chon topic luc register/profile, backend se tu luu them `parent_direction` de phuc vu MongoDB schema, KG sync va recommendation.
+
+## 25.1 Them taxonomy dung chung cho backend
+
+File:
+
+```text
+backend/models/research_taxonomy.py
+```
+
+Da lam:
+
+- Tao danh sach `RESEARCH_DIRECTIONS`.
+- Tao danh sach `RESEARCH_TOPICS`.
+- Moi topic co:
+  - `value`
+  - `label`
+  - `direction`
+- Them map:
+  - `ALLOWED_RESEARCH_TOPICS`
+  - `RESEARCH_TOPIC_DIRECTION_MAP`
+  - `RESEARCH_DIRECTION_LABEL_MAP`
+  - `RESEARCH_TOPIC_LABEL_MAP`
+- Them helper:
+  - `research_topic_direction()`
+  - `research_direction_label()`
+
+Lam the de:
+
+- Backend khong con validate topic bang set hard-code trong `schemas.py`.
+- Co mot nguon su that duy nhat cho topic -> direction.
+
+## 25.2 Cap nhat validation schema
+
+File:
+
+```text
+backend/models/schemas.py
+```
+
+Da lam:
+
+- Xoa set `ALLOWED_RESEARCH_TOPICS` cu.
+- Import `ALLOWED_RESEARCH_TOPICS` tu `models.research_taxonomy`.
+
+Lam the de:
+
+- Register/update profile chi chap nhan topic nam trong taxonomy chuan.
+- Khi them topic moi chi can cap nhat taxonomy.
+
+## 25.3 Auto-map topic sang research direction khi luu MongoDB
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- `_topic_objects()` khong con luu topic chi co `name` va `parent_direction = None`.
+- Topic chuan duoc luu theo dang:
+
+```json
+{
+  "id": "computer-vision",
+  "name": "Computer Vision",
+  "parent_direction": "computer-vision-multimedia",
+  "parent_direction_label": "Thi giac may tinh va da phuong tien"
+}
+```
+
+- Custom topic duoc luu rieng voi:
+
+```json
+{
+  "name": "...",
+  "parent_direction": "custom_pending_mapping",
+  "parent_direction_label": "Can admin mapping",
+  "mapping_status": "pending_review"
+}
+```
+
+- Project user tao moi tu `keywords` cung duoc auto-map `parent_direction` neu keyword trung topic chuan.
+
+Lam the de:
+
+- Data moi van dung schema `add_data`.
+- KG/recommendation co the biet topic thuoc direction nao.
+- Topic custom khong bi dua nham vao taxonomy public khi chua duyet/map.
+
+## 25.4 Them Taxonomy API
+
+File:
+
+```text
+backend/api/v1/endpoints/taxonomy.py
+backend/main.py
+```
+
+Da lam:
+
+- Tao endpoint:
+
+```http
+GET /api/v1/taxonomy/research-topics
+```
+
+- Response gom:
+  - `directions`
+  - `topics`
+  - `count`
+
+Lam the de:
+
+- Frontend/admin sau nay co the lay danh muc tu backend thay vi hard-code.
+- Thuan tien cho viec quan tri taxonomy ve sau.
+
+## 25.5 Cap nhat frontend topic list
+
+File:
+
+```text
+frontend/src/lib/research-topics.ts
+frontend/src/app/auth/register/page.tsx
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Mo rong `researchTopicOptions` tu list phang thanh list co `direction`.
+- Them `researchDirectionOptions`.
+- Them helper:
+  - `researchTopicLabel()`
+  - `researchDirectionLabel()`
+  - `researchTopicDirection()`
+  - `researchTopicsByDirection()`
+- Register page hien topic theo nhom research direction.
+- Profile page hien topic theo nhom research direction.
+- Khi chon topic, UI hien "Huong nghien cuu tu dong nhan dien".
+
+Lam the de:
+
+- User nhin vao biet topic thuoc huong nghien cuu nao.
+- Data nhap vao thong nhat, giam topic rac.
+
+## 25.6 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 21 - Chuan hoa luu entity theo schema add_data (2026-05-27)
+
+Muc tieu: cac entity moi do user dang ky/cap nhat/tao project phai duoc luu theo cau truc du lieu co san trong folder `add_data`, khong tao mot schema phang rieng gay lech voi MongoDB va pipeline convert sang Neo4j.
+
+## 21.1 Chuan hoa luu Expert / Enterprise / Funder
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Them helper doc nested path, hien thi ten/email, build location, topic objects, skill objects va governance mac dinh.
+- `create_role_entity()` khong con luu cac field phang nhu `name`, `phone`, `organization`, `skills`, `research_topics`, `profile_data` o top-level nua.
+- Expert moi duoc luu theo cac khoi:
+  - `expert_id`
+  - `basic_info`
+  - `identifiers`
+  - `contact_info`
+  - `academic_profile`
+  - `research_capacity`
+  - `academic_metrics`
+  - `activities_and_outputs`
+  - `governance`
+- Enterprise moi duoc luu theo cac khoi:
+  - `enterprise_id`
+  - `basic_info`
+  - `representatives`
+  - `rd_profile`
+  - `outputs_and_transfers`
+  - `relations`
+  - `governance`
+- Funder moi duoc luu theo cac khoi:
+  - `funder_id`
+  - `basic_info`
+  - `representatives`
+  - `funding_strategy`
+  - `programs`
+  - `funding_history`
+  - `impact_metrics`
+  - `relations`
+  - `governance`
+- Chi giu them cac field he thong can thiet o top-level:
+  - `user_id`
+  - `source`
+  - `entity_verification_status`
+  - `kg_sync_status`
+  - `visibility`
+  - `participation_scope`
+  - `allow_as_source`
+  - `recommendable_as_target`
+  - `allow_as_intermediate_node`
+  - `trust_weight`
+  - `duplicate_candidates`
+  - `matched_existing_entity_id`
+  - `claim_status`
+  - `kg_schema_version`
+  - `provisional_sync_version`
+  - `created_at`
+  - `updated_at`
+
+Muc dich:
+
+- Du lieu user tao ra dong nhat voi du lieu crawl/seed trong `add_data`.
+- Giam nguy co pipeline convert MongoDB -> Neo4j bi lech schema.
+- Van giu duoc cac thuoc tinh rieng phuc vu auth, provisional sync, trust weight va admin review.
+
+## 21.2 Chuan hoa update profile vao nested schema
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- `update_role_entity_from_user()` cap nhat vao nested path:
+  - `basic_info.name`
+  - `basic_info.location`
+  - `contact_info.phones`
+  - `contact_info.emails`
+  - `contact_info.social_links`
+  - `research_capacity.research_topics`
+  - `research_capacity.technology`
+  - `research_capacity.skills_methods`
+  - `rd_profile.rd_focus_topics`
+  - `funding_strategy.funding_topics`
+- Khong tiep tuc ghi de bang cac field phang top-level.
+
+Muc dich:
+
+- Khi user sua profile, MongoDB van giu dung cau truc entity goc.
+- Cac thong tin quan trong cho recommendation nhu topic, skill, location duoc dat dung vi tri ma data seed dang dung.
+
+## 21.3 Chuan hoa project user tao
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- `create_project()` chuyen payload frontend thanh schema project gan voi `add_data`:
+  - `project_id`
+  - `basic_info.title`
+  - `basic_info.description`
+  - `basic_info.research_directions`
+  - `basic_info.research_topics`
+  - `basic_info.keywords`
+  - `basic_info.location`
+  - `requirements_and_timeline.status`
+  - `requirements_and_timeline.required_skills`
+  - `requirements_and_timeline.technology_readiness_level`
+  - `requirements_and_timeline.budget`
+  - `rd_profile`
+  - `relations`
+  - `follow_up_opportunities`
+  - `governance`
+- Van giu top-level `owner_id`, `owner_user_id`, `owner_entity_id` va cac field provisional KG.
+
+Muc dich:
+
+- Project user tao sau nay co the dua vao cung pipeline KG voi project seed.
+- Khong tao them schema project rieng chi phuc vu UI.
+
+## 21.4 Cap nhat doc du lieu nested cho profile, admin, entity list
+
+File:
+
+```text
+backend/services/auth_service.py
+backend/repositories/mongodb_repo.py
+```
+
+Da lam:
+
+- Profile response doc fallback tu nested entity:
+  - `basic_info.name`
+  - `basic_info.location`
+  - `contact_info`
+  - `research_capacity`
+  - `rd_profile`
+  - `funding_strategy`
+- Linked entity name lay tu `basic_info.name` / `basic_info.title` neu khong co field phang.
+- My Projects response lay title/summary/status/budget/TRL tu nested project schema.
+- Entity list/detail API co the search va normalize nested fields:
+  - `basic_info.name`
+  - `basic_info.title`
+  - `basic_info.description`
+  - `academic_profile.current_affiliation.org_name`
+
+Muc dich:
+
+- UI va API cu van doc duoc entity moi theo schema nested.
+- Van tuong thich voi data cu dang co field phang neu con ton tai trong database.
+
+## 21.5 Cap nhat Provisional KG Sync doc nested entity
+
+File:
+
+```text
+backend/services/provisional_kg_sync_service.py
+```
+
+Da lam:
+
+- Sync Neo4j khong con chi doc:
+  - `entity.skills`
+  - `entity.research_topics`
+  - `entity.location`
+- Them helper doc nested:
+  - Expert: `research_capacity.research_topics`, `research_capacity.skills_methods`, `research_capacity.technology`
+  - Enterprise: `rd_profile.rd_focus_topics`
+  - Funder: `funding_strategy.funding_topics`
+  - Project: `basic_info.research_topics`, `requirements_and_timeline.required_skills`
+  - Location: `basic_info.location`
+- Neo4j properties `name`, `title`, `summary`, `country`, `province`, `district` deu co fallback tu nested schema.
+
+Muc dich:
+
+- Entity moi luu dung schema van sync duoc vao Knowledge Graph.
+- PGPR recommendation tiep tuc co topic/skill/location de tao relationship.
+
+## 21.6 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Ghi chu:
+
+- Thay doi nay ap dung cho du lieu moi/cap nhat tu thoi diem nay tro di.
+- Cac document cu da luu theo schema phang van doc duoc nho fallback, nhung neu muon lam sach database thi can mot script migration rieng.
+
+---
+
+# Phase 23 - Backfill profile tu entity da matched/merged
+
+Ngay cap nhat: 2026-05-27
+
+## 23.1 Van de
+
+Sau khi user match/merge voi entity cu, profile van hien mot so field trong `app_users` bi trong, vi frontend doc:
+
+```text
+user.phone
+user.organization
+user.social_links
+user.profile_data
+```
+
+Trong khi data day du lai nam trong entity nghiep vu:
+
+```text
+experts / enterprises / funders
+```
+
+Vi vay user co the da linked dung entity cu nhung cac o nhu `So dien thoai`, social link, identifier, academic profile van trong.
+
+## 23.2 Sua AuthService tra profile co fallback tu linked entity
+
+File:
+
+```text
+backend/services/auth_service.py
+```
+
+Da lam:
+
+- Khi `_public_user()` tra profile, service doc lai linked entity trong MongoDB.
+- Neu user field trong thi lay fallback tu entity.
+- Khong ghi de field user da tu nhap.
+
+Cac field duoc backfill:
+
+- `full_name`
+- `organization`
+- `phone`
+- `address`
+- `country`
+- `province`
+- `district`
+- `skills`
+- `bio`
+- `social_links`
+- `profile_data`
+- `research_interests`
+
+Muc dich:
+
+- User da matched/merged voi data cu se thay thong tin profile day du hon.
+- Profile khong con trong o nhung field entity da co du lieu.
+
+## 23.3 Ho tro nhieu dang schema entity
+
+File:
+
+```text
+backend/services/auth_service.py
+```
+
+Da lam:
+
+- Them helper `_get_path()` de doc nested field.
+- Phone duoc lay theo thu tu:
+
+```text
+user.phone
+entity.phone
+entity.contact_info.phone
+entity.contact_info.phones[0]
+entity.representatives[0].phone
+```
+
+- Organization duoc lay theo thu tu:
+
+```text
+user.organization
+entity.organization
+entity.academic_profile.current_affiliation.org_name
+entity.basic_info.name
+```
+
+- Social links duoc merge tu:
+
+```text
+entity.social_links
+entity.contact_info.social_links
+entity.profile_data.contact_info.social_links
+user.social_links
+```
+
+- ORCID duoc fallback tu:
+
+```text
+entity.identifiers.ORCID
+profile_data.identifiers.ORCID
+```
+
+- `profile_data` duoc merge tu cac block entity san co:
+
+```text
+basic_info
+identifiers
+contact_info
+academic_profile
+research_capacity
+academic_metrics
+activities_and_outputs
+funding_strategy
+rd_profile
+organization_metrics
+investment_mandates
+programs
+relations
+governance
+```
+
+Muc dich:
+
+- Phu hop voi data crawl co schema giau hon app_user.
+- Khong can copy tay toan bo entity vao user document moi hien duoc tren UI.
+
+## 23.4 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 24 - Chuan hoa luu entity theo schema add_data (2026-05-27)
+
+Ghi chu: muc chi tiet da duoc ghi trong file nay o phan "Chuan hoa luu entity theo schema add_data". Phase nay duoc danh dau lai o cuoi nhat ky de the hien dung thu tu cong viec moi nhat.
+
+Da lam:
+
+- Backend khong con tao entity user moi theo schema phang rieng.
+- Expert/Enterprise/Funder moi duoc luu theo cac khoi nested giong data trong `add_data`: `basic_info`, `contact_info`, `research_capacity`, `rd_profile`, `funding_strategy`, `relations`, `governance`.
+- Project user tao moi duoc luu theo schema project nested: `basic_info`, `requirements_and_timeline`, `rd_profile`, `relations`, `follow_up_opportunities`, `governance`.
+- Chi cac field he thong can thiet moi nam o top-level: `user_id`, `owner_id`, `source`, `entity_verification_status`, `kg_sync_status`, `visibility`, `participation_scope`, `trust_weight`, `duplicate_candidates`, `matched_existing_entity_id`, `kg_schema_version`, `provisional_sync_version`, timestamps.
+- Profile/API/Admin/KG sync duoc cap nhat de doc nested fields, dong thoi van fallback duoc data cu dang co field phang.
+
+Lam the de:
+
+- Giu du lieu MongoDB thong nhat voi pipeline crawl/seed/convert KG.
+- Tranh viec user-created data va crawled data co hai schema khac nhau.
+- Bao toan logic Provisional KG Sync, duplicate matching, admin review va PGPR recommendation.
+
+Kiem tra:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+---
+
+# Phase 22 - Sua luong duplicate/merge user tren Admin va Profile
+
+Ngay cap nhat: 2026-05-27
+
+## 22.1 Khong hien canh bao duplicate sai tren Profile khi da matched existing
+
+File:
+
+```text
+backend/services/auth_service.py
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Sua `_linked_entity_response()` de chi dua `duplicate_candidates` vao `linked_entity` khi entity that su o trang thai `merge_required`.
+- Neu user match manh voi entity cu (`matched_existing`) thi khong giu duplicate candidates trong profile nua.
+- Profile chi hien canh bao duplicate khi:
+
+```text
+linked_entity.kg_sync_status == "merge_required"
+va duplicate_candidates.length > 0
+```
+
+Muc dich:
+
+- Tranh truong hop user da link dung vao entity cu/verified nhung profile van bao "can admin merge".
+- Giao dien user phan biet ro:
+  - matched existing: da link vao data cu
+  - merge required: can admin review/merge
+
+## 22.2 Refresh linked_entity theo entity moi nhat khi user mo Profile
+
+File:
+
+```text
+backend/services/auth_service.py
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Them `_fresh_linked_entity()` trong `AuthService`.
+- Khi API `/users/me` tra ve user, service se doc lai entity that trong MongoDB va cap nhat cac field:
+  - kg_sync_status
+  - entity_verification_status
+  - visibility
+  - participation_scope
+  - trust_weight
+  - duplicate_candidates
+- Neu linked entity stale thi update lai vao user document.
+- Profile goi `refresh()` khi mount de lay lai status moi tu backend thay vi chi dung localStorage cu.
+
+Muc dich:
+
+- Sau khi admin verify/reject/merge, user reload profile se thay trang thai moi.
+- Khong con chi hien status cu cua user trong localStorage.
+
+## 22.3 Admin queue hien duplicate candidates va nut Merge nhanh
+
+File:
+
+```text
+frontend/src/app/admin/page.tsx
+frontend/src/lib/api.ts
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Admin list entity tra them:
+  - duplicate_candidates
+  - matched_existing_entity_id
+  - merged_into
+- Bang `Entity review queue` them cot `Duplicate`.
+- Neu entity co duplicate candidates:
+  - hien so candidate
+  - hien candidate dau tien
+  - hien nut `Merge` nhanh dan sang detail voi target da dien san
+- Neu entity da merge thi queue hien `Da merge vao <target_id>`.
+
+Muc dich:
+
+- Admin nhin vao queue biet ngay entity nao can merge.
+- Khong phai mo detail roi moi phat hien duplicate.
+
+## 22.4 Admin detail co giao dien merge ro rang hon
+
+File:
+
+```text
+frontend/src/app/admin/entities/[type]/[id]/page.tsx
+```
+
+Da lam:
+
+- Doc query param `mergeTarget` de auto dien target entity ID khi admin bam nut Merge tu queue.
+- Doi `Duplicate candidates` tu raw JSON thanh card de doc:
+  - ten candidate
+  - id
+  - match strength
+  - similarity neu co
+- Moi candidate co nut:
+  - `Chon lam target merge`
+  - `Xem entity cu`
+- Them canh bao trong form merge:
+
+```text
+Merge se vo hieu hoa entity hien tai, chuyen user dang link voi entity nay sang target entity, va luu audit log.
+```
+
+Muc dich:
+
+- Admin co luong merge that su thay vi chi co input target ID trong form.
+- Giam nguy co nhap sai target ID.
+
+## 22.5 Merge cap nhat linked_entity day du hon
+
+File:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Khi `relink_users_from_entity()` chuyen user tu source entity sang target entity, linked entity moi co them:
+  - visibility
+  - participation_scope
+  - allow_as_source
+  - recommendable_as_target
+  - allow_as_intermediate_node
+  - trust_weight
+  - duplicate_candidates = []
+
+Muc dich:
+
+- Sau merge, user khong bi mat cac field can cho recommendation/profile.
+- Profile khong con hien duplicate candidates cu sau khi da merge.
+
+## 22.6 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+---
+
+# Phase 21 - Chuyen dashboard tu demo sang multi recommendation theo user
+
+Ngay cap nhat: 2026-05-27
+
+## 21.1 Dashboard dung linked entity cua user lam source
+
+File:
+
+```text
+frontend/src/app/dashboard/page.tsx
+```
+
+Da lam:
+
+- Bo luong demo nhap tay `source_type`, `source_id`, `target_type`.
+- Dashboard lay `user.linked_entity` cua tai khoan dang dang nhap lam source recommendation.
+- Neu tai khoan chua co linked entity thi UI hien canh bao va khong cho chay recommendation.
+- Hien source hien tai gom:
+  - ten entity
+  - id
+  - type
+  - KG status
+  - participation scope
+
+Muc dich:
+
+- Bien dashboard thanh giao dien nguoi dung that su co the dung.
+- Giam loi do user nhap sai source id.
+- Dam bao recommendation ca nhan chay theo dung expert/enterprise/funder dang dang nhap.
+
+## 21.2 Them multi recommendation mot luot
+
+File:
+
+```text
+frontend/src/app/dashboard/page.tsx
+```
+
+Da lam:
+
+- Them nut `Goi y tat ca nhom`.
+- Khi bam nut, frontend goi song song API:
+  - source -> project
+  - source -> expert
+  - source -> enterprise
+  - source -> funder
+- Tat ca request chay o `personal mode` va gui `current_user_id`.
+- Moi nhom co tab/nut rieng de xem ket qua.
+- Neu mot nhom loi, cac nhom con lai van hien duoc ket qua.
+- Hien tong so ket qua cua tat ca nhom.
+
+Muc dich:
+
+- Phu hop voi luong moi: user dang nhap co the nhan goi y nhieu loai entity trong mot lan.
+- Gan voi bai toan he thong R&D: expert/enterprise/funder can xem project, doi tac, chuyen gia va don vi tai tro lien quan.
+
+## 21.3 Chinh lai noi dung dashboard khong con la demo
+
+File:
+
+```text
+frontend/src/app/dashboard/page.tsx
+```
+
+Da lam:
+
+- Doi tieu de tu `Dashboard demo he thong goi y R&D` thanh `Dashboard goi y R&D ca nhan`.
+- Doi mo ta thanh luong recommendation ca nhan.
+- Entity shortcut doi text tu `Browse data` thanh `Browse & recommend`.
+- Nut phu tro link sang graph cua source hien tai va trang entities.
+
+Muc dich:
+
+- UI khong con tao cam giac chi la trang demo bao ve.
+- Dieu huong nguoi dung vao cac tac vu that: xem goi y, duyet entity, xem graph.
+
+## 21.4 Entities page hien tat ca entity va recommend theo user source
+
+File:
+
+```text
+frontend/src/app/search/page.tsx
+```
+
+Da lam:
+
+- Them tab `Tat ca` de fetch ca 4 nhom entity:
+  - projects
+  - experts
+  - funders
+  - enterprises
+- Khi chon `Tat ca`, frontend goi list API cua 4 collection va gom ket qua len mot man hinh.
+- Moi entity card co:
+  - nut `Recommend entity`
+  - nut `Chi tiet`
+- Khi bam `Recommend entity`, frontend dung linked entity cua user lam source va goi:
+
+```http
+POST /api/v1/recommendations/policy
+```
+
+voi:
+
+```json
+{
+  "source_id": "linked_entity.id",
+  "source_type": "linked_entity.type",
+  "target_type": "entity.type",
+  "mode": "personal"
+}
+```
+
+- Vi API hien tai chua nhan `target_id`, frontend tam thoi recommend theo `target_type` va highlight entity dang chon neu entity do nam trong top ket qua.
+
+Muc dich:
+
+- Dung voi yeu cau: khi user vao Entities thi thay tat ca entity va co thao tac recommend entity.
+- Van giu dung kien truc hien tai, khong chen logic recommendation truc tiep vao UI ngoai API service.
+
+## 21.5 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 21.6 Them API recommend mot target entity cu the
+
+File:
+
+```text
+backend/models/schemas.py
+backend/api/v1/endpoints/recommendations.py
+backend/services/recommendation_service.py
+frontend/src/lib/api.ts
+frontend/src/app/search/page.tsx
+```
+
+Da lam:
+
+- Them `target_id` vao `RecommendationRequest`.
+- Them endpoint:
+
+```http
+POST /api/v1/recommendations/entity
+```
+
+- Endpoint yeu cau:
+
+```json
+{
+  "source_id": "...",
+  "source_type": "expert",
+  "target_id": "...",
+  "target_type": "project",
+  "mode": "personal",
+  "current_user_id": "..."
+}
+```
+
+- Them service method `evaluate_target_entity()`.
+- Service se:
+  - chay recommendation theo `target_type` voi limit lon hon de xem target co nam trong top khong;
+  - neu target nam trong top thi tra ve item do kem `matched_requested_entity=true` va `matched_rank`;
+  - neu target khong nam trong top thi tim reasoning paths truc tiep bang KG/Cypher;
+  - neu khong co path thi tra score 0 va ghi `fallback_reason` ro rang;
+  - van ap dung provisional visibility/trust rule;
+  - van enrich XAI va chuan hoa response.
+- Frontend `api.recommendEntity()` goi endpoint moi.
+- Trang Entities dung endpoint moi khi bam `Recommend entity`.
+
+Muc dich:
+
+- Dung dung yeu cau moi: source la expert/enterprise/funder dang dang nhap, target la entity cu the user dang bam.
+- Khong con chi recommend theo nhom roi highlight nua.
+- Cho phep UI hien ro entity do co nam trong top recommendation hay chi la direct KG evaluation.
+
+## 21.7 Kiem tra sau khi them endpoint target-specific
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+### Frontend typecheck
+
+```powershell
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+### Smoke test quyen
+
+Da test bang `TestClient`:
+
+```text
+root admin login admin@example.com -> 200, account_role=root_admin
+GET /api/v1/admin/users bang root token -> 200
+GET /api/v1/admin/entities bang root token -> 200
+register user thuong moi -> 200, account_role=user
+GET /api/v1/admin/entities bang user token -> 403
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 11.8 Du lieu test tao them
+
+Root admin:
+
+```text
+admin@example.com
+```
+
+User test quyen:
+
+```text
+codex.regular.<timestamp>@example.com
+```
+
+Ghi chu:
+
+- Root admin can giu de demo.
+- User test co the xoa sau neu can lam sach database.
+
+## 11.9 Viec con lai sau Phase 11
+
+- Chua co UI doi mat khau admin.
+- Chua co co che khoa admin account.
+- Chua co email verification that.
+- Chua co rule "khong duoc xoa/demote root admin cuoi cung" vi hien chi co 1 root admin va API da chan demote root admin.
+- Neo4j constraint notification van co the hien khi register/sync vi `ensure_constraints()` chay lai; day la notification thong tin, khong phai loi.
+
+---
+
+# Phase 12 - Nang cap giao dien Admin Console voi GSAP ScrollTrigger (2026-05-27)
+
+Muc tieu: sua giao dien admin tu bang quan tri thô thanh mot console dung cho admin review du lieu, scan trang thai KG nhanh hon, va co hieu ung reveal nhe khi cuon trang.
+
+## 12.1 Them GSAP
+
+Da cai package:
+
+```text
+gsap
+```
+
+File cap nhat:
+
+```text
+frontend/package.json
+frontend/package-lock.json
+```
+
+Muc dich:
+
+- Dung `ScrollTrigger` de reveal cac khoi admin khi cuon.
+- Lam UI co cam giac dashboard chinh thuc hon nhung khong anh huong logic backend.
+
+## 12.2 Nang cap trang `/admin`
+
+File:
+
+```text
+frontend/src/app/admin/page.tsx
+```
+
+Da lam:
+
+- Doi hero thanh `Admin Console` voi thong tin account va role hien tai.
+- Them summary cards:
+  - Tong entity
+  - Can review
+  - Verified
+  - Rejected
+  - Sync failed
+- Cai thien bang review entity:
+  - Badge mau theo `kg_sync_status`
+  - Badge mau theo `entity_verification_status`
+  - Hien trust weight
+  - Hien sync error neu co
+  - Nut `Review` thay cho `Chi tiet`
+- Tach khu vuc `Root admin controls`:
+  - Tao admin moi
+  - Promote user thanh admin
+  - Demote admin ve user
+- Cai thien audit log:
+  - Dang timeline/card gon hon
+  - Hien action, entity, admin user, thoi gian, ly do
+- Them GSAP ScrollTrigger:
+  - `.admin-reveal`
+  - `.admin-scroll-reveal`
+
+Muc dich:
+
+- Admin vao trang nhin ngay he thong co bao nhieu entity can review.
+- Root admin thay ro phan quan ly admin rieng.
+- Bang entity de scan va thao tac hon.
+
+## 12.3 Nang cap trang detail admin entity
+
+File:
+
+```text
+frontend/src/app/admin/entities/[type]/[id]/page.tsx
+```
+
+Da lam:
+
+- Doi layout thanh 2 cot:
+  - Cot trai: thong tin entity va duplicate candidates.
+  - Cot phai: ly do thao tac, action buttons, merge form.
+- Them badge trang thai:
+  - KG status
+  - Verification status
+  - Scope
+- Them cac action button co icon:
+  - Verify entity
+  - Reject entity
+  - Disable KG
+  - Retry KG sync
+  - Merge vao target
+- Them GSAP ScrollTrigger reveal:
+  - `.admin-detail-reveal`
+
+Muc dich:
+
+- Admin bấm vao mot entity co the review thong tin va thao tac trong mot man hinh ro rang.
+- Cac hanh dong nguy hiem nhu reject/disable/merge duoc gom trong panel rieng.
+
+## 12.4 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 12.5 Ghi chu con lai
+
+- Chua them Playwright screenshot de test hieu ung va responsive.
+- Chua them tab rieng bang component `Tabs`; hien tai root admin controls nam duoi entity queue.
+- Neu muon UI admin production hon nua, co the them:
+  - filter theo `entity_verification_status`
+  - search entity
+  - confirm dialog truoc reject/disable/merge
+  - toast success/error
+
+# Phase 13 - Tach register thanh onboarding nhieu buoc (2026-05-27)
+
+Muc tieu: khong bat user nhap qua nhieu thong tin ngay luc dang ky. Register chi thu thap cac field can thiet de tao account, tao/link entity nghiep vu, chay duplicate matching/provisional KG sync va co du du lieu ban dau de recommendation. Cac thong tin dai hoac co the bo sung sau se de trong trang Profile.
+
+## 13.1 Cap nhat luong register frontend
+
+File:
+
+```text
+frontend/src/app/auth/register/page.tsx
+```
+
+Da lam:
+
+- Chia form dang ky thanh 3 buoc:
+  - Buoc 1: chon doi tuong `expert`, `enterprise`, `funder`.
+  - Buoc 2: nhap thong tin bat buoc gom ho ten/ten don vi, to chuc, email, password.
+  - Buoc 3: chon `Chu de nghien cuu / linh vuc quan tam` tu danh muc chuan va co option `Khac`.
+- Them progress theo buoc de user biet dang o dau trong qua trinh onboarding.
+- Them validate tung buoc:
+  - Khong cho qua buoc account neu thieu ten/email/password.
+  - Mat khau xac nhan phai khop.
+  - Neu khong chon topic chuan thi phai nhap topic custom khi chon `Khac`.
+- Payload gui ve backend van giu tuong thich voi API hien co:
+  - `email`, `password`, `full_name`, `role`, `organization`
+  - `research_interests`
+  - `custom_research_topics`
+  - cac field phu nhu `phone`, `address`, `bio`, `username` gui rong de user bo sung sau trong Profile.
+
+Muc dich:
+
+- Giam ma sat luc dang ky.
+- Van dam bao co du du lieu quan trong nhat cho entity va recommendation.
+- Tranh nhap tu do qua nhieu lam KG/recommendation kho chuan hoa.
+
+## 13.2 Them hieu ung GSAP ScrollTrigger cho register
+
+File:
+
+```text
+frontend/src/app/auth/register/page.tsx
+```
+
+Da lam:
+
+- Dung `gsap` va `ScrollTrigger` de reveal cac khoi register khi vao trang/cuon trang.
+- Dung animation nhe cho `.register-step` khi chuyen buoc.
+
+Muc dich:
+
+- Lam trang dang ky giong onboarding chinh thuc hon.
+- Tao cam giac tung lop thong tin ro rang, khong con la mot form dai.
+
+## 13.3 Chuan hoa danh muc topic hien thi
+
+File:
+
+```text
+frontend/src/lib/research-topics.ts
+```
+
+Da lam:
+
+- Sua lai label topic bi loi encoding.
+- Dung label ASCII ro nghia:
+  - `AI trong y te`
+  - `Xu ly ngon ngu tu nhien`
+  - `Khoa hoc du lieu`
+  - `Nang luong tai tao`
+  - `San xuat thong minh`
+  - `An toan thong tin`
+
+Muc dich:
+
+- UI register/profile khong con hien chu loi ma hoa.
+- Topic option thong nhat hon voi du lieu KG/recommendation.
+
+## 13.4 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 13.5 Ghi chu con lai
+
+- Trang Profile da co cac field de user bo sung sau: username, organization, phone, address, bio, research topics va custom topics.
+- Mot so text trong Profile cu van co dau hieu loi encoding o cac phan khac; can co mot pass rieng de lam sach toan bo UI text neu muon polish truoc demo.
+
+# Phase 14 - Bo sung skill/location vao register va profile edit mode (2026-05-27)
+
+Muc tieu: register khong chi tao account ma phai lay du cac tin hieu quan trong cho recommendation ban dau. Profile khong nen hien nhu form dang chinh sua lien tuc; user phai bam `Chinh sua` moi bat dau thay doi thong tin.
+
+## 14.1 Register them buoc skill/location
+
+File:
+
+```text
+frontend/src/app/auth/register/page.tsx
+frontend/src/lib/profile-options.ts
+frontend/src/lib/api.ts
+```
+
+Da lam:
+
+- Chuyen register tu 3 buoc thanh 4 buoc:
+  - Chon doi tuong.
+  - Thong tin bat buoc.
+  - Skill & location.
+  - Chu de nghien cuu.
+- Them danh muc skill chuan:
+  - Python
+  - Machine Learning
+  - Deep Learning
+  - Computer Vision
+  - NLP
+  - Knowledge Graph
+  - Data Analysis
+  - IoT
+  - Cybersecurity
+  - Cloud Computing
+  - Project Management
+  - R&D Commercialization
+- Them location dang select co cap:
+  - Country mac dinh `VN`.
+  - Tinh/thanh.
+  - Quan/huyen theo tinh/thanh.
+- Validate register:
+  - Bat buoc chon it nhat 1 skill.
+  - Bat buoc co country/province/district.
+  - Van bat buoc co research topic hoac topic custom.
+
+Muc dich:
+
+- Skill/location tao them tin hieu matching cho PGPR/XAI.
+- Location duoc chuan hoa thanh country/province/district thay vi user nhap text tu do.
+
+## 14.2 Backend luu skill/location vao account va entity
+
+File:
+
+```text
+backend/models/schemas.py
+backend/services/auth_service.py
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Them field vao `RegisterRequest`, `ProfileUpdateRequest`, `UserPublic`:
+  - `country`
+  - `province`
+  - `district`
+  - `skills`
+- Khi register tao role entity `expert/enterprise/funder`, entity se luu:
+  - `country`
+  - `province`
+  - `district`
+  - `location`
+  - `skills`
+- Them `AuthRepository.update_role_entity_from_user()` de khi user sua Profile thi entity nghiep vu duoc cap nhat theo.
+
+Muc dich:
+
+- Du lieu user va entity khong bi lech nhau.
+- Recommendation engine sau nay lay entity tu Mongo/Neo4j van co skill/location.
+
+## 14.3 Sync skill/location sang Neo4j provisional KG
+
+File:
+
+```text
+backend/services/provisional_kg_sync_service.py
+backend/repositories/pgpr_graph_repo.py
+```
+
+Da lam:
+
+- Them `upsert_skill_relationships()`:
+  - Expert -> `HAS_SKILL` -> Skill
+  - Enterprise -> `USES_SKILL` -> Skill
+  - Funder -> `SUPPORTS_SKILL` -> Skill
+  - Project -> `REQUIRES_SKILL` -> Skill
+- Them `upsert_location_relationship()`:
+  - Entity -> `LOCATED_IN` -> Location
+- Khi sync provisional entity, he thong sync them:
+  - topic relationships
+  - skill relationships
+  - location relationship
+- Khi user update Profile, backend cap nhat role entity va goi sync lai KG neu co linked entity.
+
+Muc dich:
+
+- User moi co the dung recommendation tot hon ngay sau register.
+- XAI/graph co them path qua Skill va Location, khong chi dua vao ResearchTopic.
+
+## 14.4 Profile co che do xem/chinh sua
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Profile mac dinh o che do xem.
+- Them panel trang thai:
+  - `Profile dang o che do xem`
+  - nut `Chinh sua`
+- Khi bam `Chinh sua`, cac input/select/checkbox moi cho thay doi.
+- Them nut `Huy` de quay lai du lieu user hien tai trong local auth state.
+- Nut `Luu thay doi` chi active khi dang edit.
+- Them UI sua:
+  - country
+  - province
+  - district
+  - skills
+
+Muc dich:
+
+- Profile giong trang ca nhan that hon, khong phai mot form sua lien tuc.
+- User chu dong bat dau chinh sua, giam nguy co sua nham.
+
+## 14.5 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 14.6 Ghi chu con lai
+
+- Hien tai skill/location sync bang MERGE them relation moi, chua co buoc xoa relation cu neu user bo chon skill/location trong Profile.
+- Location option moi la danh muc MVP, can mo rong neu demo can nhieu tinh/thanh hon.
+- Custom topic van duoc luu rieng va can admin map/duyet truoc khi dua public vao KG.
+
+# Phase 15 - Dung country-state-city va them ky nang khac (2026-05-27)
+
+Muc tieu: thay danh muc location hard-code bang package co san de user chon quoc gia/vung lanh tho/tinh-thanh/thanh pho linh hoat hon. Dong thoi them option `Khac` cho skill giong `Chu de nghien cuu` de user nhap ky nang chua co trong danh muc chuan.
+
+## 15.1 Cai package country-state-city
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd i country-state-city
+```
+
+File cap nhat:
+
+```text
+frontend/package.json
+frontend/package-lock.json
+```
+
+Muc dich:
+
+- Lay danh sach country/state/city tu package thay vi tu hard-code.
+- De mo rong dia diem cho user ngoai Vietnam neu can.
+
+## 15.2 Cap nhat helper location
+
+File:
+
+```text
+frontend/src/lib/profile-options.ts
+```
+
+Da lam:
+
+- Import:
+  - `Country`
+  - `State`
+  - `City`
+- Tao helper:
+  - `countryOptions()`
+  - `provinceOptions(countryCode)`
+  - `districtOptions(countryCode, stateCode)`
+  - `firstProvince(countryCode)`
+  - `firstDistrict(countryCode, stateCode)`
+- Giu ten field frontend/backend hien tai:
+  - `country`
+  - `province`
+  - `district`
+
+Muc dich:
+
+- Khong lam vo schema backend hien co.
+- Nhung UI location khong con bi gioi han trong danh sach tinh/thanh hard-code.
+
+## 15.3 Register dung country-state-city
+
+File:
+
+```text
+frontend/src/app/auth/register/page.tsx
+```
+
+Da lam:
+
+- Country select lay tu `countryOptions()`.
+- Province/state select lay theo country dang chon.
+- District/city select lay theo country + province/state dang chon.
+- Neu mot country khong co state/city trong package, UI dung fallback `No state/region` hoac `No city/district` de form khong bi ket.
+- Khi doi country:
+  - tu dong chon province dau tien cua country do.
+  - tu dong chon city dau tien cua province do.
+- Khi doi province:
+  - tu dong chon city dau tien cua province moi.
+
+Muc dich:
+
+- Location user nhap co cau truc hon.
+- Giam loi nhap tu do khi sync sang KG.
+
+## 15.4 Them skill Khac
+
+File frontend:
+
+```text
+frontend/src/app/auth/register/page.tsx
+frontend/src/app/profile/page.tsx
+frontend/src/lib/api.ts
+```
+
+File backend:
+
+```text
+backend/models/schemas.py
+backend/services/auth_service.py
+backend/repositories/auth_repo.py
+backend/services/provisional_kg_sync_service.py
+```
+
+Da lam:
+
+- Them field:
+
+```text
+custom_skills: List[str]
+```
+
+- Register:
+  - Co checkbox `Khac` trong phan skill.
+  - Neu khong chon skill chuan thi phai nhap skill khac.
+  - Gui `custom_skills` ve backend.
+- Profile:
+  - Co checkbox `Khac` trong phan skill.
+  - Khi bat `Khac`, hien input nhap nhieu skill cach nhau bang dau phay.
+  - Khi tat `Khac`, clear `custom_skills`.
+- Backend:
+  - Luu `custom_skills` trong user.
+  - Copy `custom_skills` vao entity `expert/enterprise/funder`.
+  - Provisional KG sync gop `skills + custom_skills` de tao relation voi node `Skill`.
+
+Muc dich:
+
+- User co the khai bao ky nang chua nam trong danh muc chuan.
+- He thong van giu du lieu custom rieng de admin co the chuan hoa sau.
+
+## 15.5 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 15.6 Ghi chu con lai
+
+- `country-state-city` cung cap state/city theo ma ISO; field backend van ten `province/district` de giu tuong thich, nhung y nghia thuc te luc nay la state/city.
+- Can them UI/admin mapping neu muon gop custom skill vao danh muc skill chuan sau nay.
+- Van chua co logic xoa relation skill/location cu trong Neo4j khi user bo chon skill/location.
+
+# Phase 16 - Toi uu UX Profile: co ban / chi tiet / chinh sua (2026-05-27)
+
+Muc tieu: Profile khong hien nhu mot form dai ngay tu dau. User mac dinh chi thay thong tin co ban, co nut xem chi tiet rieng, va chi khi bam `Chinh sua` moi co the cap nhat cac field trong profile.
+
+## 16.1 Profile mac dinh chi hien thong tin co ban
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Trang Profile mac dinh hien card thong tin co ban:
+  - Ten / ten don vi
+  - Email
+  - Role
+  - To chuc
+  - Dia diem
+  - Account status
+  - Entity status
+  - KG sync status
+  - Trust weight
+  - Linked entity / scope / match
+- Khong hien toan bo form chi tiet ngay khi vao trang.
+
+Muc dich:
+
+- User nhin trang profile gon va de hieu hon.
+- Thong tin KG quan trong van hien ro de user biet trang thai ho so.
+
+## 16.2 Them nut xem thong tin chi tiet
+
+Da lam:
+
+- Them nut `Xem thong tin chi tiet`.
+- Khi bam, hien toan bo form chi tiet o che do read-only.
+- Nut co the doi thanh `An chi tiet` de thu gon lai.
+
+Muc dich:
+
+- User co the xem day du profile khi can.
+- Khong ep user phai nhin form dai neu chi muon xem thong tin co ban.
+
+## 16.3 Chinh sua moi mo input
+
+Da lam:
+
+- Nut `Chinh sua` se:
+  - bat `isEditing = true`
+  - tu dong mo phan chi tiet
+  - cho phep sua cac input/select/checkbox.
+- Nut `Huy chinh sua` se:
+  - quay lai du lieu user hien tai trong auth state
+  - tat edit mode
+  - reset trang thai dirty.
+
+Muc dich:
+
+- Giam nguy co user sua nham.
+- Tach ro che do xem va che do cap nhat.
+
+## 16.4 Nut luu chi hien khi co thay doi
+
+Da lam:
+
+- Bo nut `Luu thay doi` khoi header.
+- Nut `Luu thay doi` chi hien o cuoi form khi:
+
+```text
+isEditing = true
+isDirty = true
+```
+
+- Moi thay doi field deu goi `updateProfile()` va set `isDirty = true`.
+
+Muc dich:
+
+- UI dung mong doi cua user: co sua thi moi hien nut luu.
+- Nut luu nam cuoi form, dung luong nhap thong tin dai.
+
+## 16.5 Cac field user co the sua
+
+Trong edit mode, user co the sua cac field profile da thiet ke cho luong MongoDB hien tai:
+
+- full_name
+- username
+- role
+- organization
+- phone
+- address
+- country
+- province/state
+- district/city
+- skills
+- custom_skills
+- research_interests
+- custom_research_topics
+- bio
+
+Ghi chu:
+
+- Email bi disable vi day la dinh danh account.
+- Trang thai account/entity/KG khong cho user sua; cac field nay thuoc admin/system.
+
+## 16.6 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 17 - Profile hien field tuy theo doi tuong (2026-05-27)
+
+Muc tieu: profile khong dung mot bo field chung cho tat ca user. Khi user la `expert`, `enterprise` hoac `funder`, phan chi tiet/chinh sua se hien cac nhom thong tin phu hop voi doi tuong do.
+
+## 17.1 Them profile_data de luu thong tin mo rong
+
+File backend:
+
+```text
+backend/models/schemas.py
+backend/services/auth_service.py
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Them field:
+
+```text
+profile_data: Dict[str, Any]
+```
+
+- `UserPublic` tra ve `profile_data`.
+- `RegisterRequest` va `ProfileUpdateRequest` chap nhan `profile_data`.
+- Khi tao/cap nhat role entity, Mongo entity luu them `profile_data`.
+
+Muc dich:
+
+- Khong lam schema account bi phang thanh rat nhieu field.
+- Van luu duoc thong tin rieng theo tung loai doi tuong trong MongoDB.
+- Sau nay admin/backend co the map cac field nay sang Neo4j/feature recommendation theo tung phase.
+
+## 17.2 Frontend profile show field theo role
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+frontend/src/lib/api.ts
+```
+
+Da lam:
+
+- Them `profile_data?: Record<string, unknown>` vao type `UserProfile`.
+- Them cau hinh `roleSections` cho:
+  - `expert`
+  - `enterprise`
+  - `funder`
+- Moi role co cac section rieng.
+
+## 17.3 Expert fields
+
+Profile expert hien them cac nhom:
+
+- Thong tin ca nhan:
+  - nam sinh
+  - gioi tinh
+  - quoc tich
+  - ngon ngu uu tien
+- Dinh danh nghien cuu:
+  - ORCID
+  - ResearcherID
+  - Scopus ID
+- Hoc thuat va nang luc:
+  - hoc ham/hoc vi
+  - don vi hien tai
+  - phong lab/nhom nghien cuu
+  - so cong bo
+  - H-index
+  - so trich dan
+
+## 17.4 Enterprise fields
+
+Profile enterprise hien them cac nhom:
+
+- Thong tin doanh nghiep:
+  - ma so thue
+  - nam thanh lap
+  - nganh/lĩnh vuc
+  - quy mo
+  - doanh thu
+  - so nhan su
+- Lien he va R&D:
+  - nguoi dai dien phap ly
+  - email lien he
+  - huong R&D
+  - nhu cau cong nghe
+  - TRL mong muon
+- Dau tu va chuyen giao:
+  - innovation index
+  - tai san da thuong mai hoa
+  - project da tham gia
+
+## 17.5 Funder fields
+
+Profile funder hien them cac nhom:
+
+- Thong tin nha tai tro:
+  - loai nha tai tro
+  - nang luc ngan sach
+  - nguoi lien he
+  - email lien he
+- Chien luoc tai tro:
+  - huong tai tro
+  - linh vuc uu tien
+  - khoang TRL uu tien
+  - muc tai tro dien hinh
+  - tieu chi hop le
+- Chuong trinh va tac dong:
+  - danh sach chuong trinh
+  - project da tai tro
+  - ty le project thanh cong
+  - ty le thuong mai hoa
+
+## 17.6 Luu nested profile_data
+
+Da lam:
+
+- Them helper `getNestedValue()`.
+- Them helper `setNestedValue()`.
+- Field co key dang dot path, vi du:
+
+```text
+academic_metrics.h_index
+funding_strategy.focus_sectors
+rd_profile.technology_needs
+```
+
+- Khi user sua, frontend cap nhat nested object trong `profile_data`.
+
+Muc dich:
+
+- Du lieu luu trong MongoDB gan voi thiet ke object cua tung doi tuong.
+- Khong can tao hang chuc field phang trong schema API.
+
+## 17.7 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+## 17.8 Ghi chu con lai
+
+- Moi role da co cac field quan trong, nhung chua copy 100% tat ca field trong ban thiet ke anh vi qua dai.
+- Project profile hien tai van o luong `Create Project`/`My Projects`, chua dua vao trang Profile user.
+- Neu can day du hon, co the tiep tuc bo sung field vao `roleSections` ma khong can doi backend vi da co `profile_data`.
+
+# Phase 18 - Them social links luc register va uu tien nhap thong tin chuyen gia co ban (2026-05-27)
+
+Muc tieu: khi dang ky, user co the nhap cac social/academic links de he thong ve sau tu dong crawl/enrich data. Trong Profile, phan chinh sua uu tien cac thong tin co ban theo doi tuong truoc khi den skill/topic recommendation.
+
+## 18.1 Register them social/academic links
+
+File:
+
+```text
+frontend/src/app/auth/register/page.tsx
+frontend/src/lib/api.ts
+backend/models/schemas.py
+backend/services/auth_service.py
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Them cac field optional trong register:
+  - Website / profile URL
+  - LinkedIn
+  - Google Scholar
+  - ORCID
+- Frontend gui ve backend trong object:
+
+```json
+{
+  "social_links": {
+    "website": "...",
+    "linkedin": "...",
+    "google_scholar": "...",
+    "orcid": "..."
+  }
+}
+```
+
+- Backend luu `social_links` vao user va copy sang role entity.
+
+Muc dich:
+
+- User khong can nhap het profile ngay luc register.
+- He thong co link nguon de build pipeline crawl/enrichment sau nay.
+
+## 18.2 Profile cho sua social links
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Them cac input social links trong Profile detail/edit mode:
+  - Website / profile URL
+  - LinkedIn
+  - Google Scholar
+  - ORCID
+- Them helper `updateSocialLink()`.
+
+Muc dich:
+
+- User co the bo sung/sua link sau register.
+- Social links tiep tuc nam trong profile, san sang cho pipeline auto-fetch.
+
+## 18.3 Uu tien thong tin chuyen gia/doanh nghiep/nha tai tro co ban truoc
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Di chuyen section `Thong tin rieng cho {role}` len truoc skill/topic.
+- Khi user bam chinh sua, cac field rieng theo role se xuat hien truoc:
+  - Expert: thong tin ca nhan, dinh danh nghien cuu, hoc thuat/nang luc.
+  - Enterprise: thong tin doanh nghiep, lien he/R&D, dau tu/chuyen giao.
+  - Funder: thong tin nha tai tro, chien luoc tai tro, chuong trinh/tac dong.
+- Skill/topic recommendation nam sau phan profile chuyen mon.
+
+Muc dich:
+
+- User nhap thong tin nghiep vu co ban truoc.
+- Skill/topic van quan trong cho recommendation, nhung khong lap tuc lan at phan ho so chuyen gia.
+
+## 18.4 Kiem tra
+
+Da chay:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 19 - Dieu chinh field co ban cua Expert profile (2026-05-27)
+
+Muc tieu: lam phan chinh sua profile Expert gon va dung dang input hon. Bo cac field trung/lien quan den dia diem da co o phan location, va chuan hoa cac field nen chon theo option.
+
+## 19.1 Bo field khong can trong Expert basic info
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Bo `Quoc tich`.
+- Bo `Ngon ngu uu tien`.
+- Bo field `Dia chi` chung trong form profile, vi location da co:
+  - Country
+  - Tinh/Thanh
+  - Quan/Huyen
+
+Muc dich:
+
+- Tranh trung lap thong tin dia diem.
+- Giam so field user phai nhin thay khi bo sung profile.
+
+## 19.2 Doi nam sinh sang date picker
+
+Da lam:
+
+- Doi field:
+
+```text
+basic_info.birth_year
+```
+
+thanh:
+
+```text
+basic_info.birth_date
+```
+
+- Render bang input:
+
+```html
+type="date"
+```
+
+Muc dich:
+
+- Khi user bam vao co UI chon ngay/thang/nam giong lich cua browser.
+- Du lieu ngay sinh day du hon nam sinh.
+
+## 19.3 Gioi tinh va hoc ham/hoc vi dung option
+
+Da lam:
+
+- Them `kind = "select"` cho field dong trong `roleSections`.
+- Gioi tinh co option:
+  - Nam
+  - Nu
+  - Khac
+  - Khong muon cung cap
+- Hoc ham/hoc vi co option:
+  - Cu nhan/Ky su
+  - Thac si
+  - Tien si
+  - Pho giao su
+  - Giao su
+  - Khac
+
+Muc dich:
+
+- Du lieu nhap vao thong nhat hon.
+- Giam loi do user go tu do.
+
+## 19.4 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 20 - Fix header va polish Profile voi GSAP ScrollTrigger (2026-05-27)
+
+Muc tieu: sua header bi roi layout/brand xuong dong xau, dong thoi lam trang Profile gon va co hieu ung reveal nhe khi cuon.
+
+## 20.1 Fix Navbar/Header
+
+File:
+
+```text
+frontend/src/components/navigation/navbar.tsx
+```
+
+Da lam:
+
+- Doi container header sang grid:
+
+```text
+brand | nav | account/status
+```
+
+- Brand co width on dinh hon, icon khong co lai, text dung `truncate`.
+- Nav item co `shrink-0` va vung nav co `overflow-x-auto` de khong chen ep brand/account khi man hinh hep.
+- Account/user name co `max-width` va `truncate` de khong day layout.
+- FastAPI status duoc rut gon va truncate.
+- Them shadow nhe cho header de tach khoi noi dung.
+
+Muc dich:
+
+- Khong con hien brand bi vo dong nhu anh chup.
+- Header phu hop voi app dashboard hon, nhin gon va chuyen nghiep hon.
+
+## 20.2 Them GSAP ScrollTrigger cho Profile
+
+File:
+
+```text
+frontend/src/app/profile/page.tsx
+```
+
+Da lam:
+
+- Import `gsap` va `ScrollTrigger`.
+- Register plugin:
+
+```ts
+gsap.registerPlugin(ScrollTrigger)
+```
+
+- Them class animation:
+  - `.profile-shell`
+  - `.profile-reveal`
+  - `.profile-detail`
+  - `.profile-detail-reveal`
+- Header/profile summary/warning/detail fields reveal nhe khi vao viewport.
+
+Muc dich:
+
+- Trang profile co cam giac chinh chu hon.
+- Hieu ung nhe, khong lam roi UX cua dashboard.
+
+## 20.3 Polish profile card/detail
+
+Da lam:
+
+- Them `shadow-sm` cho summary card va detail card.
+- Gan reveal cho cac nhom thong tin quan trong.
+- Giu layout gọn: thong tin co ban o tren, thong tin chi tiet o duoi khi user mo.
+
+## 20.4 Kiem tra
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da chay:
+
+```powershell
+cd frontend
+npm.cmd run typecheck
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+# Phase 24 - Chuan hoa luu entity theo schema add_data (2026-05-27)
+
+Ghi chu: muc chi tiet da duoc ghi trong file nay o phan "Chuan hoa luu entity theo schema add_data". Phase nay duoc danh dau lai o cuoi nhat ky de the hien dung thu tu cong viec moi nhat.
+
+Da lam:
+
+- Backend khong con tao entity user moi theo schema phang rieng.
+- Expert/Enterprise/Funder moi duoc luu theo cac khoi nested giong data trong `add_data`: `basic_info`, `contact_info`, `research_capacity`, `rd_profile`, `funding_strategy`, `relations`, `governance`.
+- Project user tao moi duoc luu theo schema project nested: `basic_info`, `requirements_and_timeline`, `rd_profile`, `relations`, `follow_up_opportunities`, `governance`.
+- Chi cac field he thong can thiet moi nam o top-level: `user_id`, `owner_id`, `source`, `entity_verification_status`, `kg_sync_status`, `visibility`, `participation_scope`, `trust_weight`, `duplicate_candidates`, `matched_existing_entity_id`, `kg_schema_version`, `provisional_sync_version`, timestamps.
+- Profile/API/Admin/KG sync duoc cap nhat de doc nested fields, dong thoi van fallback duoc data cu dang co field phang.
+
+Lam the de:
+
+- Giu du lieu MongoDB thong nhat voi pipeline crawl/seed/convert KG.
+- Tranh viec user-created data va crawled data co hai schema khac nhau.
+- Bao toan logic Provisional KG Sync, duplicate matching, admin review va PGPR recommendation.
+
+Kiem tra:
+
+```powershell
+cd backend
+python -m compileall main.py api services repositories models
+```
+
+Ket qua:
+
+```text
+PASS
+```

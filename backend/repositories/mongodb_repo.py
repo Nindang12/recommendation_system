@@ -29,17 +29,17 @@ ENTITY_ID_FIELDS = {
 }
 
 ENTITY_NAME_FIELDS = {
-    "projects": ["title", "name", "project_name"],
-    "experts": ["name", "full_name", "expert_name"],
-    "funders": ["name", "funder_name", "organization_name"],
-    "enterprises": ["name", "enterprise_name", "company_name"],
+    "projects": ["title", "name", "project_name", "basic_info.title", "basic_info.name"],
+    "experts": ["name", "full_name", "expert_name", "basic_info.name"],
+    "funders": ["name", "funder_name", "organization_name", "basic_info.name"],
+    "enterprises": ["name", "enterprise_name", "company_name", "basic_info.name"],
 }
 
 ENTITY_SUMMARY_FIELDS = {
-    "projects": ["summary", "description", "abstract", "objectives"],
-    "experts": ["summary", "bio", "description", "affiliation"],
-    "funders": ["summary", "description", "mission"],
-    "enterprises": ["summary", "description", "business_description"],
+    "projects": ["summary", "description", "abstract", "objectives", "basic_info.description", "basic_info.abstract"],
+    "experts": ["summary", "bio", "description", "affiliation", "academic_profile.current_affiliation.org_name"],
+    "funders": ["summary", "description", "mission", "basic_info.type"],
+    "enterprises": ["summary", "description", "business_description", "basic_info.description"],
 }
 
 
@@ -209,10 +209,19 @@ class MongoDBRepository:
         fields: List[str],
     ) -> Optional[Any]:
         for field in fields:
-            value = data.get(field)
+            value = self._get_path(data, field)
             if value not in (None, "", [], {}):
                 return value
         return None
+
+    def _get_path(self, data: Dict[str, Any], path: str) -> Any:
+        current: Any = data
+        for part in path.split("."):
+            if isinstance(current, dict):
+                current = current.get(part)
+            else:
+                return None
+        return current
 
     def _json_safe(self, value: Any) -> Any:
         if isinstance(value, ObjectId):

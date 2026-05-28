@@ -102,6 +102,18 @@ def get_current_user(
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
+def get_current_admin_user(current_user=Depends(get_current_user)):
+    if current_user.get("account_role") not in {"admin", "root_admin"}:
+        raise HTTPException(status_code=403, detail="Admin permission required")
+    return current_user
+
+
+def get_current_root_admin(current_user=Depends(get_current_user)):
+    if current_user.get("account_role") != "root_admin":
+        raise HTTPException(status_code=403, detail="Root admin permission required")
+    return current_user
+
+
 def get_optional_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     service: AuthService = Depends(get_auth_service),

@@ -12,11 +12,17 @@ from api.deps import get_pgpr_graph_repo
 from api.v1.endpoints import admin, auth, entities, evaluation, explanations, graph, health, recommendations, taxonomy
 from services.auth_service import AuthService
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s:%(name)s:%(message)s",
-    force=True,
-)
+def _configure_logging() -> None:
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    if os.getenv("LOG_FORMAT", "text").lower() == "json":
+        fmt = '{"level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}'
+    else:
+        fmt = "%(levelname)s:%(name)s:%(message)s"
+    logging.basicConfig(level=level, format=fmt, force=True)
+
+
+_configure_logging()
 logger = logging.getLogger("backend")
 
 

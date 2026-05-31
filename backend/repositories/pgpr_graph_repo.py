@@ -222,6 +222,24 @@ class PGPRGraphRepository:
             props=properties,
         )
 
+    def update_entity_embedding(
+        self,
+        entity_type: str,
+        entity_id: str,
+        embedding: Dict[str, Any],
+    ) -> None:
+        props = {
+            "embedding_status": embedding.get("status"),
+            "embedding_model": embedding.get("model"),
+            "embedding_version": embedding.get("version"),
+            "embedding_dimension": embedding.get("dimension"),
+            "embedding_source_hash": embedding.get("source_hash"),
+            "embedding_signal": embedding.get("signal"),
+            "embedding_updated_at": str(embedding.get("updated_at")),
+            "embedding_vector": embedding.get("vector"),
+        }
+        self.update_entity_verification_status(entity_type, entity_id, props)
+
     def disable_entity(self, entity_type: str, entity_id: str, merged_into: Optional[str] = None) -> None:
         props = {
             "kg_sync_status": "disabled",
@@ -374,14 +392,14 @@ class PGPRGraphRepository:
           [n IN nodes | {{
             id: coalesce(
               n.project_id, n.expert_id, n.funder_id, n.enterprise_id,
-              n.topic_id, n.direction_id, n.field_id, n.industry_id,
+              n.topic_id, n.direction_id, n.industry_id,
               n.location_id, n.dataset_id, n.product_id,
               elementId(n)
             ),
             label: coalesce(
               n.name, n.title, n.label,
               n.project_id, n.expert_id, n.funder_id, n.enterprise_id,
-              n.topic_id, n.direction_id, n.field_id, n.industry_id,
+              n.topic_id, n.direction_id, n.industry_id,
               n.location_id, elementId(n)
             ),
             type: labels(n)[0],
@@ -391,13 +409,13 @@ class PGPRGraphRepository:
             id: elementId(r),
             source: coalesce(
               startNode(r).project_id, startNode(r).expert_id, startNode(r).funder_id, startNode(r).enterprise_id,
-              startNode(r).topic_id, startNode(r).direction_id, startNode(r).field_id, startNode(r).industry_id,
+              startNode(r).topic_id, startNode(r).direction_id, startNode(r).industry_id,
               startNode(r).location_id, startNode(r).dataset_id, startNode(r).product_id,
               elementId(startNode(r))
             ),
             target: coalesce(
               endNode(r).project_id, endNode(r).expert_id, endNode(r).funder_id, endNode(r).enterprise_id,
-              endNode(r).topic_id, endNode(r).direction_id, endNode(r).field_id, endNode(r).industry_id,
+              endNode(r).topic_id, endNode(r).direction_id, endNode(r).industry_id,
               endNode(r).location_id, endNode(r).dataset_id, endNode(r).product_id,
               elementId(endNode(r))
             ),

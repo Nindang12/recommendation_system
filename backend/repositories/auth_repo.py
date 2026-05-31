@@ -10,6 +10,7 @@ from pymongo import ASCENDING, MongoClient
 from pymongo.errors import DuplicateKeyError
 
 from models.research_taxonomy import RESEARCH_TOPIC_LABEL_MAP, research_direction_label, research_topic_direction
+from services.embedding_metadata_service import EmbeddingMetadataService
 
 load_dotenv(find_dotenv())
 
@@ -37,8 +38,10 @@ class AuthRepository:
                 collection.create_index([("contact_info.emails", ASCENDING)], sparse=True)
                 collection.create_index([("user_id", ASCENDING)], sparse=True)
                 collection.create_index([("basic_info.name", ASCENDING)], sparse=True)
+                collection.create_index([("embedding.status", ASCENDING)], sparse=True)
             self.projects.create_index([("owner_id", ASCENDING)])
             self.projects.create_index([("project_id", ASCENDING)], unique=True, sparse=True)
+            self.projects.create_index([("embedding.status", ASCENDING)], sparse=True)
             self.audit_logs.create_index([("entity_type", ASCENDING), ("entity_id", ASCENDING)])
         except Exception:
             # Index creation should not make the API unusable in local/demo mode.
@@ -353,6 +356,8 @@ class AuthRepository:
             "claim_status": "pending_review" if is_merge_required else None,
             "kg_schema_version": 1,
             "provisional_sync_version": 1,
+            "embedding": EmbeddingMetadataService.default_embedding(str(user.get("role") or ""), {}, now=now),
+            "embedding_status": "pending",
             "created_at": now,
             "updated_at": now,
         }
@@ -649,6 +654,8 @@ class AuthRepository:
         entity_id = f"{prefix}_{ObjectId()}"
         payload = self._build_role_entity_payload(role, user, entity_id, match_result, now)
         payload[id_field] = entity_id
+        payload["embedding"] = EmbeddingMetadataService.default_embedding(role, payload, now=now)
+        payload["embedding_status"] = payload["embedding"].get("status")
         result = collection.insert_one(payload)
         payload["_id"] = result.inserted_id
         return payload
@@ -659,9 +666,25 @@ class AuthRepository:
         if collection is None or role not in {"expert", "enterprise", "funder"}:
             return None
         user_id = str(user.get("_id"))
+        before = collection.find_one({"user_id": user_id})
         update = self._build_role_entity_update(role, user)
         collection.update_one({"user_id": user_id}, {"$set": update})
-        return collection.find_one({"user_id": user_id})
+        updated = collection.find_one({"user_id": user_id})
+        if updated:
+            embedding = EmbeddingMetadataService.refresh_after_source_change(role, updated)
+            if embedding != (updated.get("embedding") or {}) or (before and not before.get("embedding")):
+                collection.update_one(
+                    {"user_id": user_id},
+                    {
+                        "$set": {
+                            "embedding": embedding,
+                            "embedding_status": embedding.get("status"),
+                            "updated_at": datetime.now(timezone.utc),
+                        }
+                    },
+                )
+                updated = collection.find_one({"user_id": user_id})
+        return updated
 
     def update_entity_status(self, entity_type: str, entity_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         collection = self.get_entity_collection(entity_type)
@@ -739,6 +762,8 @@ class AuthRepository:
             "created_at": now,
             "updated_at": now,
         }
+        payload["embedding"] = EmbeddingMetadataService.default_embedding("project", payload, now=now)
+        payload["embedding_status"] = payload["embedding"].get("status")
         result = self.projects.insert_one(payload)
         payload["_id"] = result.inserted_id
         return payload

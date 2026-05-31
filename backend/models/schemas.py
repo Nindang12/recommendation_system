@@ -94,8 +94,19 @@ class RecommendationItem(BaseModel):
     verification_badges: Optional[Dict[str, Any]] = None
     scoring_method: Optional[str] = Field(
         default=None,
-        description="pgpr_policy | cypher_fallback | hybrid",
+        description="pgpr_policy | cypher_fallback | hybrid_embedding_path | hybrid_embedding",
     )
+    evidence_level: Optional[str] = Field(
+        default=None,
+        description="path_supported | embedding_only | fallback_only",
+    )
+    cold_start: Optional[bool] = None
+    embedding_status: Optional[str] = None
+    recommendation_mode: Optional[str] = None
+    recommendation_readiness: Optional[str] = None
+    recommendation_message: Optional[str] = None
+    embedding_similarity: Optional[float] = None
+    topic_overlap: Optional[float] = None
     fallback_reason: Optional[str] = Field(
         default=None,
         description="Human-readable reason when reasoning_paths are missing or weak",
@@ -110,6 +121,10 @@ class RecommendationResponse(BaseModel):
 
 # Backward-compatibility alias used by existing service code.
 ExpertRecommendation = RecommendationItem
+
+
+class EmbeddingRecomputeRequest(BaseModel):
+    reason: str = Field(default="", description="Why this recompute was requested (audit log)")
 
 
 class ExplainRecommendationRequest(BaseModel):

@@ -11,6 +11,11 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def _assert_admin_debug_allowed(mode: str, current_user: dict | None) -> None:
+    if mode == "admin_debug" and (current_user or {}).get("account_role") not in {"admin", "root_admin"}:
+        raise HTTPException(status_code=403, detail="Admin permission required for admin_debug mode")
+
+
 @router.get(
     "/paths",
     response_model=GraphPathsResponse,
@@ -28,6 +33,7 @@ async def get_graph_paths(
     service: GraphService = Depends(get_graph_service),
 ) -> GraphPathsResponse:
     try:
+        _assert_admin_debug_allowed(mode, current_user)
         paths = await service.get_reasoning_paths(
             source_type=source_type,
             source_id=source_id,
@@ -41,6 +47,8 @@ async def get_graph_paths(
         return GraphPathsResponse(status="success", data=paths, count=len(paths))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("get_graph_paths failed")
         raise HTTPException(status_code=500, detail="Internal error") from exc
@@ -61,6 +69,7 @@ async def get_entity_neighbors(
     service: GraphService = Depends(get_graph_service),
 ) -> GraphNeighborsResponse:
     try:
+        _assert_admin_debug_allowed(mode, current_user)
         graph = await service.get_entity_neighbors(
             entity_type=entity_type,
             entity_id=entity_id,
@@ -73,6 +82,8 @@ async def get_entity_neighbors(
         return GraphNeighborsResponse(status="success", data=graph, count=node_count)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("get_entity_neighbors failed")
         raise HTTPException(status_code=500, detail="Internal error") from exc

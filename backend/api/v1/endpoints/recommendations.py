@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.deps import get_recommendation_service
+from api.deps import get_optional_current_user, get_recommendation_service
 from models.schemas import (
     RecommendationRequest, 
     RecommendationResponse, 
@@ -16,6 +16,14 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def _resolve_recommendation_context(request: RecommendationRequest, current_user: dict | None) -> tuple[str, str | None]:
+    mode = request.mode
+    if mode == "admin_debug" and (current_user or {}).get("account_role") not in {"admin", "root_admin"}:
+        raise HTTPException(status_code=403, detail="Admin permission required for admin_debug mode")
+    current_user_id = (current_user or {}).get("id") or request.current_user_id
+    return mode, current_user_id
+
+
 @router.post(
     "/experts",
     response_model=RecommendationResponse,
@@ -23,6 +31,7 @@ logger = logging.getLogger(__name__)
 )
 async def recommend_experts(
     request: RecommendationRequest,
+    current_user: dict | None = Depends(get_optional_current_user),
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationResponse:
     """
@@ -34,14 +43,15 @@ async def recommend_experts(
     try:
         if not request.project_id:
             raise HTTPException(status_code=422, detail="project_id is required for /experts")
+        mode, current_user_id = _resolve_recommendation_context(request, current_user)
         results = await service.get_recommendations_by_policy(
             source_id=request.project_id,
             source_type="project",
             target_type="expert",
             limit=request.limit,
             language=request.language,
-            mode=request.mode,
-            current_user_id=request.current_user_id,
+            mode=mode,
+            current_user_id=current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -50,6 +60,8 @@ async def recommend_experts(
         )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("Unhandled error in recommend_experts")
         raise HTTPException(status_code=500, detail="Internal error") from exc
@@ -62,6 +74,7 @@ async def recommend_experts(
 )
 async def recommend_funders_for_project(
     request: RecommendationRequest,
+    current_user: dict | None = Depends(get_optional_current_user),
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationResponse:
     """
@@ -70,14 +83,15 @@ async def recommend_funders_for_project(
     try:
         if not request.project_id:
             raise HTTPException(status_code=422, detail="project_id is required for /funders")
+        mode, current_user_id = _resolve_recommendation_context(request, current_user)
         results = await service.get_recommendations_by_policy(
             source_id=request.project_id,
             source_type="project",
             target_type="funder",
             limit=request.limit,
             language=request.language,
-            mode=request.mode,
-            current_user_id=request.current_user_id,
+            mode=mode,
+            current_user_id=current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -86,6 +100,8 @@ async def recommend_funders_for_project(
         )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("Unhandled error in recommend_funders_for_project")
         raise HTTPException(status_code=500, detail="Internal error") from exc
@@ -98,22 +114,24 @@ async def recommend_funders_for_project(
 )
 async def recommend_by_policy(
     request: RecommendationRequest,
+    current_user: dict | None = Depends(get_optional_current_user),
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationResponse:
     if not request.source_id or not request.source_type or not request.target_type:
         raise HTTPException(
             status_code=422,
             detail="source_id, source_type, target_type are required for /policy",
-        )
+    )
     try:
+        mode, current_user_id = _resolve_recommendation_context(request, current_user)
         results = await service.get_recommendations_by_policy(
             source_id=request.source_id,
             source_type=request.source_type,
             target_type=request.target_type,
             limit=request.limit,
             language=request.language,
-            mode=request.mode,
-            current_user_id=request.current_user_id,
+            mode=mode,
+            current_user_id=current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -122,6 +140,8 @@ async def recommend_by_policy(
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("Unhandled error in recommend_by_policy")
         raise HTTPException(status_code=500, detail="Internal error") from exc
@@ -134,22 +154,24 @@ async def recommend_by_policy(
 )
 async def recommend_specific_entity(
     request: RecommendationRequest,
+    current_user: dict | None = Depends(get_optional_current_user),
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationResponse:
     if not request.source_id or not request.source_type or not request.target_type or not request.target_id:
         raise HTTPException(
             status_code=422,
             detail="source_id, source_type, target_type, target_id are required for /entity",
-        )
+    )
     try:
+        mode, current_user_id = _resolve_recommendation_context(request, current_user)
         results = await service.evaluate_target_entity(
             source_id=request.source_id,
             source_type=request.source_type,
             target_id=request.target_id,
             target_type=request.target_type,
             language=request.language,
-            mode=request.mode,
-            current_user_id=request.current_user_id,
+            mode=mode,
+            current_user_id=current_user_id,
         )
         return RecommendationResponse(
             status="success",
@@ -158,6 +180,8 @@ async def recommend_specific_entity(
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("Unhandled error in recommend_specific_entity")
         raise HTTPException(status_code=500, detail="Internal error") from exc

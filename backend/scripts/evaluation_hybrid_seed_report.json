@@ -1,0 +1,33 @@
+{
+  "seeded": [
+    {
+      "entity_type": "project",
+      "entity_id": "prj_001"
+    },
+    {
+      "entity_type": "project",
+      "entity_id": "prj_005"
+    },
+    {
+      "entity_type": "expert",
+      "entity_id": "exp_001"
+    },
+    {
+      "entity_type": "expert",
+      "entity_id": "exp_006"
+    },
+    {
+      "entity_type": "enterprise",
+      "entity_id": "ent_001"
+    },
+    {
+      "entity_type": "funder",
+      "entity_id": "fnd_001"
+    },
+    {
+      "entity_type": "funder",
+      "entity_id": "fnd_002"
+    }
+  ],
+  "missing": []
+}

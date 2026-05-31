@@ -4,7 +4,9 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.deps import get_entity_service
+from api.deps import get_current_user, get_embedding_admin_service, get_entity_service
+from models.schemas import EmbeddingRecomputeRequest
+from services.embedding_admin_service import EmbeddingAdminService
 from services.entity_service import EntityService
 
 router = APIRouter()
@@ -48,6 +50,56 @@ async def list_enterprises(
     service: EntityService = Depends(get_entity_service),
 ) -> Dict[str, Any]:
     return await _list_entities(service, "enterprise", search=search, limit=limit, page=page)
+
+
+@router.get("/{entity_type}/{entity_id}/embedding-status")
+async def get_entity_embedding_status(
+    entity_type: str,
+    entity_id: str,
+    current_user: dict = Depends(get_current_user),
+    service: EmbeddingAdminService = Depends(get_embedding_admin_service),
+) -> Dict[str, Any]:
+    is_admin = (current_user or {}).get("account_role") in {"admin", "root_admin"}
+    try:
+        data = service.get_embedding_status(
+            entity_type,
+            entity_id,
+            actor_user_id=str(current_user["id"]),
+            is_admin=is_admin,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"status": "success", "data": data}
+
+
+@router.post("/{entity_type}/{entity_id}/embedding/recompute")
+async def recompute_entity_embedding(
+    entity_type: str,
+    entity_id: str,
+    payload: EmbeddingRecomputeRequest | None = None,
+    current_user: dict = Depends(get_current_user),
+    service: EmbeddingAdminService = Depends(get_embedding_admin_service),
+) -> Dict[str, Any]:
+    is_admin = (current_user or {}).get("account_role") in {"admin", "root_admin"}
+    body = payload or EmbeddingRecomputeRequest()
+    try:
+        data = service.recompute_entity(
+            entity_type,
+            entity_id,
+            actor_user_id=str(current_user["id"]),
+            is_admin=is_admin,
+            reason=body.reason,
+            source="api.user.recompute" if not is_admin else "api.admin.recompute",
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        detail = str(exc)
+        status = 429 if detail.startswith("Rate limit") else 404
+        raise HTTPException(status_code=status, detail=detail) from exc
+    return {"status": "success", "data": data}
 
 
 @router.get("/{entity_type}/{entity_id}")

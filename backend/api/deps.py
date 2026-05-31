@@ -6,6 +6,7 @@ from services.health_service import HealthService
 from services.graph_service import GraphService
 from services.evaluation_service import EvaluationService
 from services.auth_service import AuthService
+from services.embedding_admin_service import EmbeddingAdminService
 from pgpr.pgpr_recommendation import PGPRRecommender
 from pgpr.pgpr_xai_explainer import PGPRExplainer
 from repositories.pgpr_graph_repo import PGPRGraphRepository
@@ -88,6 +89,10 @@ def get_auth_service() -> AuthService:
     if _auth_service is None:
         _auth_service = AuthService()
     return _auth_service
+
+
+def get_embedding_admin_service() -> EmbeddingAdminService:
+    return EmbeddingAdminService()
 
 
 def get_current_user(

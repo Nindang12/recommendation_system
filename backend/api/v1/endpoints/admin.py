@@ -6,10 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from api.deps import get_auth_service, get_current_admin_user, get_current_root_admin
-from models.schemas import AdminCreateUserRequest
+from models.schemas import AdminCreateUserRequest, EmbeddingRecomputeRequest
 from repositories.auth_repo import AuthRepository
 from services.admin_audit_log_service import AdminAuditLogService
 from services.auth_service import AuthService
+from api.deps import get_embedding_admin_service
+from services.embedding_admin_service import EmbeddingAdminService
 from services.provisional_kg_sync_service import ProvisionalKGSyncService
 
 router = APIRouter()
@@ -217,6 +219,76 @@ async def merge_entity(
         reason=payload.reason,
     )
     return {"status": "success", "data": repo._json_safe(entity)}
+
+
+@router.get("/embedding/pipeline-status")
+async def embedding_pipeline_status(
+    current_user: Dict[str, Any] = Depends(get_current_admin_user),
+    service: EmbeddingAdminService = Depends(get_embedding_admin_service),
+) -> Dict[str, Any]:
+    _ = current_user
+    return {"status": "success", "data": service.pipeline_status()}
+
+
+@router.get("/embedding/jobs")
+async def list_embedding_jobs(
+    status: str | None = None,
+    entity_type: str | None = None,
+    limit: int = 50,
+    page: int = 1,
+    current_user: Dict[str, Any] = Depends(get_current_admin_user),
+    service: EmbeddingAdminService = Depends(get_embedding_admin_service),
+) -> Dict[str, Any]:
+    _ = current_user
+    data = service.list_jobs(status=status, entity_type=entity_type, limit=limit, page=page)
+    return {"status": "success", **data}
+
+
+@router.post("/embedding/retry-failed")
+async def retry_failed_embedding_jobs(
+    limit: int = 50,
+    reason: str = "",
+    entity_type: str | None = None,
+    error_type: str | None = None,
+    include_permanent: bool = False,
+    current_user: Dict[str, Any] = Depends(get_current_admin_user),
+    service: EmbeddingAdminService = Depends(get_embedding_admin_service),
+) -> Dict[str, Any]:
+    try:
+        data = service.retry_failed_jobs(
+            admin_user_id=str(current_user["id"]),
+            limit=min(max(limit, 1), 200),
+            reason=reason,
+            entity_type=entity_type,
+            error_type=error_type,
+            include_permanent=include_permanent,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"status": "success", "data": data}
+
+
+@router.post("/entities/{entity_type}/{entity_id}/embedding/recompute")
+async def admin_recompute_entity_embedding(
+    entity_type: str,
+    entity_id: str,
+    payload: EmbeddingRecomputeRequest | None = None,
+    current_user: Dict[str, Any] = Depends(get_current_admin_user),
+    service: EmbeddingAdminService = Depends(get_embedding_admin_service),
+) -> Dict[str, Any]:
+    body = payload or EmbeddingRecomputeRequest()
+    try:
+        data = service.recompute_entity(
+            entity_type,
+            entity_id,
+            actor_user_id=str(current_user["id"]),
+            is_admin=True,
+            reason=body.reason,
+            source="api.admin.recompute",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"status": "success", "data": data}
 
 
 @router.get("/users")

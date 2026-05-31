@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from core.cache import cache
+from infrastructure.rabbitmq_client import RabbitMQClient
 from repositories.mongodb_repo import MongoDBRepository
 from repositories.neo4j_repo import Neo4jRepository
 
@@ -28,6 +29,7 @@ class HealthService:
             "mongodb": self._check_mongodb(),
             "neo4j": self._check_neo4j(),
             "redis": await self._check_redis_optional(),
+            "rabbitmq": self._check_rabbitmq_optional(),
             "pgpr": self._check_pgpr_assets(),
         }
         is_core_ok = (
@@ -69,6 +71,12 @@ class HealthService:
         except Exception:
             return "optional"
 
+    def _check_rabbitmq_optional(self) -> str:
+        try:
+            return RabbitMQClient().health()
+        except Exception:
+            return "unavailable_optional"
+
     def _check_pgpr_assets(self) -> str:
         default_dir = Path(__file__).parents[1] / "pgpr" / "pgpr_data"
         data_dir = Path(os.getenv("PGPR_DATA_DIR", default_dir))
@@ -79,4 +87,3 @@ class HealthService:
         if vocab_exists:
             return "missing_policy"
         return "missing_data"
-

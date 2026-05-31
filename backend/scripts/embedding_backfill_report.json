@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-05-28T08:04:15.980159+00:00",
+  "apply": false,
+  "refresh_stale": false,
+  "collections": [
+    {
+      "entity_type": "expert",
+      "collection": "experts",
+      "scanned": 11,
+      "missing_embedding": 0,
+      "stale_hash": 0,
+      "updated": 0,
+      "examples": []
+    },
+    {
+      "entity_type": "enterprise",
+      "collection": "enterprises",
+      "scanned": 7,
+      "missing_embedding": 0,
+      "stale_hash": 0,
+      "updated": 0,
+      "examples": []
+    },
+    {
+      "entity_type": "funder",
+      "collection": "funders",
+      "scanned": 7,
+      "missing_embedding": 0,
+      "stale_hash": 0,
+      "updated": 0,
+      "examples": []
+    },
+    {
+      "entity_type": "project",
+      "collection": "projects",
+      "scanned": 7,
+      "missing_embedding": 0,
+      "stale_hash": 0,
+      "updated": 0,
+      "examples": []
+    }
+  ],
+  "finished_at": "2026-05-28T08:04:15.988912+00:00"
+}

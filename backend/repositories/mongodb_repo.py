@@ -179,9 +179,37 @@ class MongoDBRepository:
             "summary": summary or "",
             "metadata": self._extract_metadata(data, collection_name),
         }
+        embedding_metadata = self._extract_embedding_metadata(data)
+        if embedding_metadata:
+            normalized["metadata"]["embedding"] = embedding_metadata
+            normalized["metadata"]["embedding_status"] = embedding_metadata.get("status")
         if include_raw:
             normalized["raw"] = data
         return normalized
+
+    def _extract_embedding_metadata(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        embedding = data.get("embedding")
+        if not isinstance(embedding, dict):
+            status = data.get("embedding_status")
+            return {"status": status} if status else {}
+        return {
+            "status": embedding.get("status"),
+            "job_id": embedding.get("job_id"),
+            "last_event_id": embedding.get("last_event_id"),
+            "retry_count": embedding.get("retry_count"),
+            "max_retry": embedding.get("max_retry"),
+            "model": embedding.get("model"),
+            "version": embedding.get("version"),
+            "dimension": embedding.get("dimension"),
+            "source_hash": embedding.get("source_hash"),
+            "last_queued_at": embedding.get("last_queued_at"),
+            "last_processed_at": embedding.get("last_processed_at"),
+            "updated_at": embedding.get("updated_at"),
+            "error": embedding.get("error"),
+            "error_type": embedding.get("error_type"),
+            "normalized": embedding.get("normalized"),
+            "signal": embedding.get("signal"),
+        }
 
     def _extract_metadata(
         self,
@@ -197,6 +225,8 @@ class MongoDBRepository:
         metadata: Dict[str, Any] = {}
         for key, value in data.items():
             if key in excluded or value in (None, "", [], {}):
+                continue
+            if key == "embedding":
                 continue
             metadata[key] = value
             if len(metadata) >= 12:

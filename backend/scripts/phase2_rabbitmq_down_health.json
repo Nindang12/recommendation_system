@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "services": {
+    "mongodb": "connected",
+    "neo4j": "connected",
+    "redis": "optional",
+    "rabbitmq": "unavailable_optional",
+    "pgpr": "ready"
+  }
+}

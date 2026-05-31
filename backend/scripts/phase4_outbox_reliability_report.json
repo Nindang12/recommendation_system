@@ -1,0 +1,104 @@
+{
+  "started_at": "2026-05-28T09:59:55.940386+00:00",
+  "steps": [
+    {
+      "name": "start_clean_queue",
+      "queue": {
+        "embedding.jobs": 0,
+        "embedding.jobs.dlq": 0
+      },
+      "outbox_counts": {
+        "pending": 0,
+        "published": 0,
+        "failed": 0
+      }
+    },
+    {
+      "name": "register_publish_now",
+      "entity_id": "user_exp_6a18121c9d4ce7227d314a9c",
+      "outbox_status": "published",
+      "embedding_status": "queued",
+      "queue": {
+        "embedding.jobs": 1,
+        "embedding.jobs.dlq": 0
+      }
+    },
+    {
+      "name": "rabbitmq_down_pending_outbox",
+      "entity_id": "user_exp_6a18121c9d4ce7227d314aa0",
+      "outbox_status": "pending",
+      "retry_count": 1,
+      "embedding_status": "pending",
+      "error_type": "temporary",
+      "queue": {
+        "embedding.jobs": 1,
+        "embedding.jobs.dlq": 0
+      }
+    },
+    {
+      "name": "outbox_retry_publish",
+      "summary": {
+        "total": 1,
+        "published": 1,
+        "pending": 0,
+        "failed": 0,
+        "results": [
+          {
+            "event_id": "evt_c2dabd1fb3b847de933e330535f5f678",
+            "status": "published",
+            "ok": true,
+            "error": null
+          }
+        ]
+      },
+      "outbox_status": "published",
+      "embedding_status": "queued",
+      "queue": {
+        "embedding.jobs": 2,
+        "embedding.jobs.dlq": 0
+      }
+    },
+    {
+      "name": "no_duplicate_republish",
+      "summary": {
+        "total": 0,
+        "published": 0,
+        "pending": 0,
+        "failed": 0,
+        "results": []
+      },
+      "queue": {
+        "embedding.jobs": 2,
+        "embedding.jobs.dlq": 0
+      }
+    },
+    {
+      "name": "kg_sync_failed_no_outbox",
+      "result": {
+        "ok": false,
+        "status": "kg_not_ready",
+        "error": "sync_failed"
+      },
+      "outbox_count_before": 2,
+      "outbox_count_after": 2
+    },
+    {
+      "name": "max_retry_marks_failed",
+      "event_id": "evt_cc608504dded429e8b8f2977209f9919",
+      "retry_count": 3,
+      "max_retry": 3,
+      "status": "failed"
+    }
+  ],
+  "final_queue": {
+    "embedding.jobs": 0,
+    "embedding.jobs.dlq": 0
+  },
+  "outbox_counts": {
+    "pending": 0,
+    "published": 2,
+    "failed": 1
+  },
+  "finished_at": "2026-05-28T10:00:05.480361+00:00",
+  "status": "passed"
+}

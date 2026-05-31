@@ -38,7 +38,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
-import { AdminEntityRow, AdminUserRow, api, EntityType } from "@/lib/api";
+import {
+  AdminEntityRow,
+  AdminUserRow,
+  api,
+  EmbeddingJobRow,
+  EmbeddingPipelineStatus,
+  EntityType,
+} from "@/lib/api";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -94,6 +101,9 @@ export default function AdminPage() {
   const [rows, setRows] = useState<AdminEntityRow[]>([]);
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
   const [auditLogs, setAuditLogs] = useState<Record<string, unknown>[]>([]);
+  const [pipeline, setPipeline] = useState<EmbeddingPipelineStatus | null>(null);
+  const [embeddingJobs, setEmbeddingJobs] = useState<EmbeddingJobRow[]>([]);
+  const [embeddingBusy, setEmbeddingBusy] = useState(false);
   const [kgFilter, setKgFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -177,10 +187,14 @@ export default function AdminPage() {
         limit: 80,
       }),
       api.adminAuditLogs(30),
+      api.adminEmbeddingPipelineStatus(),
+      api.adminListEmbeddingJobs({ status: "failed", limit: 20 }),
     ])
-      .then(([entitiesRes, logsRes]) => {
+      .then(([entitiesRes, logsRes, pipelineRes, jobsRes]) => {
         setRows(entitiesRes.data ?? []);
         setAuditLogs(logsRes.data ?? []);
+        setPipeline(pipelineRes.data ?? null);
+        setEmbeddingJobs(jobsRes.jobs ?? []);
       })
       .catch((requestError) => {
         setError(requestError instanceof Error ? requestError.message : "Khong tai duoc du lieu admin");
@@ -216,6 +230,50 @@ export default function AdminPage() {
       reloadAdminUsers();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Khong tao duoc admin");
+    }
+  };
+
+  const reloadEmbeddingPanel = async () => {
+    if (!canAdmin) return;
+    const [pipelineRes, jobsRes] = await Promise.all([
+      api.adminEmbeddingPipelineStatus(),
+      api.adminListEmbeddingJobs({ status: "failed", limit: 20 }),
+    ]);
+    setPipeline(pipelineRes.data ?? null);
+    setEmbeddingJobs(jobsRes.jobs ?? []);
+  };
+
+  const retryFailedEmbeddings = async () => {
+    setEmbeddingBusy(true);
+    setError("");
+    try {
+      await api.adminRetryFailedEmbeddings({
+        limit: 50,
+        reason: "admin_console_retry",
+        error_type: "temporary",
+      });
+      await reloadEmbeddingPanel();
+      const logsRes = await api.adminAuditLogs(30);
+      setAuditLogs(logsRes.data ?? []);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Khong retry duoc embedding jobs");
+    } finally {
+      setEmbeddingBusy(false);
+    }
+  };
+
+  const recomputeEmbedding = async (entityType: EntityType, entityId: string) => {
+    setEmbeddingBusy(true);
+    setError("");
+    try {
+      await api.adminRecomputeEmbedding(entityType, entityId, "admin_console_recompute");
+      await reloadEmbeddingPanel();
+      const logsRes = await api.adminAuditLogs(30);
+      setAuditLogs(logsRes.data ?? []);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Khong recompute duoc embedding");
+    } finally {
+      setEmbeddingBusy(false);
     }
   };
 
@@ -293,6 +351,178 @@ export default function AdminPage() {
             </Card>
           ))}
         </section>
+
+        <Card className="admin-scroll-reveal rounded-md bg-white">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle>Embedding pipeline</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Theo doi queue RabbitMQ, outbox va trang thai embedding. Model:{" "}
+                {pipeline?.model ?? "graphsage_lite_v1"} ({pipeline?.embedding_dimension ?? 128}d).
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" disabled={embeddingBusy} onClick={() => void reloadEmbeddingPanel()}>
+                Lam moi
+              </Button>
+              <Button size="sm" disabled={embeddingBusy} onClick={() => void retryFailedEmbeddings()}>
+                {embeddingBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Retry failed jobs
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                <div className="text-xs uppercase text-muted-foreground">RabbitMQ</div>
+                <div className="mt-1 font-semibold">{pipeline?.rabbitmq ?? "-"}</div>
+              </div>
+              <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                <div className="text-xs uppercase text-muted-foreground">Queue jobs</div>
+                <div className="mt-1 font-semibold">
+                  {pipeline?.queues && typeof pipeline.queues === "object"
+                    ? String((pipeline.queues["embedding.jobs"] as { messages?: number })?.messages ?? "-")
+                    : "-"}
+                </div>
+              </div>
+              <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                <div className="text-xs uppercase text-muted-foreground">DLQ</div>
+                <div className={`mt-1 font-semibold ${pipeline?.dlq?.alert ? "text-amber-800" : ""}`}>
+                  {pipeline?.dlq?.messages ?? "-"}
+                </div>
+                {pipeline?.dlq?.alert ? (
+                  <p className="mt-1 text-xs text-amber-800">Co message malformed trong DLQ — can kiem tra worker/logs.</p>
+                ) : null}
+              </div>
+              <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                <div className="text-xs uppercase text-muted-foreground">Outbox pending</div>
+                <div className="mt-1 font-semibold">{pipeline?.outbox?.pending ?? "-"}</div>
+              </div>
+              <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                <div className="text-xs uppercase text-muted-foreground">Workers alive</div>
+                <div className="mt-1 font-semibold">
+                  {(pipeline?.worker_summary?.alive_count ?? 0) > 0
+                    ? `${pipeline?.worker_summary?.alive_count ?? 0} alive`
+                    : "none alive"}
+                  {(pipeline?.worker_summary?.stale_count ?? 0) > 0
+                    ? ` / ${pipeline?.worker_summary?.stale_count} stale`
+                    : ""}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {pipeline?.worker_summary?.count ?? 0} worker(s), stale &gt;{" "}
+                  {pipeline?.worker_summary?.stale_after_seconds ?? 120}s
+                </p>
+              </div>
+            </div>
+            {(pipeline?.worker_heartbeats?.length ?? 0) > 0 ? (
+              <div className="rounded-md border">
+                <div className="border-b px-3 py-2 text-sm font-medium">Worker heartbeats</div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Worker</TableHead>
+                      <TableHead>Liveness</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Last seen</TableHead>
+                      <TableHead>Processed</TableHead>
+                      <TableHead>Failed</TableHead>
+                      <TableHead>Current job</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pipeline.worker_heartbeats?.map((worker) => (
+                      <TableRow key={worker.worker_id}>
+                        <TableCell className="text-xs">{worker.worker_id}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={
+                              worker.liveness === "alive"
+                                ? "border-emerald-300"
+                                : worker.liveness === "stale"
+                                  ? "border-amber-300"
+                                  : "border-slate-300"
+                            }
+                          >
+                            {worker.liveness ?? "unknown"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{worker.status ?? "-"}</TableCell>
+                        <TableCell className="text-xs">{compact(worker.last_seen_at)}</TableCell>
+                        <TableCell>{worker.processed_count ?? 0}</TableCell>
+                        <TableCell>{worker.failed_count ?? 0}</TableCell>
+                        <TableCell className="text-xs">{compact(worker.current_job_id)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Chua co worker heartbeat. Chay `python -m workers.embedding_worker` de worker ghi trang thai.
+              </p>
+            )}
+            {pipeline?.entity_embedding_status ? (
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(pipeline.entity_embedding_status).map(([key, value]) => (
+                  <Badge key={key} variant="outline" className="rounded-md">
+                    {key}: {value}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+            <div className="rounded-md border">
+              <div className="border-b px-3 py-2 text-sm font-medium">Failed / recent jobs</div>
+              {embeddingJobs.length === 0 ? (
+                <p className="p-3 text-sm text-muted-foreground">Khong co job failed trong outbox.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Entity</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Error</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {embeddingJobs.map((job) => (
+                      <TableRow key={job.event_id ?? job.job_id}>
+                        <TableCell className="text-xs">
+                          {job.entity_type}/{job.entity_id}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={statusClass(job.status)}>
+                            {job.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                          {compact(job.last_error)}
+                        </TableCell>
+                        <TableCell className="text-xs">{compact((job as { error_type?: string }).error_type)}</TableCell>
+                        <TableCell>
+                          {job.entity_type && job.entity_id ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={embeddingBusy}
+                              onClick={() =>
+                                void recomputeEmbedding(job.entity_type as EntityType, String(job.entity_id))
+                              }
+                            >
+                              Recompute
+                            </Button>
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card id="review-queue" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">

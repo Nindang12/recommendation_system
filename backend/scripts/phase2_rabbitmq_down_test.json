@@ -1,0 +1,9 @@
+{
+  "user_id": "6a180093180496da112b973a",
+  "entity_id": "user_exp_6a180093180496da112b973b",
+  "entity_embedding_status": "pending",
+  "entity_embedding_error_type": "temporary",
+  "project_id": "user_prj_6a180095180496da112b973d",
+  "project_embedding_status": "pending",
+  "project_embedding_error_type": "temporary"
+}

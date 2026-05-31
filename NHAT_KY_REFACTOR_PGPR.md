@@ -2491,6 +2491,566 @@ Chua lam:
 - [ ] Chua doi recommendation scoring.
 - [ ] Chua chay baseline snapshot vi backend hien khong ket noi duoc o `127.0.0.1:8000`.
 
+## 25.4 Da chay baseline snapshot
+
+Nguoi dung da bat backend va chay:
+
+```powershell
+cd backend
+python scripts/baseline_recommendation_snapshot.py
+```
+
+Da tao file:
+
+```text
+backend/scripts/baseline_recommendation_snapshot.json
+```
+
+Ket qua doc snapshot:
+
+- `GET /api/v1/health`: 200.
+- Tong so policy cases: 8.
+- Failed cases: 0.
+- Sample ids:
+  - project: `prj_001`
+  - expert: `exp_001`
+  - funder: `fnd_001`
+  - enterprise: `ent_001`
+- Moi case tra 3 ket qua.
+- Khong case nao thieu field bat buoc `id`, `name`, `score`.
+- Cac scoring method baseline:
+  - Project->Expert: `pgpr_policy`
+  - Project->Funder: `pgpr_policy`
+  - Project->Enterprise: `pgpr_policy`
+  - Project->Project: `cypher_fallback`
+  - Expert->Project: `pgpr_policy`
+  - Expert->Expert: `pgpr_policy`
+  - Enterprise->Expert: `pgpr_policy`
+  - Funder->Project: `pgpr_policy`
+
+Lam the de:
+
+- Co moc so sanh response truoc khi them embedding/RabbitMQ/hybrid.
+- Neu phase sau lam mat field cu hoac doi shape response, co the phat hien som.
+- Xac nhan Phase 0 da du dieu kien de sang Phase 1.
+
+# Phase 26 - Phase 1 Cold-Start: Embedding schema metadata (2026-05-28)
+
+Muc tieu:
+
+- Them schema `embedding` object cho entity/project nhung chua chay model.
+- Chua them RabbitMQ, chua them worker, chua doi scoring PGPR.
+- Tao nen mong de Phase 2/3 co the publish event va worker recompute embedding sau.
+
+## 26.1 Them embedding status constants
+
+Da sua:
+
+```text
+backend/services/provisional_status.py
+```
+
+Da them:
+
+- `EMBEDDING_PENDING`
+- `EMBEDDING_QUEUED`
+- `EMBEDDING_PROCESSING`
+- `EMBEDDING_READY`
+- `EMBEDDING_STALE`
+- `EMBEDDING_FAILED`
+- `EMBEDDING_SKIPPED`
+- `EMBEDDING_SIGNAL_OK`
+- `EMBEDDING_SIGNAL_LOW`
+- `EMBEDDING_SIGNAL_NONE`
+- `EMBEDDING_ERROR_TEMPORARY`
+- `EMBEDDING_ERROR_PERMANENT`
+- `EMBEDDING_ERROR_VALIDATION`
+- `EMBEDDING_VERSION=0`
+- `EMBEDDING_DIMENSION=128`
+- `EMBEDDING_MAX_RETRY=3`
+
+Lam the de:
+
+- Dung chung enum/status embedding trong backend.
+- Tranh viec moi service tu dat string rieng.
+
+## 26.2 Tao EmbeddingMetadataService
+
+Da tao:
+
+```text
+backend/services/embedding_metadata_service.py
+```
+
+Chuc nang:
+
+- Tao default embedding object:
+
+```json
+{
+  "embedding": {
+    "status": "pending",
+    "job_id": null,
+    "last_event_id": null,
+    "retry_count": 0,
+    "max_retry": 3,
+    "model": null,
+    "version": 0,
+    "dimension": 128,
+    "source_hash": "...",
+    "vector": null,
+    "normalized": false,
+    "signal": "no_signal"
+  }
+}
+```
+
+- Tinh `source_hash` tu:
+  - entity type/id
+  - research topics
+  - skills/technology
+  - industry/sector
+  - location
+  - relationship ids lien quan
+  - embedding version
+- Normalize JSON truoc khi hash:
+  - sort key
+  - sort array
+  - lowercase/trim text
+- Neu source hash thay doi thi tra ve embedding status `stale`.
+
+Lam the de:
+
+- Khi user doi topic/skill/location/industry, he thong biet embedding cu da loi thoi.
+- Phase sau worker chi xu ly job moi nhat theo source hash.
+
+## 26.3 Gan embedding metadata cho entity/project moi
+
+Da sua:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- User-created Expert/Enterprise/Funder moi co `embedding` object mac dinh.
+- User-created Project moi co `embedding` object mac dinh.
+- Them `embedding_status` top-level dang denormalized de query nhanh.
+- Them index `embedding.status` cho collections chinh.
+
+Lam the de:
+
+- Entity moi co san metadata cho RabbitMQ/worker o phase sau.
+- Khong phai doi schema lan nua khi them worker.
+
+## 26.4 Danh dau stale khi profile doi source data
+
+Da sua:
+
+```text
+backend/repositories/auth_repo.py
+```
+
+Da lam:
+
+- Sau khi update role entity tu user profile, repo tinh lai `source_hash`.
+- Neu hash thay doi, set `embedding.status=stale`.
+- Giu vector cu neu co, nhung status stale bao cho recommendation/worker biet khong nen xem nhu ready.
+
+Lam the de:
+
+- User doi chu de nghien cuu/skill/location thi embedding cu khong bi dung nham.
+- Phase sau co the publish recompute event dua tren status stale.
+
+## 26.5 Tao script backfill embedding metadata
+
+Da tao:
+
+```text
+backend/scripts/backfill_embedding_metadata.py
+```
+
+Chuc nang:
+
+- Dry-run mac dinh.
+- Backfill `embedding` cho:
+  - experts
+  - enterprises
+  - funders
+  - projects
+- Co tuy chon:
+
+```powershell
+python scripts/backfill_embedding_metadata.py --apply
+python scripts/backfill_embedding_metadata.py --apply --refresh-stale
+```
+
+- Ghi report vao:
+
+```text
+backend/scripts/embedding_backfill_report.json
+```
+
+Lam the de:
+
+- Data cu/crawled data co cung schema embedding voi data moi.
+- Tranh loi khi code moi doc entity cu chua co embedding.
+
+## 26.6 Trang thai
+
+Da lam:
+
+- [x] Them default embedding object.
+- [x] Them source hash helper.
+- [x] Gan embedding cho entity/project moi.
+- [x] Tao backfill script.
+- [x] Cap nhat checklist.
+
+Chua lam:
+
+- [ ] Chua chay backfill apply.
+- [ ] Chua them RabbitMQ.
+- [ ] Chua tao worker.
+- [ ] Chua doi recommendation scoring.
+
+## 26.7 Kiem tra Phase 1
+
+Da chay compile rieng cac file Phase 1:
+
+```powershell
+cd backend
+python -m py_compile services\embedding_metadata_service.py services\provisional_status.py repositories\auth_repo.py scripts\backfill_embedding_metadata.py
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Ghi chu:
+
+- Khi chay `python -m compileall services repositories scripts models`, lenh bi fail o file cu `scripts/restored_middle.py` do `IndentationError` tai line 1.
+- Loi nay co san trong script phuc hoi cu, khong phai do Phase 1.
+- Da chay compile targeted cho file vua tao/sua va ket qua pass.
+
+Da chay backfill dry-run:
+
+```powershell
+cd backend
+python scripts\backfill_embedding_metadata.py
+```
+
+Ket qua:
+
+```text
+written scripts\embedding_backfill_report.json
+apply=False missing=32 stale=0 updated=0
+```
+
+Chi tiet dry-run:
+
+- Experts scanned: 11, missing embedding: 11.
+- Enterprises scanned: 7, missing embedding: 7.
+- Funders scanned: 7, missing embedding: 7.
+- Projects scanned: 7, missing embedding: 7.
+- Tong missing embedding: 32.
+- Updated: 0 vi chua dung `--apply`.
+
+Lam the de:
+
+- Xac nhan data cu hien dang thieu `embedding`.
+- Xac nhan script backfill chay duoc va an toan o che do dry-run.
+- Chuan bi cho buoc apply backfill sau khi nguoi dung dong y.
+
+## 26.8 Apply backfill embedding metadata
+
+Da chay:
+
+```powershell
+cd backend
+python scripts\backfill_embedding_metadata.py --apply
+```
+
+Ket qua:
+
+```text
+written scripts\embedding_backfill_report.json
+apply=True missing=32 stale=0 updated=32
+```
+
+Sau do chay lai dry-run:
+
+```powershell
+python scripts\backfill_embedding_metadata.py
+```
+
+Ket qua:
+
+```text
+apply=False missing=0 stale=0 updated=0
+```
+
+Kiem tra mau:
+
+- `expert exp_001`: `embedding.status=pending`, `dimension=128`, co `source_hash`.
+- `enterprise ent_001`: `embedding.status=pending`, `dimension=128`, co `source_hash`.
+- `funder fnd_001`: `embedding.status=pending`, `dimension=128`, co `source_hash`.
+- `project prj_001`: `embedding.status=pending`, `dimension=128`, co `source_hash`.
+
+Lam the de:
+
+- Data cu/crawled data va data moi cung co chung schema `embedding`.
+- Phase 2/3 co the dua RabbitMQ/worker vao ma khong bi loi do entity cu thieu field.
+- Chua doi recommendation scoring, nen baseline PGPR hien tai van duoc bao toan ve logic.
+
+## 26.9 Kiem tra recommendation sau Phase 1
+
+Da chay snapshot sau khi apply backfill:
+
+```powershell
+cd backend
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase1.json
+```
+
+Ket qua:
+
+```text
+written scripts\baseline_recommendation_snapshot_after_phase1.json
+policy_cases=8 failed=0
+```
+
+Lam the de:
+
+- Xac nhan viec them/backfill `embedding` metadata khong lam vo API recommendation hien tai.
+- Co file snapshot sau Phase 1 de doi chieu voi baseline ban dau neu can.
+
+## 26.10 Hoan tat smoke test Phase 1
+
+Da tao file:
+
+```text
+backend/scripts/test_phase1_embedding_metadata.py
+```
+
+Muc dich:
+
+- Kiem tra hanh vi Phase 1 bang API that thay vi chi backfill.
+- Dam bao entity/project moi co `embedding` object dung schema.
+- Dam bao khi user update profile lam doi source data thi `embedding.status` chuyen sang `stale`.
+
+Da chay:
+
+```powershell
+cd backend
+python -m py_compile scripts\test_phase1_embedding_metadata.py
+python scripts\test_phase1_embedding_metadata.py
+```
+
+Ket qua:
+
+```text
+PASS written scripts\phase1_embedding_metadata_test.json
+user_id=6a17f90ba0545818715f065b
+entity_id=user_exp_6a17f90ba0545818715f065c
+project_id=user_prj_6a17f90ca0545818715f065e
+```
+
+Test da xac nhan:
+
+- Register user moi -> Expert entity co `embedding.status=pending`.
+- Expert entity co `embedding.dimension=128`.
+- Expert entity co `embedding.source_hash`.
+- Create project moi -> Project co `embedding.status=pending`.
+- Project co `embedding.dimension=128`.
+- Project co `embedding.source_hash`.
+- Update profile doi skills/topics -> Expert entity chuyen `embedding.status=stale`.
+
+Sau do chay lai snapshot recommendation:
+
+```powershell
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase1_smoke.json
+```
+
+Ket qua:
+
+```text
+written scripts\baseline_recommendation_snapshot_after_phase1_smoke.json
+policy_cases=8 failed=0
+```
+
+Ket luan:
+
+- Phase 1 da hoan thanh: schema embedding, backfill data cu, data moi, stale detection va backward compatibility recommendation deu pass.
+- Co the chuyen sang Phase 2 - RabbitMQ Optional Infrastructure.
+
+## 26.11 Bo sung mongodb_repo cho Phase 1
+
+Nguoi dung phat hien checklist Phase 1 van con:
+
+```text
+backend/repositories/mongodb_repo.py
+```
+
+Da sua:
+
+```text
+backend/repositories/mongodb_repo.py
+```
+
+Da lam:
+
+- Entity list/detail API gio expose `metadata.embedding`.
+- `metadata.embedding` chi tra metadata nhe:
+  - `status`
+  - `job_id`
+  - `last_event_id`
+  - `retry_count`
+  - `max_retry`
+  - `model`
+  - `version`
+  - `dimension`
+  - `source_hash`
+  - `last_queued_at`
+  - `last_processed_at`
+  - `updated_at`
+  - `error`
+  - `error_type`
+  - `normalized`
+  - `signal`
+- Khong tra `embedding.vector` qua Entity API de tranh response nang va lo thong tin vector.
+- Them `metadata.embedding_status` de frontend/admin doc nhanh.
+
+Da kiem tra:
+
+```powershell
+python -m py_compile repositories\mongodb_repo.py
+```
+
+Ket qua:
+
+```text
+PASS
+```
+
+Da goi API:
+
+```text
+GET /api/v1/entities/expert/exp_001
+GET /api/v1/entities/experts?limit=1
+```
+
+Ket qua:
+
+```text
+detail_status=pending dimension=128 has_vector=False
+list_status=pending dimension=128 has_vector=False
+```
+
+Lam the de:
+
+- Frontend/admin co the hien embedding status cua entity ma khong can doc raw document.
+- Phase 2/3 co san metadata API de debug RabbitMQ/worker sau nay.
+- Giu response nhe vi khong expose vector.
+
+## 26.12 Mo rong exit criteria Phase 1
+
+Nguoi dung feedback Phase 1 nen test them:
+
+- Register entity moi tu ca 3 role: expert, enterprise, funder.
+- Update non-source fields khong duoc lam `embedding.status=stale`.
+- `embedding_status` top-level phai dong bo voi `embedding.status`.
+- Compileall hien fail vi `scripts/restored_middle.py`, can co cach compile active code an toan.
+
+Da cap nhat:
+
+```text
+backend/scripts/test_phase1_embedding_metadata.py
+```
+
+Test hien kiem tra:
+
+- Register expert moi -> `embedding.status=pending`.
+- Register enterprise moi -> `embedding.status=pending`.
+- Register funder moi -> `embedding.status=pending`.
+- Create project moi -> `embedding.status=pending`.
+- Update source fields cua expert -> `embedding.status=stale`.
+- Update non-source fields cua enterprise, vi du phone/bio/social_links -> van `embedding.status=pending`.
+- `embedding_status` top-level dong bo voi `embedding.status` cho ca pending va stale.
+
+Da chay:
+
+```powershell
+cd backend
+python -m py_compile scripts\test_phase1_embedding_metadata.py
+python scripts\test_phase1_embedding_metadata.py
+```
+
+Ket qua:
+
+```text
+PASS written scripts\phase1_embedding_metadata_test.json
+entities=expert:user_exp_6a17fcc2752c92d9486edd6f, enterprise:user_ent_6a17fcc2752c92d9486edd72, funder:user_fund_6a17fcc2752c92d9486edd75 project:user_prj_6a17fcc2752c92d9486edd77
+```
+
+## 26.13 Compile active backend an toan
+
+Da tao:
+
+```text
+backend/scripts/compile_project.py
+```
+
+Muc dich:
+
+- Compile cac file backend dang active.
+- Loai tru file archived recovery cu:
+
+```text
+backend/scripts/restored_middle.py
+```
+
+Ly do:
+
+- File `restored_middle.py` la artifact phuc hoi cu, hien co `IndentationError`.
+- Neu dung `compileall scripts` thi pipeline se fail du file nay khong phai code chay chinh.
+- Khong xoa file cu de tranh mat artifact nguoi dung co the can doi chieu.
+
+Da chay:
+
+```powershell
+python scripts\compile_project.py
+```
+
+Ket qua:
+
+```text
+compile passed: 49 file(s)
+excluded archived files:
+- scripts\restored_middle.py
+```
+
+## 26.14 Snapshot sau Phase 1 extended
+
+Da chay:
+
+```powershell
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase1_extended.json
+```
+
+Ket qua:
+
+```text
+written scripts\baseline_recommendation_snapshot_after_phase1_extended.json
+policy_cases=8 failed=0
+```
+
+Ket luan:
+
+- Phase 1 da dat exit criteria day du.
+- Co the chuyen sang Phase 2 - RabbitMQ Optional Infrastructure.
+
 # Phase 28 - Fix hien thi matched existing entity tren Profile (2026-05-27)
 
 Van de:
@@ -4980,3 +5540,1845 @@ Ket qua:
 ```text
 PASS
 ```
+# Phase 27 - Phase 2 Cold-Start: RabbitMQ optional infrastructure (2026-05-28)
+
+Muc tieu:
+
+- Them RabbitMQ lam tang event pipeline cho embedding job.
+- RabbitMQ phai la optional dependency trong Phase 2: neu RabbitMQ loi/down thi register/create project van thanh cong.
+- Chi publish embedding event sau khi Provisional KG Sync sang Neo4j thanh cong.
+- Chua tao worker, chua tinh vector, chua thay doi scoring PGPR.
+
+## 27.1 Them cau hinh va dependency RabbitMQ
+
+Da sua:
+
+```text
+backend/requirements.txt
+backend/.env.example
+```
+
+Da them:
+
+- `pika>=1.3.2`
+- `RABBITMQ_URL`
+- `RABBITMQ_EXCHANGE`
+- `RABBITMQ_EMBEDDING_QUEUE`
+- `RABBITMQ_EMBEDDING_ROUTING_KEY`
+- `RABBITMQ_EMBEDDING_DLQ`
+- `EMBEDDING_MODEL_NAME`
+- `EMBEDDING_VERSION`
+- `EMBEDDING_DIMENSION`
+- `EMBEDDING_MAX_RETRY`
+- `EMBEDDING_RETRY_BACKOFF_SECONDS`
+
+Lam the de:
+
+- Backend co cau hinh ro rang cho RabbitMQ va embedding pipeline.
+- Docker/local/dev co the bat RabbitMQ rieng ma khong hard-code trong code.
+
+## 27.2 Tao RabbitMQ infrastructure adapter
+
+Da tao:
+
+```text
+backend/infrastructure/__init__.py
+backend/infrastructure/rabbitmq_client.py
+```
+
+Chuc nang:
+
+- Lazy import `pika`, nen backend van co the boot neu moi truong chua cai RabbitMQ client.
+- `health()` tra:
+  - `connected` neu ket noi/declare queue thanh cong.
+  - `unavailable_optional` neu RabbitMQ loi/down/chua cai dependency.
+- `publish_json()` publish JSON event vao exchange/queue durable.
+- Tu declare:
+  - exchange `kg.events`
+  - queue `embedding.jobs`
+  - DLQ `embedding.jobs.dlq`
+
+Lam the de:
+
+- RabbitMQ nam o tang infrastructure, khong tron truc tiep vao service logic.
+- RabbitMQ loi khong lam fail API user-facing.
+
+## 27.3 Tao event schema versioned
+
+Da tao:
+
+```text
+backend/models/events.py
+```
+
+Schema chinh:
+
+```text
+EmbeddingEvent
+```
+
+Field quan trong:
+
+- `event_id`
+- `job_id`
+- `event_type`
+- `schema_version`
+- `entity_type`
+- `entity_id`
+- `user_id`
+- `source`
+- `kg_sync_status`
+- `entity_verification_status`
+- `embedding_version`
+- `embedding_source_hash`
+- `created_at`
+
+Lam the de:
+
+- Worker Phase 3 co contract ro rang de consume.
+- Event co version de sau nay migrate schema an toan.
+- Moi job co `job_id`/`event_id` de debug va tranh job cu ghi de job moi.
+
+## 27.4 Tao EventPublisherService
+
+Da tao:
+
+```text
+backend/services/event_publisher_service.py
+```
+
+Chuc nang:
+
+- Load entity moi nhat tu MongoDB bang `entity_type/entity_id`.
+- Chi publish neu `kg_sync_status` la:
+  - `synced_unverified`
+  - `synced_verified`
+- Tinh lai `embedding.source_hash` truoc khi publish.
+- Publish thanh cong:
+  - set `embedding.status=queued`
+  - set `embedding_status=queued`
+  - gan `job_id`
+  - gan `last_event_id`
+  - gan `last_queued_at`
+- Publish that bai:
+  - giu `pending` hoac `stale`
+  - set `error_type=temporary`
+  - khong throw loi ra user flow.
+
+Lam the de:
+
+- Dung rule da chot: chi queue embedding sau khi Neo4j node ton tai.
+- Queue fail thi he thong van dung duoc, nhung metadata co dau vet de retry/outbox Phase 4.
+
+## 27.5 Hook publisher vao register/profile/project flow
+
+Da sua:
+
+```text
+backend/services/auth_service.py
+```
+
+Da them:
+
+- `self.event_publisher = EventPublisherService(self.repo)`
+- Sau register va KG sync thanh cong:
+  - publish `kg.entity.created`
+- Sau profile update va KG sync thanh cong:
+  - publish `kg.entity.updated`
+- Sau create project va KG sync thanh cong:
+  - publish `kg.project.created`
+- Neu publisher loi:
+  - catch exception
+  - register/create project/profile update khong fail.
+
+Lam the de:
+
+- User tao entity/project xong co event embedding ngay.
+- Luong ghi du lieu dong bo van nhanh va an toan.
+- Worker Phase 3 co du job de xu ly.
+
+## 27.6 Them RabbitMQ optional vao Health API
+
+Da sua:
+
+```text
+backend/services/health_service.py
+```
+
+Da them:
+
+- `services.rabbitmq`
+- `rabbitmq=connected` neu RabbitMQ dang chay.
+- `rabbitmq=unavailable_optional` neu RabbitMQ loi/down.
+
+Lam the de:
+
+- Frontend/admin co the biet pipeline embedding co san sang hay khong.
+- RabbitMQ khong nam trong core health, nen `/health` van `ok` khi RabbitMQ optional unavailable.
+
+## 27.7 Tao smoke test Phase 2
+
+Da tao:
+
+```text
+backend/scripts/test_phase2_rabbitmq_optional.py
+```
+
+Test:
+
+- Goi `GET /api/v1/health`.
+- Kiem tra `rabbitmq` la `connected` hoac `unavailable_optional`.
+- Register expert moi.
+- Neu RabbitMQ connected va KG sync thanh cong:
+  - entity `embedding.status=queued`
+  - co `job_id`
+  - co `last_event_id`
+- Create project moi.
+- Neu RabbitMQ connected va KG sync thanh cong:
+  - project `embedding.status=queued`
+  - co `job_id`
+  - co `last_event_id`
+- Ghi report:
+
+```text
+backend/scripts/phase2_rabbitmq_optional_test.json
+```
+
+Lam the de:
+
+- Chung minh RabbitMQ up thi event duoc publish.
+- Chung minh metadata embedding chuyen dung trang thai `queued`.
+
+## 27.8 Test RabbitMQ down ma khong tat Docker
+
+Da chay service-level test voi:
+
+```text
+RABBITMQ_URL=amqp://guest:guest@127.0.0.1:59999/
+```
+
+Ket qua:
+
+```json
+{
+  "entity_embedding_status": "pending",
+  "entity_embedding_error_type": "temporary",
+  "project_embedding_status": "pending",
+  "project_embedding_error_type": "temporary"
+}
+```
+
+Da ghi:
+
+```text
+backend/scripts/phase2_rabbitmq_down_test.json
+backend/scripts/phase2_rabbitmq_down_health.json
+```
+
+Lam the de:
+
+- Khong can tat container RabbitMQ cua user.
+- Van xac nhan duoc queue unavailable thi register/create project khong fail.
+- Health service van `status=ok`, `rabbitmq=unavailable_optional`.
+
+## 27.9 Kiem tra
+
+Da cai dependency trong environment hien tai:
+
+```powershell
+python -m pip install pika>=1.3.2
+```
+
+Da chay:
+
+```powershell
+cd backend
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+```
+
+Ket qua:
+
+```text
+compile passed: 52 file(s)
+excluded archived files:
+- scripts\restored_middle.py
+```
+
+Da chay:
+
+```powershell
+python -c "from infrastructure.rabbitmq_client import RabbitMQClient; print(RabbitMQClient().health())"
+```
+
+Ket qua:
+
+```text
+connected
+```
+
+Da chay:
+
+```powershell
+python scripts\test_phase2_rabbitmq_optional.py
+```
+
+Ket qua:
+
+```text
+PASS written scripts\phase2_rabbitmq_optional_test.json
+rabbitmq=connected entity=user_exp_6a17fff204682d90f52766cd:queued project=user_prj_6a17fff304682d90f52766cf:queued
+```
+
+Da chay:
+
+```powershell
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase2.json
+```
+
+Ket qua:
+
+```text
+policy_cases=8 failed=0
+```
+
+Ket luan:
+
+- Phase 2 da hoan thanh phan RabbitMQ optional infrastructure.
+- PGPR/recommendation hien tai khong bi pha.
+- Entity/project moi da co the publish embedding job vao RabbitMQ.
+- Chua co worker consume queue; do la Phase 3.
+
+## 27.10 Ra soat bo sung truoc Phase 3
+
+Ly do:
+
+- Phase 2 da publish message vao `embedding.jobs`, nhung Phase 3 moi co worker.
+- Neu khong kiem tra truoc, worker Phase 3 co the consume nhieu job test cu.
+- Can dam bao publisher khong spam queue khi user sua field khong anh huong embedding.
+- Can dam bao KG sync failed thi khong publish event.
+
+Da tao:
+
+```text
+backend/scripts/inspect_embedding_queue.py
+```
+
+Chuc nang:
+
+- Mac dinh chi inspect queue, khong pha du lieu.
+- In queue length cua:
+  - `embedding.jobs`
+  - `embedding.jobs.dlq`
+- Peek 1 sample message tu `embedding.jobs` roi requeue lai.
+- Ho tro `--purge` neu sau nay can xoa test messages truoc khi chay worker.
+
+Da chay:
+
+```powershell
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+```text
+embedding.jobs messages=2
+embedding.jobs.dlq messages=0
+```
+
+Sample message co du contract:
+
+- `event_id`
+- `job_id`
+- `event_type`
+- `schema_version`
+- `entity_type`
+- `entity_id`
+- `user_id`
+- `source`
+- `kg_sync_status`
+- `entity_verification_status`
+- `embedding_version`
+- `embedding_source_hash`
+- `created_at`
+
+## 27.11 Chan spam queue khi update profile khong doi source embedding
+
+Van de phat hien:
+
+- `update_profile()` da hook publish `kg.entity.updated`.
+- Neu user chi sua `bio`, `phone`, `social_links`, source hash khong doi.
+- Neu van publish event thi RabbitMQ se bi spam recompute khong can thiet.
+
+Da sua:
+
+```text
+backend/services/auth_service.py
+```
+
+Them guard:
+
+```text
+_should_publish_update_embedding_event(entity)
+```
+
+Rule:
+
+- Chi publish `kg.entity.updated` khi `embedding.status=stale`.
+- Non-source update giu `embedding.status` va `last_event_id` cu, khong them message moi.
+- Source update nhu `topic/skill/location/industry` lam source hash doi, embedding chuyen `stale`, sau do publisher moi publish job moi.
+
+Lam the de:
+
+- Giam spam queue.
+- Worker Phase 3 chi xu ly recompute that su can thiet.
+- Giu dung semantics: `queued` la dang cho worker, khong phai da co embedding ready.
+
+## 27.12 Test KG sync failed khong publish event
+
+Da mo rong:
+
+```text
+backend/scripts/test_phase2_rabbitmq_optional.py
+```
+
+Them test:
+
+- Tao entity/project khi RabbitMQ connected.
+- Non-source update:
+  - queue count `4 -> 4`
+  - `last_event_id` khong doi
+- Source update:
+  - queue count `4 -> 5`
+  - `embedding.status=queued`
+  - co `job_id` moi
+- Force entity sang:
+
+```text
+kg_sync_status=sync_failed
+```
+
+- Goi `EventPublisherService.publish_embedding_event(...)`.
+- Ket qua:
+  - `ok=false`
+  - `status=kg_not_ready`
+  - queue count `5 -> 5`
+
+Lam the de:
+
+- Bao dam rule "chi publish sau khi Neo4j node ton tai" duoc thuc thi.
+- Phan biet ro RabbitMQ down va KG sync failed:
+  - RabbitMQ down: co the pending retry.
+  - KG sync failed: khong publish vi worker khong co graph node de doc.
+
+## 27.13 Kiem tra sau guard
+
+Da chay:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+```
+
+Ket qua:
+
+```text
+compile passed: 53 file(s)
+```
+
+Da chay:
+
+```powershell
+python scripts\test_phase2_rabbitmq_optional.py
+```
+
+Ket qua:
+
+```text
+PASS written scripts\phase2_rabbitmq_optional_test.json
+rabbitmq=connected entity=user_exp_6a1805464b7e04f56da1d274:queued project=user_prj_6a1805464b7e04f56da1d276:queued
+```
+
+Da chay:
+
+```powershell
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase2_guard.json
+```
+
+Ket qua:
+
+```text
+policy_cases=8 failed=0
+```
+
+Ghi chu truoc Phase 3:
+
+- Queue `embedding.jobs` dang co message test.
+- Truoc khi chay worker Phase 3, nen quyet dinh:
+  - de worker consume job test de smoke test, hoac
+  - chay `python scripts\inspect_embedding_queue.py --purge` de bat dau voi queue sach.
+
+## 27.14 Preflight Phase 3 - purge queue va seed job moi
+
+Quyet dinh:
+
+- Su dung cach sach hon truoc Phase 3:
+  1. Purge queue test cu.
+  2. Tao expert/project moi de sinh event moi.
+  3. Worker Phase 3 sau nay chay `--once` se xu ly dung job vua seed.
+
+Da chay:
+
+```powershell
+python scripts\inspect_embedding_queue.py --purge
+```
+
+Ket qua:
+
+```text
+embedding.jobs messages truoc purge: 5
+embedding.jobs.dlq messages truoc purge: 0
+purged embedding.jobs: 5
+purged embedding.jobs.dlq: 0
+```
+
+Da tao seed moi bang `AuthService`:
+
+```text
+expert: user_exp_6a180837599629307f6640bc
+project: user_prj_6a180837599629307f6640be
+```
+
+Embedding job moi:
+
+```text
+expert job_id: job_1199f0f69725494989c4c950718ce607
+expert event_id: evt_9abdda836c02484487b7ed25dd3bc3a4
+
+project job_id: job_ed270e6a035b4bd3847140f0e56b05e7
+project event_id: evt_2f8e3c688d934657a7c32eea2d08826a
+```
+
+Da ghi report:
+
+```text
+backend/scripts/phase3_preflight_jobs.json
+```
+
+Da inspect lai queue:
+
+```powershell
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+```text
+embedding.jobs messages: 2
+embedding.jobs.dlq messages: 0
+sample event_type: kg.entity.created
+sample entity_id: user_exp_6a180837599629307f6640bc
+```
+
+Lam the de:
+
+- Worker Phase 3 co dau vao sach va xac dinh.
+- De debug neu worker loi, minh biet job nao dang duoc consume.
+- Tranh worker xu ly lai cac message test cu cua Phase 2.
+
+# Phase 28 - Phase 3 Cold-Start: Worker + GraphSAGE-lite (2026-05-28)
+
+Muc tieu:
+
+- Tao worker doc lap consume `embedding.jobs`.
+- Tao embedding 128 chieu bang GraphSAGE-lite deterministic.
+- Ghi embedding vao MongoDB va Neo4j.
+- Chua thay doi hybrid ranking/recommendation scoring.
+
+## 28.1 Tao GraphFeatureService
+
+Da tao:
+
+```text
+backend/services/graph_feature_service.py
+```
+
+Chuc nang:
+
+- Load entity moi nhat tu MongoDB.
+- Validate entity khong bi `rejected`, `disabled`, `hidden`.
+- Lay source payload tu `EmbeddingMetadataService`:
+  - research topics
+  - skills/technology
+  - industry
+  - location
+  - relationship ids
+- Doc graph neighborhood tu Neo4j.
+- Khi doc neighbor, bo qua node:
+  - hidden/disabled
+  - participation disabled
+  - rejected
+  - merge_required
+
+Lam the de:
+
+- Worker khong lay feature truc tiep lung tung tu database.
+- Tat ca logic trich feature cho embedding nam trong mot service rieng.
+- Giam rui ro provisional/duplicate node lam nhiem embedding.
+
+## 28.2 Tao EmbeddingService GraphSAGE-lite
+
+Da tao:
+
+```text
+backend/services/embedding_service.py
+```
+
+Chuc nang:
+
+- Tao deterministic text/hash vector 128 chieu cho tung label/text.
+- Cung text + cung dimension luon ra cung vector.
+- Aggregate weighted mean theo nhom:
+
+```text
+Topic: 0.40
+Skill/technology: 0.30
+Industry/sector: 0.15
+Location: 0.05
+Graph relation/neighborhood: 0.10
+```
+
+- L2 normalize vector neu co signal.
+- Neu khong co feature thi tra zero-vector va `signal=no_signal`.
+- Neu feature it thi `signal=low_signal`.
+- Neu du feature thi `signal=ok`.
+
+Lam the de:
+
+- Co GraphSAGE-lite inductive layer truoc khi train GraphSAGE that.
+- Entity moi co embedding ma khong can retrain PGPR/policy.
+- Ket qua deterministic, de test va debug.
+
+## 28.3 Tao EmbeddingWorker
+
+Da tao:
+
+```text
+backend/workers/__init__.py
+backend/workers/embedding_worker.py
+```
+
+Chay bang:
+
+```powershell
+python -m workers.embedding_worker --once
+```
+
+Chuc nang:
+
+- Consume 1 message tu `embedding.jobs`.
+- Validate event bang `EmbeddingEvent`.
+- Load entity moi nhat tu MongoDB.
+- Skip neu:
+  - entity khong ton tai
+  - entity rejected/disabled/hidden
+  - `kg_sync_status` chua `synced_unverified`/`synced_verified`
+  - event cu bi obsolete do `source_hash`, `job_id`, `event_id` khong khop
+  - embedding da `ready`
+- Set `embedding.status=processing`.
+- Extract graph features.
+- Tao vector GraphSAGE-lite.
+- Ghi MongoDB:
+  - `embedding.status=ready`
+  - `embedding_status=ready`
+  - `model=graphsage_lite_v1`
+  - `version=1`
+  - `dimension=128`
+  - `vector`
+  - `normalized=true`
+  - `signal`
+  - `last_processed_at`
+  - `evidence_counts`
+- Ghi Neo4j:
+  - `embedding_status`
+  - `embedding_model`
+  - `embedding_version`
+  - `embedding_dimension`
+  - `embedding_source_hash`
+  - `embedding_signal`
+  - `embedding_updated_at`
+  - `embedding_vector`
+
+Lam the de:
+
+- Tach worker khoi FastAPI request lifecycle.
+- API tao user/project van nhanh, worker xu ly AI async.
+- Phase sau co the thay GraphSAGE-lite bang GraphSAGE real ma khong doi event contract.
+
+## 28.4 Chay worker tren seed jobs sach
+
+Seed tu preflight Phase 3:
+
+```text
+expert: user_exp_6a180837599629307f6640bc
+project: user_prj_6a180837599629307f6640be
+```
+
+Da chay lan 1:
+
+```powershell
+python -m workers.embedding_worker --once
+```
+
+Ket qua expert:
+
+```json
+{
+  "status": "ready",
+  "entity_type": "expert",
+  "entity_id": "user_exp_6a180837599629307f6640bc",
+  "signal": "ok",
+  "dimension": 128,
+  "normalized": true,
+  "evidence_counts": {
+    "topics": 2,
+    "skills": 2,
+    "industries": 0,
+    "location": 3,
+    "graph": 9
+  }
+}
+```
+
+Da chay lan 2:
+
+```powershell
+python -m workers.embedding_worker --once
+```
+
+Ket qua project:
+
+```json
+{
+  "status": "ready",
+  "entity_type": "project",
+  "entity_id": "user_prj_6a180837599629307f6640be",
+  "signal": "ok",
+  "dimension": 128,
+  "normalized": true,
+  "evidence_counts": {
+    "topics": 2,
+    "skills": 0,
+    "industries": 0,
+    "location": 2,
+    "graph": 5
+  }
+}
+```
+
+Da inspect queue sau worker:
+
+```text
+embedding.jobs messages: 0
+embedding.jobs.dlq messages: 0
+```
+
+## 28.5 Tao script verify Phase 3
+
+Da tao:
+
+```text
+backend/scripts/test_phase3_embedding_worker.py
+```
+
+Test:
+
+- Doc seed tu `backend/scripts/phase3_preflight_jobs.json`.
+- Kiem tra queue da rong.
+- Kiem tra MongoDB:
+  - `embedding.status=ready`
+  - `embedding_status=ready`
+  - `model=graphsage_lite_v1`
+  - `version=1`
+  - `dimension=128`
+  - vector length 128
+  - vector norm gan 1.0
+- Kiem tra Neo4j:
+  - `embedding_status=ready`
+  - vector length 128
+- Kiem tra `no_signal` bang direct encoder test.
+- Kiem tra event cu khong ghi de embedding ready.
+
+Lam the de:
+
+- Phase 3 co regression test rieng.
+- Sau nay sua worker/GraphSAGE-lite co the test lai nhanh.
+
+## 28.6 Kiem tra
+
+Da chay:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+```
+
+Ket qua:
+
+```text
+compile passed: 56 file(s)
+```
+
+Da chay:
+
+```powershell
+python scripts\test_phase3_embedding_worker.py
+```
+
+Ket qua:
+
+```text
+PASS written scripts\phase3_worker_result_check.json
+```
+
+Da chay:
+
+```powershell
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase3.json
+```
+
+Ket qua:
+
+```text
+policy_cases=8 failed=0
+```
+
+Ket luan:
+
+- Phase 3 da co worker GraphSAGE-lite MVP.
+- RabbitMQ event da duoc consume thanh cong.
+- MongoDB va Neo4j deu co embedding ready.
+- PGPR/recommendation hien tai khong bi pha.
+- Phase tiep theo nen lam Outbox Reliability hoac Embedding Store/CandidateMask tuy muc tieu uu tien.
+
+## 28.7 Hoan thien repository boundary cho Phase 3
+
+Van de:
+
+- Checklist Phase 3 con hai file chua tick:
+  - `backend/repositories/embedding_repo.py`
+  - `backend/repositories/pgpr_graph_repo.py`
+- Worker truoc do da chay dung, nhung dang ghi embedding qua `AuthRepository.update_entity_status()` va method generic `update_entity_verification_status()`.
+- Nhu vay chua sach ve kien truc repository.
+
+Da tao:
+
+```text
+backend/repositories/embedding_repo.py
+```
+
+Chuc nang:
+
+- `find_entity(entity_type, entity_id)`
+- `update_embedding(entity_type, entity_id, embedding)`
+- `update_neo4j_embedding(entity_type, entity_id, embedding)`
+
+Da sua:
+
+```text
+backend/repositories/pgpr_graph_repo.py
+```
+
+Them method:
+
+```text
+update_entity_embedding(entity_type, entity_id, embedding)
+```
+
+Method nay chi ghi cac field embedding vao Neo4j:
+
+- `embedding_status`
+- `embedding_model`
+- `embedding_version`
+- `embedding_dimension`
+- `embedding_source_hash`
+- `embedding_signal`
+- `embedding_updated_at`
+- `embedding_vector`
+
+Da sua:
+
+```text
+backend/workers/embedding_worker.py
+```
+
+Worker bay gio dung `EmbeddingRepository` de:
+
+- doc entity
+- update MongoDB embedding
+- update Neo4j embedding
+
+Lam the de:
+
+- Tach logic persistence embedding khoi `AuthRepository`.
+- Khong dung method verification/status chung de ghi embedding.
+- Phase sau neu tao `entity_embeddings` collection/vector DB thi chi can mo rong `EmbeddingRepository`.
+
+Kiem tra:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+python scripts\test_phase3_embedding_worker.py
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase3_repo.json
+```
+
+Ket qua:
+
+```text
+compile passed: 57 file(s)
+PASS written scripts\phase3_worker_result_check.json
+policy_cases=8 failed=0
+```
+
+## 28.8 Hardening test cho worker truoc khi sang phase sau
+
+Ly do:
+
+- Happy path da pass, nhung worker can xu ly sach cac message loi.
+- Can dam bao vector that sau Phase 3 khong bi expose qua Entity API.
+- Can test recompute khi profile/project source data thay doi.
+
+Da tao:
+
+```text
+backend/scripts/test_phase3_worker_hardening.py
+```
+
+Test bo sung:
+
+- Queue rong:
+  - `python -m workers.embedding_worker --once`
+  - exit code 0
+  - output `No embedding job available.`
+- Entity id khong ton tai:
+  - worker skip sach
+  - khong crash
+- `kg_sync_status=sync_failed`:
+  - worker skip voi ly do `kg not ready`
+  - khong crash
+- Entity rejected:
+  - worker skip voi ly do `entity rejected`
+- Malformed event:
+  - worker `nack requeue=false`
+  - message vao `embedding.jobs.dlq`
+- Entity API:
+  - `metadata.embedding.status=ready`
+  - khong expose `embedding.vector`
+- Stale recompute E2E:
+  - update `skills/research_interests`
+  - `embedding.status=queued`
+  - source hash thay doi
+  - worker consume event
+  - `embedding.status=ready`
+  - source hash moi duoc giu dung
+
+Da sua:
+
+```text
+backend/workers/embedding_worker.py
+```
+
+Thay doi:
+
+- Tach parse event ra truoc processing.
+- Event sai schema/malformed se:
+  - `basic_nack(requeue=False)`
+  - tra exit code 1 trong mode `--once`
+  - de RabbitMQ dua vao DLQ.
+- Cac case validation nghiep vu nhu entity missing/kg not ready/rejected van skip sach va ack.
+
+Lam the de:
+
+- Message loi schema khong bi ack mat am tham.
+- DLQ co the dung cho admin/debug Phase 7.
+- Worker an toan hon khi chay daemon sau nay.
+
+Kiem tra:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+python scripts\test_phase3_worker_hardening.py
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase3_hardening.json
+```
+
+Ket qua:
+
+```text
+compile passed: 58 file(s)
+PASS written scripts\phase3_worker_hardening_report.json
+policy_cases=8 failed=0
+```
+
+---
+
+## 29. Phase 4 - Outbox Reliability cho embedding events
+
+Muc tieu:
+
+- Khong mat embedding event neu RabbitMQ tam thoi loi.
+- Register/create/update van thanh cong, con embedding job duoc giu lai trong MongoDB de retry.
+- Chuan bi nen cho pipeline bat dong bo on dinh truoc khi sang CandidateMask/Embedding Search.
+
+Da tao:
+
+```text
+backend/repositories/embedding_outbox_repo.py
+backend/services/outbox_publisher_service.py
+backend/scripts/run_outbox_publisher.py
+backend/scripts/test_phase4_outbox_reliability.py
+```
+
+Da sua:
+
+```text
+backend/services/event_publisher_service.py
+backend/services/auth_service.py
+```
+
+Chi tiet da lam:
+
+- Tao collection `embedding_event_outbox`.
+- Tao index:
+  - `event_id` unique
+  - `status + next_attempt_at`
+  - `entity_type + entity_id`
+- Moi embedding event truoc khi publish RabbitMQ se duoc ghi vao outbox.
+- Neu publish thanh cong:
+  - outbox mark `published`
+  - entity embedding chuyen sang `queued`
+  - luu `job_id`, `last_event_id`, `last_queued_at`, `source_hash`
+- Neu publish loi:
+  - outbox giu `pending`
+  - tang `retry_count`
+  - set `next_attempt_at` theo backoff
+  - entity embedding giu `pending` hoac `stale`
+  - luu `error_type=temporary`
+- Neu qua `max_retry`:
+  - outbox mark `failed`
+- Neu KG sync chua san sang:
+  - khong tao outbox event
+  - khong publish RabbitMQ
+- Them script publisher:
+  - `python scripts\run_outbox_publisher.py --once`
+  - dung de publish lai cac event `pending`
+
+Ly do lam nhu vay:
+
+- Phase 2 publish truc tiep RabbitMQ co rui ro mat event neu RabbitMQ loi dung luc user vua tao entity/project.
+- Outbox pattern bien RabbitMQ thanh dependency optional that su: user flow khong bi fail, con event co the retry sau.
+- `next_attempt_at` giup retry co backoff, tranh spam RabbitMQ khi service dang down.
+- `event_id` unique va outbox status giup chay lai publisher khong duplicate message.
+
+Kiem tra:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+python scripts\test_phase4_outbox_reliability.py
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+```text
+compile passed: 63 file(s)
+PASS written scripts\phase4_outbox_reliability_report.json
+embedding.jobs messages = 0
+embedding.jobs.dlq messages = 0
+```
+
+Nhung case da test:
+
+- RabbitMQ dang chay -> register expert tao outbox `published`, embedding `queued`, queue co message.
+- RabbitMQ bi mo phong down -> register expert van thanh cong, outbox `pending`, embedding `pending`, queue khong tang.
+- RabbitMQ chay lai -> `OutboxPublisherService.publish_pending()` publish thanh cong, outbox `published`, embedding `queued`.
+- Chay publisher lan nua khi khong con pending -> khong tao duplicate queue message.
+- `kg_sync_status=sync_failed` -> khong tao outbox event.
+- Qua `max_retry` -> outbox `failed`.
+- Sau test da purge queue de Phase 5 bat dau tu trang thai sach.
+
+---
+
+## 30. Phase 5 - Candidate Safety + Embedding Search MVP
+
+Muc tieu:
+
+- Tao lop mask chung de moi candidate recommendation deu di qua cung mot bo rule an toan.
+- Khong de `owner_only` cua user khac, `rejected`, `hidden`, `disabled`, `recommendable_as_target=false` di vao public recommendation.
+- Tao store `entity_embeddings` va service cosine search cho cold-start MVP.
+- Chua doi hybrid ranking chinh thuc trong Phase 5, chi chuan bi candidate generation an toan cho Phase 6.
+
+Da tao:
+
+```text
+backend/services/candidate_mask_service.py
+backend/services/embedding_candidate_service.py
+backend/scripts/test_phase5_candidate_safety.py
+```
+
+Da sua:
+
+```text
+backend/repositories/embedding_repo.py
+backend/services/recommendation_service.py
+```
+
+Chi tiet da lam:
+
+- Tao `CandidateMaskService`.
+- Rule source/candidate/intermediate gom:
+  - block `visibility=hidden|disabled`
+  - block `participation_scope=disabled`
+  - block `admin_only` neu khong o `admin_debug`
+  - block `entity_verification_status=rejected`
+  - block `kg_sync_status=disabled|rejected`
+  - block `owner_only` cua user khac
+  - block target neu `recommendable_as_target=false` trong public mode
+  - block intermediate neu `allow_as_intermediate_node=false`
+  - block `merge_required` lam intermediate node
+- `admin_debug` van tra candidate kem `candidate_mask.reasons` de admin biet vi sao candidate bi chan.
+- Them `runtime_source_weight()`:
+  - source owner_only cua current user trong personal mode duoc runtime weight 1.0
+  - khong doi `trust_weight` that trong database
+- Them `data_quality_level()` va `is_provisional()` de Phase 6/XAI dung chung.
+- Mo rong `EmbeddingRepository`:
+  - tao collection `entity_embeddings`
+  - unique index theo `entity_type + entity_id + model + version`
+  - upsert embedding record khi worker update embedding
+  - list ready embeddings theo entity type/model
+  - fallback doc tu entity collection neu store chua co record
+- Tao `EmbeddingCandidateService`:
+  - lay source embedding
+  - lay target embeddings ready
+  - tinh cosine similarity trong Python
+  - dua candidate qua `CandidateMaskService`
+  - tra field MVP: `embedding_similarity`, `scoring_method=embedding_candidate`, `evidence_level=embedding_only`, `cold_start=true`, `recommendation_readiness`
+- `RecommendationService` duoc refactor de dung `CandidateMaskService` thay cho logic provisional hard-code cu.
+
+Lam the de:
+
+- Truoc khi them hybrid ranking, he thong co mot lop safety gate rieng.
+- Candidate tu PGPR, Cypher, embedding search hay topic overlap ve sau deu co the di qua cung mot mask.
+- Giam nguy co du lieu provisional/duplicate/rejected lam nhiem ranking public.
+- Embedding search da co MVP nhung chua thay the PGPR/XAI hien tai.
+
+Kiem tra:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+python scripts\test_phase5_candidate_safety.py
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase5.json
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+```text
+compile passed: 66 file(s)
+PASS written scripts\phase5_candidate_safety_report.json
+policy_cases=8 failed=0
+embedding.jobs messages = 0
+embedding.jobs.dlq messages = 0
+```
+
+Nhung case da test:
+
+- Public mode:
+  - verified/public/recommendable target duoc tra ve
+  - `owner_only` cua user khac bi block
+  - `owner_only` cua chinh user cung khong public rong rai
+  - `rejected` bi block
+  - `hidden` bi block
+  - `recommendable_as_target=false` bi block
+- Personal mode:
+  - current user duoc thay candidate `owner_only` cua chinh minh
+  - khong thay `owner_only` cua user khac
+- Intermediate node:
+  - `merge_required` khong duoc lam intermediate node
+- Admin debug:
+  - van thay candidate bi block
+  - co `candidate_mask.reasons` de debug/review
+- Snapshot recommendation sau Phase 5 van giu duoc 8 policy cases, failed = 0.
+
+## 30.1 Hardening Phase 5 truoc khi sang Hybrid Ranking
+
+Feedback can xu ly truoc Phase 6:
+
+- Dam bao PGPR/Cypher/direct entity/project overview deu di qua mask.
+- Graph API khong duoc lo node `owner_only` cua user khac, `hidden`, `rejected`.
+- `admin_debug` chi admin/root_admin duoc goi.
+- Embedding candidate search phai fail-closed khi source/target vector chua san sang.
+
+Da sua:
+
+```text
+backend/api/v1/endpoints/recommendations.py
+backend/api/v1/endpoints/graph.py
+backend/services/embedding_candidate_service.py
+backend/services/candidate_mask_service.py
+backend/repositories/pgpr_graph_repo.py
+backend/scripts/test_phase5_candidate_safety.py
+```
+
+Chi tiet:
+
+- Recommendation endpoints:
+  - Them optional current user.
+  - Neu `mode=admin_debug` ma user khong phai `admin/root_admin` thi tra 403.
+  - Sua `HTTPException` khong bi catch thanh 500.
+- Graph endpoints:
+  - Neu `mode=admin_debug` ma user khong phai `admin/root_admin` thi tra 403.
+  - Sua `HTTPException` khong bi catch thanh 500.
+- `EmbeddingCandidateService`:
+  - Source embedding phai `status=ready`.
+  - Vector phai co `normalized=true`.
+  - Dimension phai bang 128.
+  - `signal=no_signal` bi bo qua.
+  - Vector zero/sai shape bi bo qua.
+- `CandidateMaskService`:
+  - `admin_debug` van include candidate nhung ghi reason `target_not_recommendable` neu target khong recommendable.
+- `PGPRGraphRepository.find_entity_neighbors()`:
+  - Bo `field_id` khoi query vi Neo4j hien khong co property nay, tranh warning log khong can thiet.
+
+Test bo sung:
+
+- `/api/v1/recommendations/policy` voi `mode=admin_debug` khong co admin token -> 403.
+- `/api/v1/graph/entities/{type}/{id}/neighbors` voi `mode=admin_debug` khong co admin token -> 403.
+- Graph neighbors public:
+  - chi thay node public hop le
+  - khong thay `owner_only` cua user khac
+  - khong thay `hidden`
+  - khong thay `rejected`
+- Graph neighbors personal:
+  - thay `owner_only` cua chinh current user
+  - khong thay `owner_only` cua user khac
+- Embedding candidate:
+  - source chua ready/khong co vector -> tra empty
+  - target `normalized=false` -> bi bo qua
+  - target sai dimension -> bi bo qua
+  - target zero-vector/no_signal -> bi bo qua
+
+Kiem tra:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python scripts\compile_project.py
+python scripts\test_phase5_candidate_safety.py
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase5_hardening.json
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+```text
+compile passed: 66 file(s)
+PASS written scripts\phase5_candidate_safety_report.json
+policy_cases=8 failed=0
+embedding.jobs messages = 0
+embedding.jobs.dlq messages = 0
+```
+
+---
+
+## 31. Phase 6 - Hybrid Recommendation Backward Compatible
+
+Muc tieu:
+
+- Them hybrid ranking (PGPR + embedding + topic/skill overlap) nhung giu contract API cu.
+- Them metadata cold-start/fallback/hybrid cho frontend va XAI.
+- Khong pha snapshot 8 policy cases baseline.
+
+Da tao:
+
+```text
+backend/services/hybrid_recommendation_service.py
+backend/scripts/test_phase6_hybrid_recommendation.py
+backend/scripts/phase6_hybrid_report.json
+backend/scripts/baseline_recommendation_snapshot_after_phase6.json
+```
+
+Da sua:
+
+```text
+backend/services/recommendation_service.py
+backend/models/schemas.py
+frontend/src/lib/api.ts
+frontend/src/app/dashboard/page.tsx
+CHECKLIST_SCALE_UP_COLD_START_HYBRID.md
+```
+
+Chi tiet pipeline (5 stage):
+
+1. **Candidate generation**
+   - PGPR pool (`limit * 3`).
+   - Embedding nearest (chi khi source `recommendation_mode=hybrid_ready`).
+   - Topic/skill overlap tu MongoDB (Jaccard tren token topic/skill).
+2. **Filter**
+   - Van di qua `CandidateMaskService` trong `RecommendationService._apply_provisional_rules`.
+3. **Scoring**
+   - Weighted blend: PGPR 0.62, path 0.18, embedding 0.12, topic 0.08.
+   - `evidence_level`: `path_supported` | `embedding_only` | `fallback_only`.
+   - `scoring_method`: `pgpr_policy`, `hybrid_embedding_path`, `hybrid_embedding`, `cypher_fallback`.
+4. **Rerank**
+   - Dedupe theo `id`, diversity penalty ten trung, cap score theo evidence.
+5. **XAI**
+   - `_append_hybrid_xai_notes` + cap nhat `_explain_rule` cho cold-start/embedding-only/fallback.
+
+Field moi tren moi recommendation item:
+
+- `evidence_level`, `cold_start`, `embedding_status`, `recommendation_mode`, `recommendation_readiness`, `recommendation_message`
+- `embedding_similarity`, `topic_overlap`, `hybrid_score_breakdown` (debug)
+
+Source-level context:
+
+- `fallback_until_embedding_ready` khi embedding pending/queued/processing/failed.
+- `fallback_until_embedding_recomputed` khi embedding `stale`.
+- `hybrid_ready` khi embedding ready + vector hop le.
+
+Score cap (theo ke hoach):
+
+- `embedding_only`: max 0.65 (0.50 neu provisional).
+- `fallback_only`: max 0.55 (0.45 neu provisional).
+- `no_signal`: max 0.40.
+- Khong path: cap them theo evidence.
+
+Cache key doi sang `recommendations:v6:hybrid:...` de tranh poison cache cu.
+
+Frontend dashboard:
+
+- Badge `Hybrid path+embedding`, `Hybrid embedding`, `Evidence *`, `Cold-start`, `Embedding status`.
+- Hien `recommendation_message` khi fallback/stale.
+
+Kiem tra:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python scripts\compile_project.py
+python scripts\test_phase6_hybrid_recommendation.py
+python scripts\baseline_recommendation_snapshot.py --output scripts\baseline_recommendation_snapshot_after_phase6.json
+```
+
+Ket qua 2026-05-29:
+
+```text
+compile passed: 68 file(s)
+PASS written scripts\phase6_hybrid_report.json
+policy_cases=8 failed=0
+```
+
+Ghi chu:
+
+- `pgpr/pgpr_recommendation.py` khong doi logic PGPR core; hybrid wrap o service layer.
+- PGPR van post-filter qua mask (Phase 5); pre-filter action space de Phase sau neu can.
+- Snapshot field cu (`id`, `name`, `score`, `reasoning_paths`, `explanation`, `xai_explanation`, `scoring_method`) van day du.
+
+
+## 31.1 Phase 6 hardening tests (truoc Phase 7/8)
+
+Da mo rong `backend/scripts/test_phase6_hybrid_recommendation.py` de chung minh runtime:
+
+1. **Source moi embedding ready**
+   - Project moi `phase6_prj_ready_*` + `embedding.status=ready`, vector hop le.
+   - `recommendation_mode=hybrid_ready`, `cold_start=false`.
+   - Expert chi co trong embedding pool (khong co trong PGPR stub) van xuat hien trong ket qua.
+
+2. **Embedding-only + cap**
+   - `reasoning_paths=[]`, `evidence_level=embedding_only`.
+   - Verified cap `<= 0.65`; provisional qua full pipeline cap `<= 0.50`.
+
+3. **Fallback / stale / failed**
+   - `queued` -> `fallback_until_embedding_ready` + message.
+   - `stale` -> `fallback_until_embedding_recomputed` + message.
+   - `failed` -> `fallback_until_embedding_ready` + message co "that bai".
+
+4. **Dedupe PGPR + embedding**
+   - Cung `expert_id` trong PGPR pool va embedding pool -> 1 item.
+   - `evidence_level=path_supported`, `embedding_similarity` > 0, `candidate_sources` gom `pgpr` + `embedding`.
+
+5. **Score frontend-safe**
+   - `_sync_display_scores()` dam bao `score == final_score` sau pipeline.
+   - `_cap_score_after_trust()` re-cap sau trust weight.
+
+6. **XAI wording**
+   - `embedding_only` -> canh bao embedding/path.
+   - `fallback_only` -> canh bao fallback/cold-start.
+
+Kiem tra:
+
+```powershell
+python scripts\test_phase6_hybrid_recommendation.py
+```
+
+Ket qua: PASS `scripts/phase6_hybrid_report.json`.
+---
+
+## 32. Phase 7 - Admin/Monitoring Embedding Pipeline
+
+Muc tieu:
+
+- Admin quan sat queue/outbox/embedding status va xu ly job failed.
+- User/admin recompute embedding an toan, co rate limit va audit log.
+
+Da tao:
+
+```text
+backend/services/embedding_admin_service.py
+backend/scripts/test_phase7_embedding_admin.py
+backend/scripts/phase7_embedding_admin_report.json
+```
+
+Da sua:
+
+```text
+backend/repositories/embedding_outbox_repo.py
+backend/api/v1/endpoints/admin.py
+backend/api/v1/endpoints/entities.py
+backend/api/deps.py
+frontend/src/lib/api.ts
+frontend/src/app/admin/page.tsx
+CHECKLIST_SCALE_UP_COLD_START_HYBRID.md
+```
+
+API:
+
+- `GET /api/v1/admin/embedding/pipeline-status` — queue, outbox, entity embedding counts, model.
+- `GET /api/v1/admin/embedding/jobs` — list outbox jobs (filter status/entity_type).
+- `POST /api/v1/admin/embedding/retry-failed` — reset failed outbox + publish pending.
+- `POST /api/v1/admin/entities/{type}/{id}/embedding/recompute` — admin recompute.
+- `GET /api/v1/entities/{type}/{id}/embedding-status` — metadata only (khong tra vector).
+- `POST /api/v1/entities/{type}/{id}/embedding/recompute` — user/admin recompute.
+
+Rule:
+
+- User chi recompute linked entity hoac project do minh so huu; nguoi khac -> 403.
+- Admin bypass rate limit; user bi gioi han `EMBEDDING_RECOMPUTE_COOLDOWN_SECONDS` (mac dinh 300s).
+- Recompute: mark `embedding.status=stale`, enqueue `kg.embedding.recompute` qua outbox.
+- Audit: `embedding_recompute`, `embedding_recompute_user`, `embedding_retry_failed`.
+
+Frontend admin:
+
+- Card "Embedding pipeline": RabbitMQ, queue length, outbox pending/failed, entity status badges.
+- Bang failed jobs + nut Retry failed / Recompute tung entity.
+
+Kiem tra:
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase7_embedding_admin.py
+```
+
+Ket qua 2026-05-29:
+
+```text
+compile passed
+PASS scripts\phase7_embedding_admin_report.json
+foreign_recompute_403 OK
+admin_retry_failed OK
+audit_actions includes embedding_recompute / embedding_retry_failed
+```
+
+## 32.1 Phase 7.1 - Production hardening (pre GraphSAGE/Evaluation)
+
+Bo sung 4 diem truoc khi sang Phase 8/9:
+
+1. **Worker heartbeat** — collection `worker_heartbeats` (`worker_id`, `worker_type`, `status`, `last_seen_at`, counters, `current_job_id`); `liveness` = `alive` | `stale` | `unknown` (`WORKER_HEARTBEAT_STALE_SECONDS=120`).
+2. **DLQ visibility** — `dlq.messages`, `dlq.alert`, `dlq.sample` (peek + nack requeue; sample gon: `event_type`, `entity_*`, `error_summary`, `raw_size_bytes`).
+3. **Recompute reason** — JSON `{ "reason": "..." }`; audit default `admin_requested_recompute` / `user_requested_recompute` khi khong gui reason.
+4. **Retry-failed filters** — mac dinh `error_type=temporary`, `limit=50`; `include_permanent=true` bat buoc `reason`; publish chi cac event vua reset (khong quet het pending).
+
+Test: `python scripts/test_phase7_1_hardening.py` (10 case: heartbeat, stale, DLQ peek, reason audit, retry filters/limit/403).
+
+File them/sua: `worker_heartbeat_repo.py`, `embedding_outbox_repo.py`, `rabbitmq_client.py`, `embedding_worker.py`, `embedding_admin_service.py`, admin/entities API, frontend admin panel.
+
+### 32.2 Chinh lai dinh vi tai lieu va roadmap (truoc Phase 8)
+
+**Vi sao chinh:** He thong sau Phase 7.1 da co outbox, DLQ, heartbeat, audit, monitoring — goi la "MVP" gay hieu nham la prototype tam. Can dinh vi **ban ung dung van hanh dau tien (initial deployable version)** va sap xep lai phase con lai theo thu tu van hanh that.
+
+**Da sua trong `KE_HOACH_COLD_START_RABBITMQ_GRAPHSAGE.md`:**
+
+- Doi wording MVP → initial deployable version / GraphSAGE-lite baseline for the initial deployable system.
+- Them ghi chu: checklist muc 3–19 la **spec kien truc goc**; trang thai thuc te theo doi o `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`.
+- Section 18 tach **da dat (Phase 0–7.1)** vs **con lai (Phase 8–12)**.
+- Section 17.1 roadmap moi: Phase 8 Evaluation → 9 Production → 10 GraphSAGE real → 11 Data Governance → 12 Security.
+
+**Da sua trong `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`:**
+
+- Phase 0: tick compile qua `compile_project.py` (bo dong `py_compile` rieng de tranh nhin nhu con thieu).
+- Phase 8–12 chi tiet (evaluation metrics, regression gate, docker production, restore test, model lifecycle, security).
+- Phase 9 them: test restore MongoDB/Neo4j tu backup mau.
+
+**Ly do doi thu tu phase:** Evaluation truoc GraphSAGE real vi can baseline so sanh; Production deploy truoc/song song model nang cao nhung **khong train GraphSAGE that khi chua co evaluation on dinh**.
+
+---
+
+## 33. Phase 8 - Evaluation & Quality Assurance
+
+### 33.0 Vi sao lam Phase 8 ngay sau Phase 7.1 (truoc GraphSAGE real / Production deploy)
+
+Sau Phase 7.1, he thong da co day du pipeline van hanh (RabbitMQ, outbox, DLQ, heartbeat, audit, admin monitoring) nhung **chua co lop do chat luong ranking**. Roadmap da duoc chot lai trong `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md` va `KE_HOACH_COLD_START_RABBITMQ_GRAPHSAGE.md`:
+
+- **Phase 8** = Evaluation & QA (lam truoc).
+- **Phase 9** = Production Deployment.
+- **Phase 10** = GraphSAGE real / model lifecycle.
+
+Ly do uu tien Evaluation truoc GraphSAGE that:
+
+1. **Khong co baseline thi khong biet model moi tot hay te hon** — GraphSAGE-lite, hybrid, PGPR-only can so sanh tren cung ground truth.
+2. **Regression gate** — moi lan doi scoring/model phai co co che chan promote neu NDCG/MRR giam qua nguong; day la pattern he thong ung dung that, khong chi bao cao do an.
+3. **Khong doi recommendation runtime** — evaluation chay offline qua script, khong thay doi API recommendation hien tai (Phase 0–7 da co snapshot baseline).
+
+### 33.1 Kien truc da chon
+
+Tach package rieng `backend/evaluation/` thay vi nhung het vao `EvaluationService` MVP cu:
+
+| Module | Vai tro | Vi sao tach rieng |
+|--------|---------|-------------------|
+| `metrics.py` | P@K, R@K, NDCG@K, MRR, coverage, latency p50/p95, explanation coverage | Ham metric thuan, de unit test doc lap (vd. fix bug NDCG idcg) |
+| `rankers.py` | 6 phuong phap xep hang offline | Moi baseline/method mot luong ro, khong tron vao `RecommendationService.get_recommendations_by_policy` |
+| `runner.py` | Doc cases, goi rankers, tong hop report | Orchestration + export JSON/CSV/Markdown |
+| `regression_gate.py` | So sanh report moi vs baseline | Tach policy QA khoi logic ranking |
+
+**Quyet dinh quan trong:** ranker goi truc tiep PGPR/hybrid/embedding service giong production, nhung **khong qua HTTP** va **khong ghi cache** — nhanh hon, on dinh hon cho CI/script, va tranh lam nhieu cache recommendation that.
+
+### 33.2 Sau phuong phap (rankers) va ly do
+
+| Method | Cach hoat dong | Vi sao can |
+|--------|----------------|------------|
+| `random` | Xao tron candidate universe | San co thap nhat; neu hybrid khong vuot random thi co loi nghiem trong |
+| `topic_overlap` | Jaccard topic/skill giua source va target | Baseline content-based don gian, khong can PGPR/embedding |
+| `graph_heuristic` | Sort theo so `reasoning_paths` + pgpr score | Baseline graph heuristic truoc PGPR policy day du |
+| `pgpr_only` | Chi pool PGPR + mask provisional | Do rieng dong gop PGPR policy (Phase 0 core) |
+| `embedding_only` | Chi `EmbeddingCandidateService.nearest_candidates` | Do rieng cold-start embedding (Phase 5) |
+| `hybrid` | Full `HybridRecommendationService.build_hybrid_candidates` + mask | Production path hien tai (Phase 6) |
+
+**Candidate universe** (cho random/graph_heuristic): hop nhat PGPR pool + embedding nearest (neu hybrid_ready) + topic overlap — **cung tap ung vien** de so sanh cong bang giua cac method.
+
+**Topic overlap trong evaluation** quet **tat ca entity** (khong bat buoc `embedding.status=ready`), khac voi `_topic_skill_candidates` trong hybrid runtime (chi entity embedding ready). Ly do: ground truth auto va baseline topic overlap phai hoat dong ca khi seed chua co embedding day du; khong doi hanh vi recommendation production.
+
+### 33.3 Ground truth dataset
+
+File: `backend/scripts/evaluation_cases.json`
+
+Hai co che:
+
+1. **Explicit `relevant_ids` + `graded_relevance`** — nhan tu domain review / snapshot PGPR (vd. `prj_001 -> exp_002, exp_001`). Dung khi co nhan chat luong that.
+2. **`auto_ground_truth: topic_overlap_top`** + `auto_top_n` — tu dong lay top-N entity overlap cao. Dung cho seed/demo khi chua co nhan thu cong; **weak ground truth**, ghi ro trong `notes`.
+
+Vi sao khong chi dung auto: auto overlap co the trung voi chinh baseline topic_overlap → metric topic_overlap method se cao gia tao. Can bo sung dan explicit labels cho bao cao chinh thuc.
+
+Cases hien tai:
+
+- `prj_001_to_expert` — explicit labels.
+- `prj_001_to_funder`, `prj_001_to_enterprise`, `exp_001_to_project` — auto weak GT.
+
+### 33.4 Metrics va operational KPIs
+
+Ngoai P@K, R@K, NDCG@K, MRR (checklist Phase 8), runner cung tinh:
+
+- **coverage** — ty le entity catalog duoc goi y it nhat mot lan (do diversity/he thong).
+- **cold_start_success_rate** — query source `cold_start=true` ma van hit relevant o top-K.
+- **explanation_coverage** — ty le item co `reasoning_paths` hoac explanation/XAI.
+- **latency_ms p50/p95** — thoi gian ranker (PGPR khoi tao local recommender co the cham lan dau).
+- **time_to_first_usable_ms** — thoi gian den khi co >=1 ket qua (null neu rong).
+
+**Bug fix trong qua trinh implement:** NDCG idcg tinh sai (dung value list lam item id) → idcg=0 → ndcg=0. Da sua: sort `relevance.keys()` theo diem giam dan lam ideal ranking.
+
+### 33.5 Regression gate
+
+File cau hinh: `backend/scripts/evaluation_config.json`
+
+- `reference_method`: `hybrid` (method production can bao ve).
+- Nguong mac dinh: `max_regression=0.05` cho `ndcg_at_5`, `mrr`, `precision_at_5`.
+- Hanh vi tuong tu Phase 7.1 retry permanent: **hanh dong nguy hiem can ly do / kiem soat** — o day la promote model/ranking moi.
+
+CLI:
+
+```powershell
+python scripts/run_evaluation.py --baseline scripts/evaluation_baseline_report.json
+```
+
+- Exit `0` = gate PASS (`promote_allowed`).
+- Exit `1` = gate FAIL (`promote_blocked_regression`).
+- Exit `2` = khong co row evaluation (cases thieu entity/GT).
+
+Baseline lan dau: `scripts/evaluation_baseline_report.json` (copy tu report sau run thanh cong).
+
+### 33.6 Script, test, API
+
+**CLI:** `backend/scripts/run_evaluation.py`
+
+- Output: `evaluation_report.json`, `.csv`, `.md`.
+- Tham so: `--methods`, `--limit`, `--k`, `--baseline`, `--cases`, `--config`.
+
+**Test:** `backend/scripts/test_phase8_evaluation.py`
+
+- Unit test metrics + regression gate.
+- Smoke: seed project/expert Phase8, chung minh `hybrid ndcg >= random`.
+- Optional: chay full `evaluation_cases.json` neu seed `prj_001` ton tai.
+
+**API:** cap nhat `EvaluationService.get_summary()` — doc `evaluation_report.json` neu co; fallback smoke test cu + huong dan chay `run_evaluation.py`. Endpoint `/api/v1/evaluation/summary` doi summary tu MVP placeholder sang Phase 8 report.
+
+**Khong sua** `RecommendationService` scoring — evaluation doc lap, dam bao Phase 0 snapshot recommendation khong bi pha.
+
+### 33.7 Ket qua lan chay dau (seed hien tai)
+
+```powershell
+python scripts/test_phase8_evaluation.py   # PASS
+python scripts/run_evaluation.py         # 3 queries, 18 rows, gate PASS
+```
+
+Quan sat tu `evaluation_report.md` (2026-05-29):
+
+- `prj_001` source **cold_start=true** (embedding chua ready) → hybrid ≈ pgpr_only (dung thiet ke Phase 6 fallback).
+- `topic_overlap` cao tren case co auto-GT overlap — expected vi weak GT trung phuong phap.
+- `embedding_only` = 0 tren nhieu case vi source chua co vector usable.
+- Latency p50 PGPR/hybrid ~2.5–2.8s (PGPRRecommender khoi tao local moi lan trong script — chap nhan cho offline eval, co the toi uu inject singleton sau).
+
+### 33.8 Han che va viec tiep theo
+
+| Han che | Huong xu ly |
+|---------|-------------|
+| Ground truth con mong (4 cases, 1 explicit) | Bo sung cases + labels thu cong tu admin/domain |
+| PGPR khoi tao lap trong ranker | Inject shared `PGPRRecommender` trong runner de latency on dinh hon |
+| Hybrid chua vuot PGPR tren prj_001 | Can entity embedding ready + them cases hybrid-ready (Phase 6 da co pattern test) |
+| Evaluation UI frontend chua doc report day du | Co the cap `/evaluation` page doc summary moi |
+
+Phase tiep theo theo roadmap: **Phase 9 — Production Deployment** (docker-compose, worker/outbox publisher, backup/restore test).
+
+### 33.9 File da tao/sua
+
+Tao moi:
+
+```text
+backend/evaluation/__init__.py
+backend/evaluation/metrics.py
+backend/evaluation/rankers.py
+backend/evaluation/runner.py
+backend/evaluation/regression_gate.py
+backend/scripts/evaluation_cases.json
+backend/scripts/evaluation_config.json
+backend/scripts/run_evaluation.py
+backend/scripts/test_phase8_evaluation.py
+backend/scripts/evaluation_report.json
+backend/scripts/evaluation_report.csv
+backend/scripts/evaluation_report.md
+backend/scripts/evaluation_baseline_report.json
+backend/scripts/phase8_evaluation_report.json
+```
+
+Sua:
+
+```text
+backend/services/evaluation_service.py
+backend/api/v1/endpoints/evaluation.py
+CHECKLIST_SCALE_UP_COLD_START_HYBRID.md  (Phase 8 tick)
+```
+
+Lenh kiem tra:
+
+```powershell
+cd backend
+python scripts/compile_project.py
+python scripts/test_phase8_evaluation.py
+python scripts/run_evaluation.py
+python scripts/run_evaluation.py --baseline scripts/evaluation_baseline_report.json
+```
+
+### 33.10 Phase 8.1 - Evaluation hardening
+
+**Vi sao can Phase 8.1 truoc Production deploy:** Phase 8 co pipeline nhung ground truth con mong (4 cases, nhieu auto weak GT), hybrid chua do duoc vi source cold_start, latency offline khong on dinh, report chi co gate pass/fail chua co bang delta de doc nhanh.
+
+**1. Explicit ground truth (22 cases)**
+
+- File `evaluation_cases.json` v2: tat ca `label_source=admin_review`, co `graded_relevance`.
+- Phu hop: project→expert/funder/enterprise, expert→project, enterprise→expert/project, funder→project.
+- **Vi sao:** Auto overlap lam topic_overlap baseline bi "cao gia"; explicit labels la nguon truth cho regression gate va bao cao chinh thuc. Labels dua tren PGPR+XAI/snapshot seed (co the thay bang admin review thuc sau).
+
+**2. Hybrid-ready cases (6 cases, tag `hybrid_ready`)**
+
+- Script `seed_evaluation_hybrid_fixtures.py` set `embedding.status=ready` + vector 128d cho prj_001, prj_005, exp_001, exp_006, ent_001, fnd_001, fnd_002.
+- CLI `run_evaluation.py --seed-hybrid` goi seed truoc khi chay.
+- **Vi sao:** Phase 8 quan sat embedding_only=0 vi source cold_start; can case source hybrid_ready de do dong gop embedding/hybrid that su.
+
+**3. Shared PGPRRecommender**
+
+- Module `evaluation/pgpr_session.py`: singleton inject vao `RecommendationService` trong mot lan `EvaluationRunner.run()`.
+- `close_evaluation_recommender()` trong `finally` de giai phong sau run.
+- **Vi sao:** Truoc day moi rank call co the khoi tao PGPR local → latency offline cao va khong on dinh giua cac method trong cung run.
+
+**4. Delta vs baseline report**
+
+- `build_baseline_comparison()` trong `regression_gate.py`: bang method × metric × current × baseline × delta × status.
+- Xuat trong JSON (`baseline_comparison`), Markdown (section Delta vs baseline), API `/evaluation/summary`.
+- Latency metrics: delta am = improved (`LOWER_IS_BETTER_METRICS`).
+- **Vi sao:** Gate chi noi pass/fail; delta giup thay hybrid tang/giam o dau truoc khi promote.
+
+**Test:** `python scripts/test_phase8_1_hardening.py` PASS (22 explicit, hybrid cold_start=false sau seed, baseline_comparison table).
+
+### 33.11 Phase 8.1 polish — seed guard, label version, primary metrics
+
+**1. Seed guard (dev/eval only)**
+
+- `evaluation/seed_guard.py`: bat buoc `EVALUATION_ALLOW_SEED=true` truoc khi chay `seed_evaluation_hybrid_fixtures.py` hoac `run_evaluation.py --seed-hybrid`.
+- Thoat code 2 + canh bao khong chay tren production data that neu chua backup.
+- `APP_ENV=production` in them WARNING stderr.
+- `.env.example`: `EVALUATION_ALLOW_SEED=` (de trong production).
+
+**2. Label metadata**
+
+- `evaluation_cases.json`: `label_version=v1`, `label_created_at=2026-05-29`, `label_policy=PGPR+XAI snapshot + manual review`.
+- Report JSON: `label_metadata` tu `EvaluationRunner.load_dataset_metadata()`.
+
+**3. Regression gate — primary metrics**
+
+- `evaluation_config.json`: `primary_metrics: ["ndcg_at_5", "mrr"]`; `precision_at_5` co `informational_only: true`.
+- Gate `passed` chi phu thuoc metric chinh; Precision@5 van xuat trong report/checks nhung khong block promote.
+
+**Lenh:**
+
+```powershell
+$env:EVALUATION_ALLOW_SEED="true"
+python scripts/seed_evaluation_hybrid_fixtures.py
+python scripts/test_phase8_1_hardening.py
+python scripts/run_evaluation.py --seed-hybrid --baseline scripts/evaluation_baseline_report.json
+```
+
+---
+
+## 34. Phase 9 - Production Deployment
+
+### 34.0 Vi sao lam Phase 9 sau Phase 8
+
+Sau Phase 7.1 (outbox, worker, DLQ, heartbeat) va Phase 8 (evaluation + regression gate), he thong da **chay duoc day du tren may dev** nhung chua co cach **dong goi va van hanh on dinh** khi deploy. Phase 9 khong doi logic recommendation/embedding; muc tieu la:
+
+1. **Dong goi** API + frontend + worker + outbox publisher thanh image Docker co healthcheck va restart policy.
+2. **Tach van hanh** khoi `python -m uvicorn` / script tay — de deploy lap lai duoc.
+3. **Chuan bi backup/restore** va logging co ban truoc go-live.
+4. **Khong trung lap ha tang** neu developer da co MongoDB, Neo4j, Redis, RabbitMQ chay san (truong hop thuc te cua du an).
+
+Phase 10 (GraphSAGE real) van sau Phase 9 vi can moi truong deploy on dinh + baseline evaluation, khong train model trong container chua verify duoc pipeline.
+
+---
+
+### 34.1 Quyet dinh kien truc: app-only + infra ngoai
+
+**Ban dau** tao `docker-compose.production.yml` gom 8 service (Mongo, Neo4j, Redis, RabbitMQ + 4 app). **Sau do dieu chinh** vi user da co container MongoDB, RabbitMQ, Redis, Neo4j **ben ngoai** va file `.env` goc voi:
+
+- `MONGO_DB_NAME=rd_knowledge_graph`, `MONGO_USERNAME` / `MONGO_PASSWORD`
+- `NEO4J_URI=neo4j://127.0.0.1:7687`
+- `OLLAMA_URL=http://localhost:11434`
+- Auth admin trong `.env`
+
+**Ly do tach app / infra:**
+
+| Quyet dinh | Ly do |
+|-----------|--------|
+| `docker-compose.production.yml` chi con **backend, embedding_worker, outbox_publisher, frontend** | Tranh khoi tao DB trung, mat du lieu cu, xung dot port voi container dang chay |
+| `docker-compose.infra.yml` (tuỳ chọn) | Chi dung khi may moi / CI can stack day du, khong bat buoc |
+| Doc **`.env` o thu muc goc** lam `env_file` | Mot nguon cau hinh cho ca chay local (`localhost`) va Docker; khong bat user maintain hai file secret |
+| Anchor `x-app-env` ghi de URI host thanh `host.docker.internal` | Trong container, `localhost` la chinh container, khong phai may host — phai map sang host gateway (Docker Desktop Windows/Mac) |
+| `MONGO_URI` build tu `MONGO_USERNAME` / `MONGO_PASSWORD` + `host.docker.internal:27017` | Giu dung DB `rd_knowledge_graph` qua `MONGO_DB_NAME`; tranh copy password vao hai cho |
+| `REDIS_URL` / `RABBITMQ_URL` **luon** trỏ `host.docker.internal` trong compose | Neu dung `${REDIS_URL}` tu `.env` (localhost), container se ket noi sai du URL trong `.env` dung cho dev |
+| `extra_hosts: host.docker.internal:host-gateway` | Ho tro Linux / Compose v2 map ve host |
+
+**Cau hinh `.env` da bo sung** (cho pipeline day du): `REDIS_URL`, `RABBITMQ_*`, `CORS_ORIGINS` (them port 3000 cho frontend Docker). RabbitMQ co the override `RABBITMQ_USER` / `RABBITMQ_PASSWORD` neu khac `guest`.
+
+---
+
+### 34.2 File da tao / sua va ly do
+
+| File | Vai tro | Vi sao |
+|------|---------|--------|
+| `backend/Dockerfile` | Image Python 3.11, uvicorn 1 worker, healthcheck `GET /api/v1/health` | Image nho gon cho API; 1 worker vi PGPR/torch load nang, tranh duplicate model trong RAM |
+| `frontend/Dockerfile` | Next.js **standalone** build, Node 20 | Giam kich thuoc runtime; `NEXT_PUBLIC_API_BASE_URL` build-time cho browser goi API tren host |
+| `frontend/next.config.ts` | `output: 'standalone'` | Bat buoc cho Dockerfile copy `.next/standalone` |
+| `docker-compose.production.yml` | 4 service app, `restart: unless-stopped`, healthcheck | Van hanh production: tu khoi phuc sau crash |
+| `docker-compose.infra.yml` | Mongo/Neo4j/Redis/RabbitMQ + volumes | Duong dan tuy chon khi chua co infra ngoai |
+| `.dockerignore` | Loai `node_modules`, `.git`, report JSON | Build nhanh hon, image khong thua du lieu |
+| `.env.production.example` | Mau tham chieu (cung format `.env` goc) | Tai lieu cho nguoi moi; khong bat buoc khi da co `.env` |
+| `deploy/README.md` | Huong dan deploy + backup | Mot cho doc cho ops |
+| `deploy/backup/backup_all.ps1` | `mongodump` + `neo4j-admin dump` | Chien luoc backup khi dung `docker-compose.infra.yml` |
+| `deploy/backup/restore_*_sample.ps1` | Restore mau tren staging | Backup vo nghia neu chua tung restore thanh cong (checklist Phase 9) |
+| `backend/scripts/worker_healthcheck.py` | Exit 0/1 cho Docker HEALTHCHECK | Embedding: mongo + rabbitmq + heartbeat `embedding_worker` con song; outbox: mongo + rabbitmq |
+| `backend/scripts/test_phase9_production_deploy.py` | Kiem tra artifact (khong can Docker chay) | CI/doc: dam bao compose + Dockerfile + env example ton tai |
+| `backend/scripts/test_phase9_restore_sample.py` | Opt-in `RUN_PHASE9_RESTORE_TEST=1` | Restore that can stack Docker + backup that; khong fail CI mac dinh |
+| `backend/main.py` | `LOG_LEVEL`, `LOG_FORMAT` (text/json) | Logging co ban cho production observability |
+| `backend/.env.example` | Dong bo `MONGO_DB_NAME=rd_knowledge_graph` | Khop ten DB that cua du an |
+
+**RabbitMQ durable / persistent:** Da co tu Phase 2–4 (`rabbitmq_client`: exchange/queue `durable=True`, `delivery_mode=2`). Phase 9 khong doi code; chi dam bao compose ket noi dung queue ben ngoai.
+
+**RBAC production:** Van dung `APP_AUTH_SECRET`, role admin, API `/api/v1/admin/*` tu Phase truoc; Phase 9 nhac doi secret trong `.env` truoc go-live, khong set `EVALUATION_ALLOW_SEED`.
+
+---
+
+### 34.3 Luong van hanh
+
+**Chay local (khong Docker)** — giu nguyen `.env` voi `localhost` / `127.0.0.1`:
+
+```powershell
+cd backend
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+**Chay app trong Docker** (DB/queue/Ollama van tren host):
+
+```powershell
+cd "D:\Documents\Đồ án"
+docker compose -f docker-compose.production.yml up -d --build
+```
+
+- Frontend container: http://localhost:3000  
+- API: http://localhost:8000 — health http://localhost:8000/api/v1/health  
+- Browser goi API qua `NEXT_PUBLIC_API_BASE_URL` (mac dinh `http://localhost:8000`), **khong** dung hostname `backend` (chi dung trong mang Docker).
+
+**Kiem tra artifact:**
+
+```powershell
+cd backend
+python scripts/test_phase9_production_deploy.py
+```
+
+---
+
+### 34.4 Rui ro / luu y khi deploy
+
+1. **Port publish:** Container Mongo/Neo4j/Redis/RabbitMQ/Ollama phai map ra host (`27017`, `7687`, `6379`, `5672`, `11434`).
+2. **Mat khau Neo4j co ky tu dac biet** (`@`, …): dat trong `NEO4J_PASSWORD` env, khong nhung raw vao URI neu khong encode.
+3. **Build image backend chua PyTorch** — lan `docker build` dau co the lau; can du RAM/disk.
+4. **Frontend dev port 9002 vs Docker 3000** — `CORS_ORIGINS` trong `.env` nen gom ca hai neu vua dev vua docker.
+5. **Backup script** `backup_all.ps1` huong toi stack co service `mongodb`/`neo4j` trong compose; voi infra ngoai, backup bang `docker exec <ten-container-cua-ban>` (ghi trong `deploy/README.md`).
+
+---
+
+### 34.5 Trang thai checklist (sau ra soat 2026-05-29)
+
+**He thong da co (Phase 0–8.1):** xem `deploy/SYSTEM_INVENTORY.md` va `python scripts/system_inventory_check.py`.
+
+**Phase 9 — da lam:**
+
+- Docker app-only + `.env` goc + `host.docker.internal` / `INFRA_HOST`.
+- Worker mount `pgpr_data`; Mongo URI co `authSource=admin`.
+- Backup: `backup_external.ps1` (infra ngoai) va `backup_all.ps1` (infra compose).
+- Test artifact + inventory script.
+
+**Phase 9 — chua xac nhan tren may (de checklist [ ]):**
+
+- `docker compose build && up` lan dau (image PyTorch).
+- Restore that tren staging (`RUN_PHASE9_RESTORE_TEST=1`).
+
+**Phase tiep theo:** Phase 10 — GraphSAGE real (chi sau khi deploy app on dinh + evaluation baseline).
+
+### 34.6 File inventory Phase 9
+
+| File | Ghi chu |
+|------|---------|
+| `deploy/SYSTEM_INVENTORY.md` | Tong quan he thong + bang phase |
+| `docker-compose.production.yml` | 4 service app |
+| `docker-compose.infra.yml` | 4 service DB (tuỳ chọn) |
+| `deploy/backup/backup_external.ps1` | Backup container Mongo/Neo4j co san |
+| `backend/scripts/system_inventory_check.py` | Kiem tra nhanh file/phase |

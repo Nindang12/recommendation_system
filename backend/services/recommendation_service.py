@@ -7,6 +7,9 @@ from repositories.mongodb_repo import MongoDBRepository
 from repositories.neo4j_repo import Neo4jRepository
 from pgpr.pgpr_recommendation import PGPRRecommender
 from pgpr.pgpr_xai_explainer import PGPRExplainer
+from services.candidate_mask_service import CandidateMaskService
+from services.hybrid_recommendation_service import HybridRecommendationService
+from services import provisional_status as st
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,6 +35,8 @@ class RecommendationService:
 
         self.recommender = recommender
         self.explainer = explainer or PGPRExplainer(language="vi")
+        self.candidate_mask = CandidateMaskService()
+        self.hybrid = HybridRecommendationService()
 
     async def get_expert_recommendations(
         self,
@@ -86,7 +91,7 @@ class RecommendationService:
         source_label = self._to_policy_label(source_type)
         target_label = self._to_policy_label(target_type)
         cache_key = (
-            f"recommendations:v4:{target_label.lower()}_for_{source_label.lower()}:"
+            f"recommendations:v6:hybrid:{target_label.lower()}_for_{source_label.lower()}:"
             f"{source_id}:{limit}:{language}:{mode}:{current_user_id or ''}"
         )
 
@@ -109,11 +114,24 @@ class RecommendationService:
             if project:
                 source_context["source_name"] = project.get("title") or source_id
 
-        recommendations: List[Dict[str, Any]] = await self._run_pgpr_dispatch(
+        pgpr_pool_limit = max(limit * 3, 30)
+        pgpr_candidates: List[Dict[str, Any]] = await self._run_pgpr_dispatch(
             source_id=source_id,
             source_label=source_label,
             target_label=target_label,
+            limit=pgpr_pool_limit,
+        )
+
+        src_reco_ctx = self.hybrid.source_recommendation_context(source_type, source_id)
+        recommendations, _ = await self.hybrid.build_hybrid_candidates(
+            pgpr_candidates,
+            source_type=source_type,
+            source_id=source_id,
+            target_type=target_type,
             limit=limit,
+            mode=mode,
+            current_user_id=current_user_id,
+            source_context=src_reco_ctx,
         )
 
         recommendations = self._apply_provisional_rules(
@@ -127,7 +145,7 @@ class RecommendationService:
 
         # 4. Enrich with XAI explanations (plug existing XAI here)
         recommendations = await self._enrich_with_xai(
-            source_context=source_context,
+            source_context={**source_context, **src_reco_ctx},
             target_type=target_label,
             recommendations=recommendations,
             language=language,
@@ -138,7 +156,8 @@ class RecommendationService:
             recommendations=recommendations,
             target_label=target_label,
         )
-        recommendations = self._apply_scoring_metadata(recommendations)
+        recommendations = self._apply_scoring_metadata(recommendations, source_context=src_reco_ctx)
+        recommendations = self._sync_display_scores(recommendations)
 
         # 6. Enrich with extra profile/graph info (keep hook for later).
         recommendations = await self._enrich_with_profiles_and_graph(
@@ -325,18 +344,21 @@ class RecommendationService:
             mode=mode,
             current_user_id=current_user_id,
         )
+        src_reco_ctx = self.hybrid.source_recommendation_context(source_type, source_id)
         evaluated = await self._enrich_with_xai(
             source_context={
                 "source_id": source_id,
                 "source_type": source_label,
                 "source_name": source_id,
+                **src_reco_ctx,
             },
             target_type=target_label,
             recommendations=evaluated,
             language=language,
         )
         evaluated = self._normalize_recommendations(evaluated, target_label)
-        evaluated = self._apply_scoring_metadata(evaluated)
+        evaluated = self._apply_scoring_metadata(evaluated, source_context=src_reco_ctx)
+        evaluated = self._sync_display_scores(evaluated)
         return evaluated
 
     async def _run_pgpr_dispatch(
@@ -412,15 +434,53 @@ class RecommendationService:
             )
             rec = dict(rec)
             if isinstance(explanation, dict) and "natural_language" in explanation:
+                text = explanation["natural_language"]
+                text = self._append_hybrid_xai_notes(text, rec, source_context)
                 rec["explanation"] = {
-                    "natural_language": explanation["natural_language"],
+                    "natural_language": text,
                     "visualization": explanation.get("visualization", ""),
                 }
-                # Backward compatibility for existing consumers.
-                rec["xai_explanation"] = explanation["natural_language"]
+                rec["xai_explanation"] = text
             else:
-                rec["xai_explanation"] = explanation
+                rec["xai_explanation"] = self._append_hybrid_xai_notes(
+                    str(explanation), rec, source_context
+                )
             out.append(rec)
+        return out
+
+    @staticmethod
+    def _append_hybrid_xai_notes(
+        text: str,
+        recommendation: Dict[str, Any],
+        source_context: Optional[Dict[str, Any]],
+    ) -> str:
+        notes: List[str] = []
+        source_context = source_context or {}
+        if source_context.get("cold_start") or recommendation.get("cold_start"):
+            mode = recommendation.get("recommendation_mode") or source_context.get("recommendation_mode")
+            if mode == "fallback_until_embedding_recomputed":
+                notes.append(
+                    "Ho so vua thay doi; he thong dang cap nhat embedding truoc khi goi y hybrid day du."
+                )
+            else:
+                notes.append(
+                    "Ket qua dang o che do cold-start/fallback vi embedding chua san sang hoac chua co path KG day du."
+                )
+        evidence = str(recommendation.get("evidence_level") or "")
+        if evidence == "embedding_only":
+            notes.append(
+                "Diem so chu yeu tu embedding similarity; chua co reasoning path manh — khong nen coi la ket qua chac chan."
+            )
+        elif evidence == "fallback_only":
+            notes.append("Ket qua dang dung heuristic/Cypher fallback; do tin cay thap hon PGPR policy.")
+        if recommendation.get("recommendation_message"):
+            notes.append(str(recommendation["recommendation_message"]))
+        if recommendation.get("uses_provisional_data"):
+            notes.append("Goi y co su dung du lieu chua xac thuc; ket qua co the thay doi sau khi duyet.")
+        out = text or ""
+        for note in notes:
+            if note and note not in out:
+                out = f"{out}\n\n{note}" if out else note
         return out
         
     async def explain_recommendation(
@@ -580,16 +640,31 @@ class RecommendationService:
                 if isinstance(existing, str) and note not in existing:
                     explanation["natural_language"] = f"{existing}\n\n{note}"
             scoring_method = str(recommendation.get("scoring_method") or "")
-            if scoring_method == "cypher_fallback":
-                fallback_note = (
-                    "Diem so va giai thich dua tren heuristic/Cypher tren do thi, "
-                    "khong phai PGPR policy day du. Khong nen coi la ket qua chac chan."
-                )
+            if scoring_method in {"cypher_fallback", "hybrid_embedding", "hybrid_embedding_path"}:
+                if scoring_method == "cypher_fallback":
+                    fallback_note = (
+                        "Diem so va giai thich dua tren heuristic/Cypher tren do thi, "
+                        "khong phai PGPR policy day du. Khong nen coi la ket qua chac chan."
+                    )
+                elif scoring_method == "hybrid_embedding_path":
+                    fallback_note = (
+                        "Ket qua ket hop PGPR path va embedding similarity; uu tien ly do tren do thi."
+                    )
+                else:
+                    fallback_note = (
+                        "Ket qua hybrid co embedding nhung path KG con han che."
+                    )
                 if recommendation.get("fallback_reason"):
                     fallback_note = f"{fallback_note}\n\n{recommendation['fallback_reason']}"
                 existing = explanation.get("natural_language")
                 if isinstance(existing, str) and fallback_note not in existing:
                     explanation["natural_language"] = f"{existing}\n\n{fallback_note}"
+            evidence = str(recommendation.get("evidence_level") or "")
+            if evidence == "embedding_only":
+                note = "Canh bao: evidence_level=embedding_only — khong co path KG manh."
+                existing = explanation.get("natural_language")
+                if isinstance(existing, str) and note not in existing:
+                    explanation["natural_language"] = f"{existing}\n\n{note}"
         return explanation
 
     async def _explain_llm(
@@ -614,12 +689,53 @@ class RecommendationService:
                 source_context=source_context,
             )
 
+    @staticmethod
+    def _cap_score_after_trust(
+        score: float,
+        item: Dict[str, Any],
+        source_status: Dict[str, Any],
+        target_status: Dict[str, Any],
+    ) -> float:
+        """Re-apply hybrid evidence caps after trust weights so API score stays frontend-safe."""
+        evidence = str(item.get("evidence_level") or "")
+        paths = item.get("reasoning_paths") or []
+        provisional = bool(
+            item.get("uses_provisional_data")
+            or CandidateMaskService.is_provisional(source_status)
+            or CandidateMaskService.is_provisional(target_status)
+        )
+        cap = 1.0
+        if evidence == "embedding_only" or (
+            not paths and float(item.get("embedding_similarity", 0) or 0) > 0
+        ):
+            cap = 0.50 if provisional else 0.65
+        elif evidence == "fallback_only" or not paths:
+            cap = 0.45 if provisional else 0.55
+        if item.get("embedding_signal") in {st.EMBEDDING_SIGNAL_NONE, "no_signal"}:
+            cap = min(cap, 0.40)
+        return round(min(max(float(score), 0.0), cap), 6)
+
+    @staticmethod
+    def _sync_display_scores(recommendations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Frontend legacy consumers read `score`; keep it identical to capped final_score."""
+        out: List[Dict[str, Any]] = []
+        for rec in recommendations:
+            item = dict(rec)
+            final_score = item.get("final_score")
+            if final_score is None:
+                final_score = item.get("score", 0.0)
+            item["final_score"] = round(float(final_score or 0.0), 6)
+            item["score"] = item["final_score"]
+            out.append(item)
+        return out
+
     def _apply_scoring_metadata(
         self,
         recommendations: List[Dict[str, Any]],
+        source_context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
-        """Infer scoring_method, fallback_reason and cap scores without evidence paths."""
-        score_cap_without_paths = 0.55
+        """Infer scoring_method, evidence_level, caps and source-level hybrid metadata."""
+        source_context = source_context or {}
         out: List[Dict[str, Any]] = []
         for rec in recommendations:
             item = dict(rec)
@@ -633,19 +749,43 @@ class RecommendationService:
                 else:
                     method = "cypher_fallback"
                 item["scoring_method"] = method
+            if not item.get("evidence_level"):
+                if paths and method not in {"cypher_fallback", "hybrid_embedding"}:
+                    item["evidence_level"] = "path_supported"
+                elif item.get("embedding_similarity"):
+                    item["evidence_level"] = "embedding_only"
+                else:
+                    item["evidence_level"] = "fallback_only"
             if not paths and not item.get("fallback_reason"):
                 item["fallback_reason"] = (
                     "Khong tim thay duong ly do tren Knowledge Graph. "
                     "Diem so co the tu heuristic va chua du tin cay."
                 )
+            evidence = str(item.get("evidence_level") or "fallback_only")
+            cap = 0.55
+            if evidence == "path_supported" and paths:
+                cap = 1.0
+            elif evidence == "embedding_only":
+                cap = 0.50 if item.get("uses_provisional_data") else 0.65
+            elif item.get("uses_provisional_data"):
+                cap = 0.45
             if not paths:
-                capped = min(float(item.get("score", 0.0) or 0.0), score_cap_without_paths)
+                capped = min(float(item.get("score", 0.0) or 0.0), cap)
                 item["score"] = round(capped, 6)
                 if item.get("final_score") is not None:
                     item["final_score"] = round(
-                        min(float(item.get("final_score", capped) or capped), score_cap_without_paths),
+                        min(float(item.get("final_score", capped) or capped), cap),
                         6,
                     )
+            for field in (
+                "cold_start",
+                "embedding_status",
+                "recommendation_mode",
+                "recommendation_readiness",
+                "recommendation_message",
+            ):
+                if field not in item and field in source_context:
+                    item[field] = source_context.get(field)
             out.append(item)
         return out
 
@@ -695,29 +835,26 @@ class RecommendationService:
         current_user_id: Optional[str],
     ) -> List[Dict[str, Any]]:
         mode = mode if mode in {"public", "personal", "admin_debug"} else "public"
-        graph_repo = getattr(self.recommender, "graph_repo", None)
-        if graph_repo is None:
-            return recommendations
-
-        try:
-            source_status = graph_repo.get_entity_status(source_label, source_id)
-        except Exception:
-            source_status = {}
-
-        source_owner = str(source_status.get("owner_user_id") or "")
-        source_scope = source_status.get("participation_scope") or "public"
-        source_allowed = bool(source_status.get("allow_as_source", True))
-        source_runtime_weight = float(source_status.get("trust_weight", 1.0) or 1.0)
-        source_override_reason = None
-        if (
-            mode == "personal"
-            and source_allowed
-            and source_scope == "owner_only"
-            and current_user_id
-            and source_owner == str(current_user_id)
-        ):
-            source_runtime_weight = 1.0
-            source_override_reason = "current_user_personal_mode"
+        source_status = self.candidate_mask.get_entity_status(source_label.lower(), source_id)
+        source_decision = self.candidate_mask.evaluate_source_status(
+            source_status,
+            mode=mode,
+            current_user_id=current_user_id,
+        )
+        if not source_decision.allowed and mode != "admin_debug":
+            logger.info(
+                "Blocked source %s/%s mode=%s reasons=%s",
+                source_label,
+                source_id,
+                mode,
+                source_decision.reasons,
+            )
+            return []
+        source_runtime_weight, source_override_reason = self.candidate_mask.runtime_source_weight(
+            source_status,
+            mode=mode,
+            current_user_id=current_user_id,
+        )
 
         out: List[Dict[str, Any]] = []
         for rec in recommendations:
@@ -731,12 +868,25 @@ class RecommendationService:
                 or item.get("enterprise_id")
                 or ""
             )
-            try:
-                target_status = graph_repo.get_entity_status(target_label, target_id) if target_id else {}
-            except Exception:
-                target_status = {}
+            target_status = self.candidate_mask.get_entity_status(target_label.lower(), target_id) if target_id else {}
+            target_decision = self.candidate_mask.evaluate_target_status(
+                target_status,
+                mode=mode,
+                current_user_id=current_user_id,
+            )
+            if not target_decision.allowed:
+                if mode == "admin_debug":
+                    item["candidate_mask"] = {
+                        "allowed": False,
+                        "reasons": target_decision.reasons,
+                        "status": target_decision.status,
+                    }
+                else:
+                    continue
+            else:
+                item["candidate_mask"] = {"allowed": True}
 
-            if not self._is_target_visible(target_status, mode, current_user_id):
+            if mode != "admin_debug" and not target_decision.allowed:
                 continue
 
             target_weight = float(target_status.get("trust_weight", 1.0) or 1.0)
@@ -744,24 +894,30 @@ class RecommendationService:
             base_score = float(item.get("score", 0.0) or 0.0)
             final_score = round(base_score * source_runtime_weight * target_weight, 6)
 
-            provisional_count = int(self._is_provisional(source_status)) + int(self._is_provisional(target_status))
+            provisional_count = int(self.candidate_mask.is_provisional(source_status)) + int(self.candidate_mask.is_provisional(target_status))
             notes: List[str] = []
-            if self._is_provisional(source_status):
+            if self.candidate_mask.is_provisional(source_status):
                 notes.append("Source entity is unverified or provisional")
-            if self._is_provisional(target_status):
+            if self.candidate_mask.is_provisional(target_status):
                 notes.append("Target entity is unverified or provisional")
             if provisional_count:
                 notes.append("This recommendation uses provisional KG data")
 
             item["raw_score"] = base_score
-            item["score"] = final_score
-            item["final_score"] = final_score
+            capped_score = self._cap_score_after_trust(
+                final_score,
+                item,
+                source_status,
+                target_status,
+            )
+            item["score"] = capped_score
+            item["final_score"] = capped_score
             item["stored_trust_weight"] = stored_source_weight
             item["runtime_source_weight"] = source_runtime_weight
             item["trust_override_reason"] = source_override_reason
             item["uses_provisional_data"] = bool(provisional_count)
             item["provisional_nodes_count"] = provisional_count
-            item["data_quality_level"] = self._data_quality_level(source_status, target_status)
+            item["data_quality_level"] = self.candidate_mask.data_quality_level(source_status, target_status)
             item["data_quality_notes"] = notes
             item["verification_badges"] = {
                 "source": source_status.get("entity_verification_status", "verified"),
@@ -771,43 +927,6 @@ class RecommendationService:
 
         out.sort(key=lambda rec: float(rec.get("score", 0.0) or 0.0), reverse=True)
         return out
-
-    def _is_target_visible(
-        self,
-        status: Dict[str, Any],
-        mode: str,
-        current_user_id: Optional[str],
-    ) -> bool:
-        if mode == "admin_debug":
-            return True
-        if (status.get("visibility") or "public") in {"hidden", "disabled"}:
-            return False
-        if (status.get("participation_scope") or "public") == "disabled":
-            return False
-        if (status.get("entity_verification_status") or "verified") == "rejected":
-            return False
-        if mode == "public":
-            if (status.get("participation_scope") or "public") == "owner_only":
-                return False
-            if status and status.get("recommendable_as_target") is False:
-                return False
-        if mode == "personal" and (status.get("participation_scope") or "public") == "owner_only":
-            return str(status.get("owner_user_id") or "") == str(current_user_id or "")
-        return True
-
-    @staticmethod
-    def _is_provisional(status: Dict[str, Any]) -> bool:
-        return (status.get("entity_verification_status") or "verified") != "verified"
-
-    def _data_quality_level(self, source_status: Dict[str, Any], target_status: Dict[str, Any]) -> str:
-        if any((s.get("kg_sync_status") == "merge_required") for s in (source_status, target_status)):
-            return "low"
-        provisional_count = int(self._is_provisional(source_status)) + int(self._is_provisional(target_status))
-        if provisional_count == 0:
-            return "high"
-        if provisional_count == 1:
-            return "medium"
-        return "low"
 
     def _to_policy_label(self, entity_type: str) -> str:
         key = (entity_type or "").strip().lower()

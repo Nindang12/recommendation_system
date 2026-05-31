@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from repositories.auth_repo import AuthRepository
 from services.entity_matching_service import EntityMatchingService
+from services.outbox_publisher_service import OutboxPublisherService
 from services.provisional_kg_sync_service import ProvisionalKGSyncService
 from services import provisional_status as st
 
@@ -22,6 +23,7 @@ class AuthService:
         self.repo = repo or AuthRepository()
         self.matcher = EntityMatchingService(self.repo)
         self.kg_sync = ProvisionalKGSyncService(self.repo)
+        self.event_publisher = OutboxPublisherService(self.repo)
         self.secret = os.getenv("APP_AUTH_SECRET", "dev-change-me")
 
     def register(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -57,6 +59,12 @@ class AuthService:
                 user = refreshed
             synced_entity = self._sync_role_entity_if_needed(user.get("role", ""), linked_entity)
             if synced_entity:
+                self._publish_embedding_event_if_ready(
+                    str(user.get("role", "")),
+                    str(synced_entity.get(self.repo.entity_id_field(str(user.get("role", "")))) or linked_entity.get("id")),
+                    event_type="kg.entity.created",
+                    source="user_registration",
+                )
                 linked_entity = self._linked_entity_response(
                     synced_entity,
                     user.get("role", ""),
@@ -89,7 +97,14 @@ class AuthService:
             linked_entity = self._linked_entity_response(role_entity, user.get("role", ""))
             user = self.repo.set_user_linked_entity(user_id, linked_entity) or user
             if linked_entity.get("match_status") != "matched_existing":
-                self._sync_role_entity_if_needed(user.get("role", ""), linked_entity)
+                synced_entity = self._sync_role_entity_if_needed(user.get("role", ""), linked_entity)
+                if synced_entity and self._should_publish_update_embedding_event(synced_entity):
+                    self._publish_embedding_event_if_ready(
+                        str(user.get("role", "")),
+                        str(synced_entity.get(self.repo.entity_id_field(str(user.get("role", "")))) or linked_entity.get("id")),
+                        event_type="kg.entity.updated",
+                        source="profile_update",
+                    )
         return self._public_user(user)
 
     def create_project(self, user_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -101,6 +116,12 @@ class AuthService:
         try:
             self.kg_sync.sync_entity_as_unverified("project", str(project.get("project_id")))
             project = self.repo.find_entity_by_id("project", str(project.get("project_id"))) or project
+            self._publish_embedding_event_if_ready(
+                "project",
+                str(project.get("project_id")),
+                event_type="kg.project.created",
+                source="user_project_create",
+            )
         except Exception:
             # Project creation should remain usable even when Neo4j is temporarily down.
             pass
@@ -499,6 +520,30 @@ class AuthService:
         except Exception:
             # Registration remains successful; status is stored as sync_failed for retry.
             return self.repo.find_entity_by_id(str(role).lower(), str(entity_id))
+
+    def _publish_embedding_event_if_ready(
+        self,
+        entity_type: str,
+        entity_id: str,
+        *,
+        event_type: str,
+        source: str,
+    ) -> None:
+        try:
+            self.event_publisher.enqueue_embedding_event(
+                entity_type,
+                entity_id,
+                event_type=event_type,  # type: ignore[arg-type]
+                source=source,
+            )
+        except Exception:
+            # Embedding queue is optional in Phase 2; user-facing flows must not fail.
+            return
+
+    @staticmethod
+    def _should_publish_update_embedding_event(entity: Dict[str, Any]) -> bool:
+        embedding = entity.get("embedding") or {}
+        return embedding.get("status") == st.EMBEDDING_STALE
 
     def _hash_password(self, password: str) -> str:
         salt = secrets.token_hex(16)

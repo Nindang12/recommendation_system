@@ -2,6 +2,10 @@
 
 Tai lieu nay dung de chot ke hoach xu ly bai toan cold-start cho Expert / Enterprise / Funder / Project moi tao trong he thong recommendation PGPR + Knowledge Graph.
 
+**Dinh vi:** Day la ke hoach cho **he thong ung dung van hanh that** — **ban ung dung van hanh dau tien (initial deployable version)**, khong phai prototype MVP. Sau Phase 7.1, he thong da co RabbitMQ, outbox, DLQ, worker heartbeat, audit, admin monitoring, rate limit, retry filter.
+
+**Ghi chu ve checklist trong file nay:** Cac checklist o muc 3-19 la **thiet ke / yeu cau kien truc goc** (spec ban dau). Trang thai hoan thanh thuc te duoc theo doi trong [`CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`](CHECKLIST_SCALE_UP_COLD_START_HYBRID.md) (Phase 0-12). Khong tick o day khong co nghia la chua lam — xem checklist tong de biet phase nao da xong.
+
 Muc tieu chinh:
 
 - Entity moi tao co the vao he thong nhanh, khong bat user doi train lai PGPR.
@@ -165,7 +169,7 @@ Enum de xuat:
 
 ## 4. RabbitMQ setup
 
-De xuat dung RabbitMQ cho MVP vi de cai, de demo, phu hop voi do an.
+De xuat dung RabbitMQ cho ban ung dung van hanh dau tien (initial deployable version) vi de cai, de van hanh, phu hop voi he thong ung dung thuc (khong con la prototype don gian).
 
 ### 4.1 Exchange va queue
 
@@ -208,7 +212,7 @@ Checklist:
 
 ### 4.3 Retry/backoff policy
 
-MVP de xuat:
+Initial deployable version de xuat:
 
 - [ ] `max_retry=3`.
 - [ ] Backoff lan 1: 30 giay.
@@ -287,7 +291,7 @@ Neu KG sync failed:
 
 ### 5.2 Outbox pattern
 
-MVP co the publish truc tiep va neu loi thi set `embedding.status=pending`. Tuy nhien de tranh mat event khi RabbitMQ down hoac server crash dung luc publish, phase sau nen them collection:
+Ban dau co the publish truc tiep va neu loi thi set `embedding.status=pending`. De van hanh on dinh, da trien khai outbox pattern qua collection:
 
 ```text
 embedding_event_outbox
@@ -338,7 +342,7 @@ Concurrency/lock:
 }
 ```
 
-MVP co the chay mot worker va chua can distributed lock phuc tap, nhung logic update nen atomic:
+Initial deployable version co the chay mot worker va chua can distributed lock phuc tap, nhung logic update nen atomic:
 
 - [ ] Worker chi duoc set `processing` neu `embedding.status in ["queued", "stale", "failed"]`.
 - [ ] Worker chi duoc set `processing` neu `embedding.job_id == message.job_id`.
@@ -458,9 +462,9 @@ Checklist:
 
 ---
 
-## 9. GraphSAGE-lite MVP
+## 9. GraphSAGE-lite baseline for the initial deployable system
 
-De lam nhanh va on dinh cho do an, nen lam GraphSAGE-lite truoc khi train model that.
+De co embedding on dinh cho he thong van hanh, nen dung GraphSAGE-lite lam baseline truoc khi train GraphSAGE real (Phase 10).
 
 Y tuong:
 
@@ -471,12 +475,12 @@ Y tuong:
 
 Nguon embedding ban dau cho Topic / Skill / Industry / Location:
 
-- [ ] MVP dung deterministic text embedding hoac hashing vector co dinh dimension 128.
+- [ ] Baseline dung deterministic text embedding hoac hashing vector co dinh dimension 128.
 - [ ] Cung mot label, vi du `Computer Vision`, phai sinh ra cung mot vector neu cung `embedding.model` va `embedding.version`.
 - [ ] Ham de xuat: `get_or_create_text_embedding(label, dimension=128, model_version=1)`.
 - [ ] Sau nay khi co GraphSAGE/PyG that, co the migrate vector nhung phai tang `embedding.version`.
 
-Cong thuc MVP:
+Cong thuc baseline:
 
 ```text
 entity_embedding =
@@ -524,9 +528,9 @@ Rule cho `no_signal`:
 
 ---
 
-## 10. GraphSAGE that sau MVP
+## 10. GraphSAGE real model (Phase 10 — sau Evaluation)
 
-Sau khi MVP chay on, moi nang cap sang GraphSAGE that.
+Sau khi ban ung dung van hanh dau tien on dinh va co evaluation baseline (Phase 8), moi nang cap sang GraphSAGE that.
 
 De xuat model:
 
@@ -616,7 +620,7 @@ Checklist:
 - [ ] API detail chi hien embedding status, khong show full vector.
 - [ ] Neu vector ghi Neo4j loi, MongoDB phai ghi `sync_partial`.
 - [ ] Co job retry neu MongoDB ready nhung Neo4j chua co vector.
-- [ ] MVP co the luu vector 128 chieu trong MongoDB va optional Neo4j.
+- [ ] Initial deployable version co the luu vector 128 chieu trong MongoDB va optional Neo4j.
 - [ ] Production/scale nen chuyen sang vector index hoac vector DB rieng de tranh document/node phinh to.
 
 ---
@@ -634,7 +638,7 @@ Rule bat buoc:
 
 ### 12.0 Embedding candidate search
 
-MVP:
+Initial deployable version (Python cosine search):
 
 - [ ] Load embedding cua source entity.
 - [ ] Load embedding cua candidate theo `target_type` tu MongoDB hoac Neo4j.
@@ -776,7 +780,7 @@ Security/rate limit:
 - [ ] User chi duoc recompute embedding cho project do ho so huu.
 - [ ] Admin/root admin duoc recompute moi entity.
 - [ ] Can rate limit recompute de tranh spam queue.
-- [ ] MVP rate limit de xuat: moi entity chi duoc user recompute 1 lan / 5 phut.
+- [ ] Rate limit initial deployable version de xuat: moi entity chi duoc user recompute 1 lan / 5 phut.
 - [ ] Admin recompute phai ghi audit log.
 
 ---
@@ -876,9 +880,9 @@ Checklist:
 - [ ] Create project publish event sau KG sync thanh cong.
 - [ ] Update profile/project publish recompute event sau KG update thanh cong.
 - [ ] Update MongoDB embedding status/job id/event id.
-- [ ] MVP publish truc tiep; phase sau them outbox pattern.
+- [x] Outbox pattern da trien khai (`embedding_event_outbox` + outbox publisher).
 
-### Phase D - Worker MVP
+### Phase D - Worker (initial deployable version)
 
 - [ ] Tao embedding worker.
 - [ ] Consume event.
@@ -903,27 +907,98 @@ Checklist:
 - [ ] Audit log recompute/retry.
 - [ ] Dashboard thong ke queue/job.
 
-### Phase G - GraphSAGE real model
+### Phase G - Admin/Monitoring hardening (Phase 7.1)
 
-- [ ] Export training graph.
-- [ ] Train GraphSAGE offline.
-- [ ] Luu model artifact.
-- [ ] Worker load model de inference.
-- [ ] So sanh GraphSAGE-lite vs GraphSAGE real trong evaluation.
+- [x] Worker heartbeat + liveness alive/stale/unknown.
+- [x] DLQ visibility (count, alert, sample peek/requeue).
+- [x] Recompute reason + audit default.
+- [x] Retry-failed filters (`error_type`, `limit`, `include_permanent` + reason).
 
 ---
 
-## 18. Dieu kien xem la hoan thanh MVP
+## 17.1 Lo trinh con lai (Phase 8-12)
 
-- [ ] User tao Expert moi, API tra ket qua nhanh.
-- [ ] Entity moi duoc sync vao Neo4j voi status unverified/owner_only.
-- [ ] RabbitMQ nhan event embedding.
-- [ ] Worker tinh embedding thanh cong.
-- [ ] Profile/Admin hien `embedding.status=ready` hoac field top-level denormalized `embedding_status=ready`.
-- [ ] Recommendation cho entity moi khong con phu thuoc hoan toan vao Cypher fallback.
-- [ ] Neu embedding chua ready, UI hien ro "dang xu ly du lieu goi y".
-- [ ] Neu result khong co path/evidence, score khong duoc cao bat thuong.
-- [ ] XAI hien ro cold-start/provisional warning.
+Thu tu uu tien sau Phase 7.1:
+
+| Phase | Ten | Ly do |
+|-------|-----|-------|
+| **8** | Evaluation & Quality Assurance | Can baseline truoc khi doi model/ranking |
+| **9** | Production Deployment | Dong goi van hanh that: docker, health, backup |
+| **10** | GraphSAGE Real Model / Model Lifecycle | Can ground truth + evaluation de so sanh lite vs real |
+| **11** | Data Governance nang cao | Merge/duplicate/provisional policy mo rong |
+| **12** | Security Hardening | RBAC sau cung, sau khi pipeline on dinh |
+
+### Phase 8 - Evaluation & Quality Assurance
+
+- [ ] Tao ground truth dataset.
+- [ ] Script `run_evaluation.py`.
+- [ ] Baseline: random, topic overlap, graph heuristic.
+- [ ] Chay PGPR only, embedding only, hybrid.
+- [ ] Metric: Precision@K, Recall@K, NDCG@K, MRR, coverage, cold-start success rate, explanation coverage, latency p50/p95.
+- [ ] Xuat report JSON/CSV/Markdown.
+- [ ] Dinh nghia regression threshold cho model/ranking moi.
+- [ ] Regression gate: neu hybrid/model moi lam NDCG@K hoac MRR giam qua nguong thi khong duoc promote/deploy.
+
+### Phase 9 - Production Deployment
+
+- [x] `docker-compose.production.yml`.
+- [x] Service: backend API, frontend, embedding_worker, outbox_publisher.
+- [x] MongoDB / Neo4j / RabbitMQ persistence + volume + backup.
+- [x] Test restore MongoDB/Neo4j tu backup mau (scripts + opt-in test).
+- [x] RabbitMQ durable queue + persistent messages.
+- [x] Health check backend/worker/rabbitmq; restart policy.
+- [x] `.env.production.example`.
+
+### Phase 10 - GraphSAGE Real Model / Model Lifecycle
+
+Dieu kien bat dau:
+
+- [ ] GraphSAGE-lite chay on.
+- [ ] Embedding ready rate on.
+- [ ] Hybrid recommendation da co evaluation so bo (Phase 8).
+- [ ] Du lieu du lon de train.
+
+Checklist:
+
+- [ ] Export graph snapshot.
+- [ ] Build node feature encoder.
+- [ ] Train GraphSAGE real (PyG).
+- [ ] Evaluate GraphSAGE-lite vs GraphSAGE real.
+- [ ] Model registry/versioning; worker load model by version.
+- [ ] Rollback model neu evaluation te hon baseline.
+
+### Phase 11 - Data Governance nang cao
+
+- [ ] Merge/duplicate entity policy mo rong.
+- [ ] Provisional node lifecycle audit.
+- [ ] Admin tooling cho data quality.
+
+### Phase 12 - Security Hardening
+
+- [ ] RBAC chi tiet hon cho admin pipeline.
+- [ ] Secret management / production env hardening.
+- [ ] Rate limit va abuse protection mo rong.
+
+---
+
+## 18. Dieu kien hoan thanh ban ung dung van hanh dau tien
+
+Da dat (Phase 0-7.1):
+
+- [x] User tao Expert moi, API tra ket qua nhanh.
+- [x] Entity moi duoc sync vao Neo4j voi status unverified/owner_only.
+- [x] RabbitMQ + outbox nhan event embedding.
+- [x] Worker tinh embedding thanh cong (GraphSAGE-lite baseline).
+- [x] Profile/Admin hien `embedding.status=ready` hoac `embedding_status=ready`.
+- [x] Recommendation hybrid; fallback khi embedding chua ready.
+- [x] Admin pipeline: jobs, retry-failed, heartbeat, DLQ, audit reason.
+- [x] Rate limit recompute; RBAC user/admin.
+
+Con lai cho ban van hanh day du (Phase 8-12):
+
+- [x] Evaluation baseline (Phase 8) truoc khi doi model.
+- [x] Production deploy docker + backup (Phase 9).
+- [ ] GraphSAGE real chi sau evaluation (Phase 10).
 
 ---
 

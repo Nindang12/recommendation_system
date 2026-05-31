@@ -1,0 +1,87 @@
+{
+  "steps": [
+    {
+      "name": "empty_queue_once",
+      "returncode": 0,
+      "stdout": "No embedding job available.\n",
+      "stderr": ""
+    },
+    {
+      "name": "created_seed",
+      "entity_id": "user_exp_6a180f5a8c997dee6077210f",
+      "status": "queued"
+    },
+    {
+      "name": "seed_ready",
+      "returncode": 0,
+      "stdout": "{\n  \"status\": \"ready\",\n  \"entity_type\": \"expert\",\n  \"entity_id\": \"user_exp_6a180f5a8c997dee6077210f\",\n  \"job_id\": \"job_92d946dbf1d34a9abda406680cf48a16\",\n  \"event_id\": \"evt_2039f6db5e564821aa29b114247668c5\",\n  \"signal\": \"ok\",\n  \"dimension\": 128,\n  \"normalized\": true,\n  \"evidence_counts\": {\n    \"topics\": 1,\n    \"skills\": 1,\n    \"industries\": 0,\n    \"location\": 3,\n    \"graph\": 7\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "missing_entity_skip",
+      "returncode": 0,
+      "stdout": "{\n  \"status\": \"skipped\",\n  \"error\": \"Entity not found: expert/missing_entity_for_phase3\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "kg_sync_failed_skip",
+      "returncode": 0,
+      "stdout": "{\n  \"status\": \"skipped\",\n  \"error\": \"kg not ready: sync_failed\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "rejected_skip",
+      "returncode": 0,
+      "stdout": "{\n  \"status\": \"skipped\",\n  \"error\": \"entity rejected\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "stale_recompute_ready",
+      "source_hash_before": "8b3f92a7907bfc9967f38c60d71a5f03f72cf4de1dc8cc2d680343d5186c11a3",
+      "source_hash_after": "db71dbe3a6a327ade995d515fab473786cdf9c45d7b6e7be5aedd26692953fa7",
+      "worker": {
+        "returncode": 0,
+        "stdout": "{\n  \"status\": \"ready\",\n  \"entity_type\": \"expert\",\n  \"entity_id\": \"user_exp_6a180f5a8c997dee6077210f\",\n  \"job_id\": \"job_8b4c11ea251447309cdfcd5cc2fdf7a6\",\n  \"event_id\": \"evt_0e6141bbb5694091b0de192674c42aeb\",\n  \"signal\": \"ok\",\n  \"dimension\": 128,\n  \"normalized\": true,\n  \"evidence_counts\": {\n    \"topics\": 2,\n    \"skills\": 3,\n    \"industries\": 0,\n    \"location\": 3,\n    \"graph\": 10\n  }\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "entity_api_no_vector",
+      "embedding_keys": [
+        "dimension",
+        "error",
+        "error_type",
+        "job_id",
+        "last_event_id",
+        "last_processed_at",
+        "last_queued_at",
+        "max_retry",
+        "model",
+        "normalized",
+        "retry_count",
+        "signal",
+        "source_hash",
+        "status",
+        "updated_at",
+        "version"
+      ]
+    },
+    {
+      "name": "malformed_event_dlq",
+      "worker": {
+        "returncode": 1,
+        "stdout": "{\n  \"status\": \"failed\",\n  \"error\": \"6 validation errors for EmbeddingEvent\\njob_id\\n  Field required [type=missing, input_value={'event_id': 'evt_bad_pha...e', 'schema_version': 1}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nentity_type\\n  Field required [type=missing, input_value={'event_id': 'evt_bad_pha...e', 'schema_version': 1}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nentity_id\\n  Field required [type=missing, input_value={'event_id': 'evt_bad_pha...e', 'schema_version': 1}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nkg_sync_status\\n  Field required [type=missing, input_value={'event_id': 'evt_bad_pha...e', 'schema_version': 1}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nentity_verification_status\\n  Field required [type=missing, input_value={'event_id': 'evt_bad_pha...e', 'schema_version': 1}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nembedding_source_hash\\n  Field required [type=missing, input_value={'event_id': 'evt_bad_pha...e', 'schema_version': 1}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\"\n}\n",
+        "stderr": ""
+      },
+      "queues": {
+        "embedding.jobs": 0,
+        "embedding.jobs.dlq": 1
+      }
+    }
+  ],
+  "final_queue": {
+    "embedding.jobs": 0,
+    "embedding.jobs.dlq": 0
+  },
+  "status": "passed"
+}

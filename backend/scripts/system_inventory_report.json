@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "checks": {
+    "phase0_baseline": true,
+    "phase1_embedding_metadata": true,
+    "phase2_rabbitmq": true,
+    "phase3_worker": true,
+    "phase4_outbox": true,
+    "phase5_candidate_mask": true,
+    "phase6_hybrid": true,
+    "phase7_admin": true,
+    "phase8_evaluation": true,
+    "phase9_docker_compose": true,
+    "phase9_dockerfile_backend": true,
+    "phase9_env_root": true,
+    "pgpr_data": true
+  },
+  "api_endpoint_modules": [
+    "admin",
+    "auth",
+    "entities",
+    "evaluation",
+    "explanations",
+    "graph",
+    "health",
+    "recommendations",
+    "taxonomy"
+  ],
+  "deploy_mode": "app-only + external Mongo/Neo4j/Redis/RabbitMQ (see deploy/SYSTEM_INVENTORY.md)"
+}

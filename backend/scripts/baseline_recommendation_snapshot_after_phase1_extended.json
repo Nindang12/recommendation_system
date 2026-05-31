@@ -1,0 +1,3761 @@
+{
+  "snapshot_type": "recommendation_api_baseline",
+  "created_at": "2026-05-28T08:29:27.819491+00:00",
+  "base_url": "http://127.0.0.1:8000",
+  "purpose": "Freeze current API response shape before cold-start hybrid recommendation scale-up.",
+  "required_item_fields": [
+    "id",
+    "name",
+    "score"
+  ],
+  "legacy_compat_fields": [
+    "id",
+    "name",
+    "score",
+    "reasoning_paths",
+    "explanation",
+    "xai_explanation",
+    "scoring_method"
+  ],
+  "sample_ids": {
+    "project": "prj_001",
+    "expert": "exp_001",
+    "funder": "fnd_001",
+    "enterprise": "ent_001"
+  },
+  "health": {
+    "ok": true,
+    "status": 200,
+    "elapsed_ms": 4097,
+    "body": {
+      "status": "ok",
+      "services": {
+        "mongodb": "connected",
+        "neo4j": "connected",
+        "redis": "optional",
+        "pgpr": "ready"
+      }
+    }
+  },
+  "policy_cases": [
+    {
+      "name": "Project->Expert",
+      "request": {
+        "source_id": "prj_001",
+        "source_type": "project",
+        "target_type": "expert",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "exp_002",
+          "name": "TS. Trần Thị B",
+          "score": 0.59,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 3,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 11129,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "exp_002",
+              "name": "TS. Trần Thị B",
+              "score": 0.59,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **59.0%** (Tốt)\n\nTìm thấy **86 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.9%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 1.1%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.6%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+              },
+              "metrics": {
+                "h_index": 10,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_002",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **59.0%** (Tốt)\n\nTìm thấy **86 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Trần Thị B"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_002",
+                      "type": "Expert",
+                      "name": "TS. Trần Thị B"
+                    }
+                  ],
+                  "score": 0.059,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "CREATES",
+                    "CREATES",
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Product",
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "MedVision Core V1",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Trần Thị B"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "prod_001",
+                      "type": "Product",
+                      "name": "MedVision Core V1"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_002",
+                      "type": "Expert",
+                      "name": "TS. Trần Thị B"
+                    }
+                  ],
+                  "score": 0.011,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "ResearchTopic",
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Medical Imaging",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Trần Thị B"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "Medical Imaging",
+                      "type": "ResearchTopic",
+                      "name": "Medical Imaging"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_002",
+                      "type": "Expert",
+                      "name": "TS. Trần Thị B"
+                    }
+                  ],
+                  "score": 0.006,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 86,
+              "final_score": 0.59,
+              "raw_score": 0.59,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "exp_003",
+              "name": "TS. Phạm Minh C",
+              "score": 0.35,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **35.0%** (Khá)\n\nTìm thấy **56 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.4%):\n  ┌─ REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 0.6%):\n  ┌─ CREATES\n  ├─> CREATES\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.3%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\n```"
+              },
+              "metrics": {
+                "h_index": 9,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_003",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **35.0%** (Khá)\n\nTìm thấy **56 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.034,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "CREATES -> CREATES -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "CREATES",
+                    "CREATES",
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Product",
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "MedVision Core V1",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "prod_001",
+                      "type": "Product",
+                      "name": "MedVision Core V1"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.006,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "ResearchTopic",
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Medical Imaging",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "Medical Imaging",
+                      "type": "ResearchTopic",
+                      "name": "Medical Imaging"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.003,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 56,
+              "final_score": 0.35,
+              "raw_score": 0.35,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "exp_004",
+              "name": "PGS.TS. Lê Thu D",
+              "score": 0.25,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **25.0%** (Khá)\n\nTìm thấy **41 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 1.5%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> PARTICIPATES_IN\n\nPath 2 (Score: 1.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> HAS_EXPERIENCE_IN\n\nPath 3 (Score: 0.8%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> CREATES\n  └─> DEVELOPS\n\n```"
+              },
+              "metrics": {
+                "h_index": 11,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_004",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Lê Thu D** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **25.0%** (Khá)\n\nTìm thấy **41 cách khác nhau** để kết nối chuyên gia này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nKết nối qua: tham gia\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> PARTICIPATES_IN",
+                  "relations": [
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "PARTICIPATES_IN"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "ResearchTopic",
+                    "Project",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring",
+                    "PGS.TS. Lê Thu D"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    },
+                    {
+                      "id": "exp_004",
+                      "type": "Expert",
+                      "name": "PGS.TS. Lê Thu D"
+                    }
+                  ],
+                  "score": 0.015,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> HAS_EXPERIENCE_IN",
+                  "relations": [
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "HAS_EXPERIENCE_IN"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "ResearchTopic",
+                    "Project",
+                    "ResearchTopic",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring",
+                    "Crop Disease Detection",
+                    "PGS.TS. Lê Thu D"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    },
+                    {
+                      "id": "Crop Disease Detection",
+                      "type": "ResearchTopic",
+                      "name": "Crop Disease Detection"
+                    },
+                    {
+                      "id": "exp_004",
+                      "type": "Expert",
+                      "name": "PGS.TS. Lê Thu D"
+                    }
+                  ],
+                  "score": 0.01,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> CREATES -> DEVELOPS",
+                  "relations": [
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "CREATES",
+                    "DEVELOPS"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "ResearchTopic",
+                    "Project",
+                    "Product",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring",
+                    "AgriVision Edge Kit",
+                    "PGS.TS. Lê Thu D"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    },
+                    {
+                      "id": "prod_004",
+                      "type": "Product",
+                      "name": "AgriVision Edge Kit"
+                    },
+                    {
+                      "id": "exp_004",
+                      "type": "Expert",
+                      "name": "PGS.TS. Lê Thu D"
+                    }
+                  ],
+                  "score": 0.008,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 41,
+              "final_score": 0.25,
+              "raw_score": 0.25,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Project->Funder",
+      "request": {
+        "source_id": "prj_001",
+        "source_type": "project",
+        "target_type": "funder",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "fnd_002",
+          "name": "National Technology Development Fund (NATIF)",
+          "score": 0.99,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 3,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 9775,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "fnd_002",
+              "name": "National Technology Development Fund (NATIF)",
+              "score": 0.99,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý quỹ tài trợ **National Technology Development Fund (NATIF)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **95 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.09)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 8.9%):\n  ┌─ TARGETS\n  ├─> OPERATES_IN\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\nPath 2 (Score: 0.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ PARTNERS_WITH\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **National Technology Development Fund (NATIF)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **95 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.09)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                  "relations": [
+                    "TARGETS",
+                    "OPERATES_IN",
+                    "OPERATES_IN",
+                    "FOCUSES_ON_SECTORS"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Industry",
+                    "Enterprise",
+                    "Industry",
+                    "Funder"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Healthcare Technology",
+                    "TechMed Solutions VN",
+                    "Information Technology",
+                    "National Technology Development Fund (NATIF)"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "fnd_002",
+                      "type": "Funder",
+                      "name": "National Technology Development Fund (NATIF)"
+                    }
+                  ],
+                  "score": 0.089,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Location",
+                    "Funder"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN-Đồng bằng sông Hồng",
+                    "National Technology Development Fund (NATIF)"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "VN-Đồng bằng sông Hồng",
+                      "type": "Location",
+                      "name": "VN-Đồng bằng sông Hồng"
+                    },
+                    {
+                      "id": "fnd_002",
+                      "type": "Funder",
+                      "name": "National Technology Development Fund (NATIF)"
+                    }
+                  ],
+                  "score": 0.001,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "PARTNERS_WITH -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                  "relations": [
+                    "PARTNERS_WITH",
+                    "OPERATES_IN",
+                    "FOCUSES_ON_SECTORS"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Enterprise",
+                    "Industry",
+                    "Funder"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "TechMed Solutions VN",
+                    "Information Technology",
+                    "National Technology Development Fund (NATIF)"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "fnd_002",
+                      "type": "Funder",
+                      "name": "National Technology Development Fund (NATIF)"
+                    }
+                  ],
+                  "score": 0.0,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 95,
+              "final_score": 0.99,
+              "raw_score": 0.99,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "fnd_003",
+              "name": "Vietnam Digital Innovation Grant (VDIG)",
+              "score": 0.39,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **39.0%** (Khá)\n\nTìm thấy **27 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 2.4%):\n  ┌─ TARGETS\n  ├─> OPERATES_IN\n  ├─> OPERATES_IN\n  └─> FOCUSES_ON_SECTORS\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Vietnam Digital Innovation Grant (VDIG)** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **39.0%** (Khá)\n\nTìm thấy **27 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> OPERATES_IN -> OPERATES_IN -> FOCUSES_ON_SECTORS",
+                  "relations": [
+                    "TARGETS",
+                    "OPERATES_IN",
+                    "OPERATES_IN",
+                    "FOCUSES_ON_SECTORS"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Industry",
+                    "Enterprise",
+                    "Industry",
+                    "Funder"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Healthcare Technology",
+                    "TechMed Solutions VN",
+                    "Information Technology",
+                    "Vietnam Digital Innovation Grant (VDIG)"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "fnd_003",
+                      "type": "Funder",
+                      "name": "Vietnam Digital Innovation Grant (VDIG)"
+                    }
+                  ],
+                  "score": 0.024,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 27,
+              "final_score": 0.39,
+              "raw_score": 0.39,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "fnd_004",
+              "name": "Agri Innovation Program Vietnam",
+              "score": 0.0,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý quỹ tài trợ **Agri Innovation Program Vietnam** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **0.0%** (Trung bình)\n\nTìm thấy **2 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.0%):\n  ┌─ FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> TARGETS\n  └─> FOCUSES_ON_SECTORS\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý quỹ tài trợ **Agri Innovation Program Vietnam** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **0.0%** (Trung bình)\n\nTìm thấy **2 cách khác nhau** để kết nối quỹ này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> TARGETS -> FOCUSES_ON_SECTORS",
+                  "relations": [
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "TARGETS",
+                    "FOCUSES_ON_SECTORS"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "ResearchTopic",
+                    "Project",
+                    "Industry",
+                    "Funder"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring",
+                    "Agriculture Technology",
+                    "Agri Innovation Program Vietnam"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    },
+                    {
+                      "id": "AGR",
+                      "type": "Industry",
+                      "name": "Agriculture Technology"
+                    },
+                    {
+                      "id": "fnd_004",
+                      "type": "Funder",
+                      "name": "Agri Innovation Program Vietnam"
+                    }
+                  ],
+                  "score": 0.0,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 2,
+              "final_score": 0.0,
+              "raw_score": 0.0,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Project->Enterprise",
+      "request": {
+        "source_id": "prj_001",
+        "source_type": "project",
+        "target_type": "enterprise",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "ent_002",
+          "name": "VinaSmart Factory Tech",
+          "score": 0.82,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 1,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 9511,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "ent_002",
+              "name": "VinaSmart Factory Tech",
+              "score": 0.82,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **82.0%** (Xuất sắc)\n\nTìm thấy **72 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.07)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 6.7%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **VinaSmart Factory Tech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **82.0%** (Xuất sắc)\n\nTìm thấy **72 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.07)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "relations": [
+                    "TARGETS",
+                    "FOCUSES_ON_SECTORS",
+                    "FOCUSES_ON_SECTORS",
+                    "OPERATES_IN"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Industry",
+                    "Funder",
+                    "Industry",
+                    "Enterprise"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Healthcare Technology",
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Information Technology",
+                    "VinaSmart Factory Tech"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "ent_002",
+                      "type": "Enterprise",
+                      "name": "VinaSmart Factory Tech"
+                    }
+                  ],
+                  "score": 0.067,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 72,
+              "final_score": 0.82,
+              "raw_score": 0.82,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "ent_005",
+              "name": "LearnNext EdTech",
+              "score": 0.53,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý doanh nghiệp **LearnNext EdTech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **53.0%** (Tốt)\n\nTìm thấy **39 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.9%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\nPath 2 (Score: 0.0%):\n  ┌─ REQUIRES_SKILL\n  ├─> HAS_SKILL\n  └─> WORK_FOR\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **LearnNext EdTech** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **53.0%** (Tốt)\n\nTìm thấy **39 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.04)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "relations": [
+                    "TARGETS",
+                    "FOCUSES_ON_SECTORS",
+                    "FOCUSES_ON_SECTORS",
+                    "OPERATES_IN"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Industry",
+                    "Funder",
+                    "Industry",
+                    "Enterprise"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Healthcare Technology",
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Information Technology",
+                    "LearnNext EdTech"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "ent_005",
+                      "type": "Enterprise",
+                      "name": "LearnNext EdTech"
+                    }
+                  ],
+                  "score": 0.039,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "REQUIRES_SKILL -> HAS_SKILL -> WORK_FOR",
+                  "relations": [
+                    "REQUIRES_SKILL",
+                    "HAS_SKILL",
+                    "WORK_FOR"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Skill",
+                    "Expert",
+                    "Enterprise"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "PyTorch",
+                    "TS. Vũ Quốc E",
+                    "LearnNext EdTech"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "PyTorch",
+                      "type": "Skill",
+                      "name": "PyTorch"
+                    },
+                    {
+                      "id": "exp_005",
+                      "type": "Expert",
+                      "name": "TS. Vũ Quốc E"
+                    },
+                    {
+                      "id": "ent_005",
+                      "type": "Enterprise",
+                      "name": "LearnNext EdTech"
+                    }
+                  ],
+                  "score": 0.0,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 39,
+              "final_score": 0.53,
+              "raw_score": 0.53,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "ent_003",
+              "name": "SecurePay Analytics JSC",
+              "score": 0.48,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **48.0%** (Tốt)\n\nTìm thấy **32 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.3%):\n  ┌─ TARGETS\n  ├─> FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> OPERATES_IN\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý doanh nghiệp **SecurePay Analytics JSC** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **48.0%** (Tốt)\n\nTìm thấy **32 cách khác nhau** để kết nối doanh nghiệp này với dự án\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "TARGETS -> FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> OPERATES_IN",
+                  "relations": [
+                    "TARGETS",
+                    "FOCUSES_ON_SECTORS",
+                    "FOCUSES_ON_SECTORS",
+                    "OPERATES_IN"
+                  ],
+                  "node_types": [
+                    "Project",
+                    "Industry",
+                    "Funder",
+                    "Industry",
+                    "Enterprise"
+                  ],
+                  "entity_names": [
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "Healthcare Technology",
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Information Technology",
+                    "SecurePay Analytics JSC"
+                  ],
+                  "entities": [
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "ent_003",
+                      "type": "Enterprise",
+                      "name": "SecurePay Analytics JSC"
+                    }
+                  ],
+                  "score": 0.033,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 32,
+              "final_score": 0.48,
+              "raw_score": 0.48,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Project->Project",
+      "request": {
+        "source_id": "prj_001",
+        "source_type": "project",
+        "target_type": "project",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "prj_004",
+          "name": "AgriVision for Coffee Disease Monitoring",
+          "score": 0.55,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": false,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 0,
+          "scoring_method": "cypher_fallback",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 8132,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "prj_004",
+              "name": "AgriVision for Coffee Disease Monitoring",
+              "score": 0.55,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **55.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "visualization": "No paths to visualize"
+              },
+              "metrics": {
+                "location": "VN-Tây Nguyên",
+                "status": "ongoing",
+                "budget": 160000
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **55.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+              "extra": null,
+              "reasoning_paths": [],
+              "path_diversity": 0,
+              "final_score": 0.55,
+              "raw_score": 0.55,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "cypher_fallback",
+              "fallback_reason": "Ket qua tu tim kiem heuristic/Cypher tren do thi. Khong co duong ly do day du tren Knowledge Graph."
+            },
+            {
+              "id": "prj_002",
+              "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+              "score": 0.55,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **55.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "visualization": "No paths to visualize"
+              },
+              "metrics": {
+                "location": "VN-Bắc Trung Bộ",
+                "status": "ongoing",
+                "budget": 180000
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **55.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+              "extra": null,
+              "reasoning_paths": [],
+              "path_diversity": 0,
+              "final_score": 0.55,
+              "raw_score": 0.55,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "cypher_fallback",
+              "fallback_reason": "Ket qua tu tim kiem heuristic/Cypher tren do thi. Khong co duong ly do day du tren Knowledge Graph."
+            },
+            {
+              "id": "prj_003",
+              "name": "SecurePay AI Fraud Intelligence",
+              "score": 0.55,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **55.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+                "visualization": "No paths to visualize"
+              },
+              "metrics": {
+                "location": "VN-Đồng bằng sông Hồng",
+                "status": "ongoing",
+                "budget": 140000
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho dự án của bạn vì:\n\nĐộ phù hợp tổng thể: **55.0%** (Tốt)\n\nTìm thấy **0 cách khác nhau** để kết nối dự án này với dự án\n\n**Lý do chính:**",
+              "extra": null,
+              "reasoning_paths": [],
+              "path_diversity": 0,
+              "final_score": 0.55,
+              "raw_score": 0.55,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "cypher_fallback",
+              "fallback_reason": "Ket qua tu tim kiem heuristic/Cypher tren do thi. Khong co duong ly do day du tren Knowledge Graph."
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Expert->Project",
+      "request": {
+        "source_id": "exp_001",
+        "source_type": "expert",
+        "target_type": "project",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "prj_004",
+          "name": "AgriVision for Coffee Disease Monitoring",
+          "score": 0.22,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 2,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 9519,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "prj_004",
+              "name": "AgriVision for Coffee Disease Monitoring",
+              "score": 0.22,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho bạn vì:\n\nĐộ phù hợp tổng thể: **22.0%** (Khá)\n\nTìm thấy **10 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.8%):\n  ┌─ HAS_EXPERIENCE_IN\n  └─> FOCUSES_ON_TOPIC\n\nPath 2 (Score: 0.4%):\n  ┌─ DEVELOPS\n  ├─> DEVELOPS\n  ├─> HAS_EXPERIENCE_IN\n  └─> FOCUSES_ON_TOPIC\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": 160000,
+                "status": "ongoing"
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho bạn vì:\n\nĐộ phù hợp tổng thể: **22.0%** (Khá)\n\nTìm thấy **10 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "HAS_EXPERIENCE_IN -> FOCUSES_ON_TOPIC",
+                  "relations": [
+                    "HAS_EXPERIENCE_IN",
+                    "FOCUSES_ON_TOPIC"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "ResearchTopic",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    }
+                  ],
+                  "score": 0.008,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "DEVELOPS -> DEVELOPS -> HAS_EXPERIENCE_IN -> FOCUSES_ON_TOPIC",
+                  "relations": [
+                    "DEVELOPS",
+                    "DEVELOPS",
+                    "HAS_EXPERIENCE_IN",
+                    "FOCUSES_ON_TOPIC"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Product",
+                    "Expert",
+                    "ResearchTopic",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "MedVision Core V1",
+                    "PGS.TS. Nguyễn Văn A",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "prod_001",
+                      "type": "Product",
+                      "name": "MedVision Core V1"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    }
+                  ],
+                  "score": 0.004,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 10,
+              "final_score": 0.22,
+              "raw_score": 0.22,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "prj_006",
+              "name": "SmartRoute for Urban Fleet Optimization",
+              "score": 0.16,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **SmartRoute for Urban Fleet Optimization** cho bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **6 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.2%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 0.1%):\n  ┌─ DEVELOPS\n  ├─> DEVELOPS\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.0%):\n  ┌─ HAS_SKILL\n  └─> REQUIRES_SKILL\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": 155000,
+                "status": "ongoing"
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **SmartRoute for Urban Fleet Optimization** cho bạn vì:\n\nĐộ phù hợp tổng thể: **16.0%** (Trung bình)\n\nTìm thấy **6 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Location",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN-Đông Nam Bộ",
+                    "SmartRoute for Urban Fleet Optimization"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "VN-Đông Nam Bộ",
+                      "type": "Location",
+                      "name": "VN-Đông Nam Bộ"
+                    },
+                    {
+                      "id": "prj_006",
+                      "type": "Project",
+                      "name": "SmartRoute for Urban Fleet Optimization"
+                    }
+                  ],
+                  "score": 0.002,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "DEVELOPS -> DEVELOPS -> LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "DEVELOPS",
+                    "DEVELOPS",
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Product",
+                    "Expert",
+                    "Location",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "MedVision Core V1",
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN-Đông Nam Bộ",
+                    "SmartRoute for Urban Fleet Optimization"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "prod_001",
+                      "type": "Product",
+                      "name": "MedVision Core V1"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "VN-Đông Nam Bộ",
+                      "type": "Location",
+                      "name": "VN-Đông Nam Bộ"
+                    },
+                    {
+                      "id": "prj_006",
+                      "type": "Project",
+                      "name": "SmartRoute for Urban Fleet Optimization"
+                    }
+                  ],
+                  "score": 0.001,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "HAS_SKILL -> REQUIRES_SKILL",
+                  "relations": [
+                    "HAS_SKILL",
+                    "REQUIRES_SKILL"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Skill",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "Python",
+                    "SmartRoute for Urban Fleet Optimization"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "Python",
+                      "type": "Skill",
+                      "name": "Python"
+                    },
+                    {
+                      "id": "prj_006",
+                      "type": "Project",
+                      "name": "SmartRoute for Urban Fleet Optimization"
+                    }
+                  ],
+                  "score": 0.0,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 6,
+              "final_score": 0.16,
+              "raw_score": 0.16,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "prj_003",
+              "name": "SecurePay AI Fraud Intelligence",
+              "score": 0.0,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho bạn vì:\n\nĐộ phù hợp tổng thể: **0.0%** (Trung bình)\n\nTìm thấy **1 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.0%):\n  ┌─ HAS_SKILL\n  └─> REQUIRES_SKILL\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": 140000,
+                "status": "ongoing"
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho bạn vì:\n\nĐộ phù hợp tổng thể: **0.0%** (Trung bình)\n\nTìm thấy **1 cách khác nhau** để kết nối dự án này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "HAS_SKILL -> REQUIRES_SKILL",
+                  "relations": [
+                    "HAS_SKILL",
+                    "REQUIRES_SKILL"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Skill",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "Python",
+                    "SecurePay AI Fraud Intelligence"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "Python",
+                      "type": "Skill",
+                      "name": "Python"
+                    },
+                    {
+                      "id": "prj_003",
+                      "type": "Project",
+                      "name": "SecurePay AI Fraud Intelligence"
+                    }
+                  ],
+                  "score": 0.0,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 1,
+              "final_score": 0.0,
+              "raw_score": 0.0,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Expert->Expert",
+      "request": {
+        "source_id": "exp_001",
+        "source_type": "expert",
+        "target_type": "expert",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "exp_002",
+          "name": "TS. Trần Thị B",
+          "score": 0.99,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 3,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 8609,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "exp_002",
+              "name": "TS. Trần Thị B",
+              "score": 0.99,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **665 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.33)**\nKết nối qua: cộng tác\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 33.3%):\n  ┌─ COLLABORATES_WITH\n\nPath 2 (Score: 0.5%):\n  ┌─ OWNS_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.2%):\n  ┌─ HAS_ACCESS_TO\n  └─> OWNS_DATA\n\n```"
+              },
+              "metrics": {
+                "h_index": 10,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_002",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trần Thị B** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **665 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.33)**\nKết nối qua: cộng tác\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "COLLABORATES_WITH",
+                  "relations": [
+                    "COLLABORATES_WITH"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "TS. Trần Thị B"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "exp_002",
+                      "type": "Expert",
+                      "name": "TS. Trần Thị B"
+                    }
+                  ],
+                  "score": 0.333,
+                  "length": 1,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "OWNS_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "OWNS_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN Chest X-Ray 100k",
+                    "TS. Trần Thị B"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_002",
+                      "type": "Expert",
+                      "name": "TS. Trần Thị B"
+                    }
+                  ],
+                  "score": 0.005,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "HAS_ACCESS_TO -> OWNS_DATA",
+                  "relations": [
+                    "HAS_ACCESS_TO",
+                    "OWNS_DATA"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN CNC Sensor Stream 50M",
+                    "TS. Trần Thị B"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_002",
+                      "type": "Dataset",
+                      "name": "VN CNC Sensor Stream 50M"
+                    },
+                    {
+                      "id": "exp_002",
+                      "type": "Expert",
+                      "name": "TS. Trần Thị B"
+                    }
+                  ],
+                  "score": 0.002,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 665,
+              "final_score": 0.99,
+              "raw_score": 0.99,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "exp_001",
+              "name": "PGS.TS. Nguyễn Văn A",
+              "score": 0.99,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **PGS.TS. Nguyễn Văn A** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **271 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.23)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 23.4%):\n  ┌─ DEVELOPS\n  └─> DEVELOPS\n\nPath 2 (Score: 0.7%):\n  ┌─ HAS_ACCESS_TO\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.5%):\n  ┌─ HAS_SKILL\n  └─> HAS_SKILL\n\n```"
+              },
+              "metrics": {
+                "h_index": 12,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_001",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **PGS.TS. Nguyễn Văn A** cho bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **271 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.23)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.01)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "DEVELOPS -> DEVELOPS",
+                  "relations": [
+                    "DEVELOPS",
+                    "DEVELOPS"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Product",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "MedVision Core V1",
+                    "PGS.TS. Nguyễn Văn A"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "prod_001",
+                      "type": "Product",
+                      "name": "MedVision Core V1"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    }
+                  ],
+                  "score": 0.234,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "HAS_ACCESS_TO -> HAS_ACCESS_TO",
+                  "relations": [
+                    "HAS_ACCESS_TO",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN CNC Sensor Stream 50M",
+                    "PGS.TS. Nguyễn Văn A"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_002",
+                      "type": "Dataset",
+                      "name": "VN CNC Sensor Stream 50M"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    }
+                  ],
+                  "score": 0.007,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "HAS_SKILL -> HAS_SKILL",
+                  "relations": [
+                    "HAS_SKILL",
+                    "HAS_SKILL"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Skill",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "PyTorch",
+                    "PGS.TS. Nguyễn Văn A"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "PyTorch",
+                      "type": "Skill",
+                      "name": "PyTorch"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    }
+                  ],
+                  "score": 0.005,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 271,
+              "final_score": 0.99,
+              "raw_score": 0.99,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "exp_003",
+              "name": "TS. Phạm Minh C",
+              "score": 0.28,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho bạn vì:\n\nĐộ phù hợp tổng thể: **28.0%** (Khá)\n\nTìm thấy **38 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 1.7%):\n  ┌─ OWNS_DATA\n  └─> HAS_ACCESS_TO\n\nPath 2 (Score: 1.3%):\n  ┌─ HAS_ACCESS_TO\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.1%):\n  ┌─ HAS_SKILL\n  └─> HAS_SKILL\n\n```"
+              },
+              "metrics": {
+                "h_index": 9,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_003",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho bạn vì:\n\nĐộ phù hợp tổng thể: **28.0%** (Khá)\n\nTìm thấy **38 cách khác nhau** để kết nối chuyên gia này với chuyên gia\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.02)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "OWNS_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "OWNS_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN Chest X-Ray 100k",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.017,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "HAS_ACCESS_TO -> HAS_ACCESS_TO",
+                  "relations": [
+                    "HAS_ACCESS_TO",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN CNC Sensor Stream 50M",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_002",
+                      "type": "Dataset",
+                      "name": "VN CNC Sensor Stream 50M"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.013,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "HAS_SKILL -> HAS_SKILL",
+                  "relations": [
+                    "HAS_SKILL",
+                    "HAS_SKILL"
+                  ],
+                  "node_types": [
+                    "Expert",
+                    "Skill",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "PGS.TS. Nguyễn Văn A",
+                    "Python",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "Python",
+                      "type": "Skill",
+                      "name": "Python"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.001,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 38,
+              "final_score": 0.28,
+              "raw_score": 0.28,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Enterprise->Expert",
+      "request": {
+        "source_id": "ent_001",
+        "source_type": "enterprise",
+        "target_type": "expert",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "exp_005",
+          "name": "TS. Vũ Quốc E",
+          "score": 0.66,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 3,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 9367,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "exp_005",
+              "name": "TS. Vũ Quốc E",
+              "score": 0.66,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Vũ Quốc E** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **66.0%** (Rất tốt)\n\nTìm thấy **139 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.08)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 8.3%):\n  ┌─ REQUIRES_SKILL\n  └─> HAS_SKILL\n\nPath 2 (Score: 1.0%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  ├─> REQUIRES_SKILL\n  └─> HAS_SKILL\n\nPath 3 (Score: 0.8%):\n  ┌─ PARTNERS_WITH\n  ├─> REQUIRES_SKILL\n  └─> HAS_SKILL\n\n```"
+              },
+              "metrics": {
+                "h_index": 8,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_005",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Vũ Quốc E** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **66.0%** (Rất tốt)\n\nTìm thấy **139 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.08)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "REQUIRES_SKILL -> HAS_SKILL",
+                  "relations": [
+                    "REQUIRES_SKILL",
+                    "HAS_SKILL"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Skill",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "PyTorch",
+                    "TS. Vũ Quốc E"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "PyTorch",
+                      "type": "Skill",
+                      "name": "PyTorch"
+                    },
+                    {
+                      "id": "exp_005",
+                      "type": "Expert",
+                      "name": "TS. Vũ Quốc E"
+                    }
+                  ],
+                  "score": 0.083,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN -> REQUIRES_SKILL -> HAS_SKILL",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN",
+                    "REQUIRES_SKILL",
+                    "HAS_SKILL"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Location",
+                    "Enterprise",
+                    "Skill",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "VN-Hồ Chí Minh",
+                    "TechMed Solutions VN",
+                    "PyTorch",
+                    "TS. Vũ Quốc E"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Hồ Chí Minh",
+                      "type": "Location",
+                      "name": "VN-Hồ Chí Minh"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "PyTorch",
+                      "type": "Skill",
+                      "name": "PyTorch"
+                    },
+                    {
+                      "id": "exp_005",
+                      "type": "Expert",
+                      "name": "TS. Vũ Quốc E"
+                    }
+                  ],
+                  "score": 0.01,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "PARTNERS_WITH -> REQUIRES_SKILL -> HAS_SKILL",
+                  "relations": [
+                    "PARTNERS_WITH",
+                    "REQUIRES_SKILL",
+                    "HAS_SKILL"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Project",
+                    "Skill",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "PyTorch",
+                    "TS. Vũ Quốc E"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "PyTorch",
+                      "type": "Skill",
+                      "name": "PyTorch"
+                    },
+                    {
+                      "id": "exp_005",
+                      "type": "Expert",
+                      "name": "TS. Vũ Quốc E"
+                    }
+                  ],
+                  "score": 0.008,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 139,
+              "final_score": 0.66,
+              "raw_score": 0.66,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "exp_003",
+              "name": "TS. Phạm Minh C",
+              "score": 0.38,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **38.0%** (Khá)\n\nTìm thấy **137 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 2% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 5.7%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 1.5%):\n  ┌─ PARTNERS_WITH\n  ├─> REQUIRES_DATA\n  └─> HAS_ACCESS_TO\n\nPath 3 (Score: 0.8%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+              },
+              "metrics": {
+                "h_index": 9,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_003",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Phạm Minh C** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **38.0%** (Khá)\n\nTìm thấy **137 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.06)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 2% – score 0.01)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 1% – score 0.01)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Location",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "VN-Đồng bằng sông Hồng",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Đồng bằng sông Hồng",
+                      "type": "Location",
+                      "name": "VN-Đồng bằng sông Hồng"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.057,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "PARTNERS_WITH -> REQUIRES_DATA -> HAS_ACCESS_TO",
+                  "relations": [
+                    "PARTNERS_WITH",
+                    "REQUIRES_DATA",
+                    "HAS_ACCESS_TO"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Project",
+                    "Dataset",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN Chest X-Ray 100k",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "ds_001",
+                      "type": "Dataset",
+                      "name": "VN Chest X-Ray 100k"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.015,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN -> LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN",
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Location",
+                    "Enterprise",
+                    "Location",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "VN-Hồ Chí Minh",
+                    "TechMed Solutions VN",
+                    "VN-Đồng bằng sông Hồng",
+                    "TS. Phạm Minh C"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Hồ Chí Minh",
+                      "type": "Location",
+                      "name": "VN-Hồ Chí Minh"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Đồng bằng sông Hồng",
+                      "type": "Location",
+                      "name": "VN-Đồng bằng sông Hồng"
+                    },
+                    {
+                      "id": "exp_003",
+                      "type": "Expert",
+                      "name": "TS. Phạm Minh C"
+                    }
+                  ],
+                  "score": 0.008,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 137,
+              "final_score": 0.38,
+              "raw_score": 0.38,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "exp_008",
+              "name": "TS. Trương Đức H",
+              "score": 0.35,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý chuyên gia **TS. Trương Đức H** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **35.0%** (Khá)\n\nTìm thấy **64 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 3.1%):\n  ┌─ LOCATED_IN\n  └─> LOCATED_IN\n\nPath 2 (Score: 0.4%):\n  ┌─ LOCATED_IN\n  ├─> LOCATED_IN\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\nPath 3 (Score: 0.3%):\n  ┌─ PARTNERS_WITH\n  ├─> LOCATED_IN\n  └─> LOCATED_IN\n\n```"
+              },
+              "metrics": {
+                "h_index": 6,
+                "budget": null,
+                "status": null
+              },
+              "expert_id": "exp_008",
+              "xai_explanation": "Chúng tôi gợi ý chuyên gia **TS. Trương Đức H** cho doanh nghiệp của bạn vì:\n\nĐộ phù hợp tổng thể: **35.0%** (Khá)\n\nTìm thấy **64 cách khác nhau** để kết nối chuyên gia này với doanh nghiệp\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.03)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Location",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "VN-Đồng bằng sông Hồng",
+                    "TS. Trương Đức H"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Đồng bằng sông Hồng",
+                      "type": "Location",
+                      "name": "VN-Đồng bằng sông Hồng"
+                    },
+                    {
+                      "id": "exp_008",
+                      "type": "Expert",
+                      "name": "TS. Trương Đức H"
+                    }
+                  ],
+                  "score": 0.031,
+                  "length": 2,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "LOCATED_IN -> LOCATED_IN -> LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "LOCATED_IN",
+                    "LOCATED_IN",
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Location",
+                    "Enterprise",
+                    "Location",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "VN-Hồ Chí Minh",
+                    "TechMed Solutions VN",
+                    "VN-Đồng bằng sông Hồng",
+                    "TS. Trương Đức H"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Hồ Chí Minh",
+                      "type": "Location",
+                      "name": "VN-Hồ Chí Minh"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "VN-Đồng bằng sông Hồng",
+                      "type": "Location",
+                      "name": "VN-Đồng bằng sông Hồng"
+                    },
+                    {
+                      "id": "exp_008",
+                      "type": "Expert",
+                      "name": "TS. Trương Đức H"
+                    }
+                  ],
+                  "score": 0.004,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "PARTNERS_WITH -> LOCATED_IN -> LOCATED_IN",
+                  "relations": [
+                    "PARTNERS_WITH",
+                    "LOCATED_IN",
+                    "LOCATED_IN"
+                  ],
+                  "node_types": [
+                    "Enterprise",
+                    "Project",
+                    "Location",
+                    "Expert"
+                  ],
+                  "entity_names": [
+                    "TechMed Solutions VN",
+                    "AI for Healthcare: Chest X-Ray Anomaly Detection",
+                    "VN-Đồng bằng sông Hồng",
+                    "TS. Trương Đức H"
+                  ],
+                  "entities": [
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "prj_001",
+                      "type": "Project",
+                      "name": "AI for Healthcare: Chest X-Ray Anomaly Detection"
+                    },
+                    {
+                      "id": "VN-Đồng bằng sông Hồng",
+                      "type": "Location",
+                      "name": "VN-Đồng bằng sông Hồng"
+                    },
+                    {
+                      "id": "exp_008",
+                      "type": "Expert",
+                      "name": "TS. Trương Đức H"
+                    }
+                  ],
+                  "score": 0.003,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 64,
+              "final_score": 0.35,
+              "raw_score": 0.35,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "name": "Funder->Project",
+      "request": {
+        "source_id": "fnd_001",
+        "source_type": "funder",
+        "target_type": "project",
+        "limit": 3,
+        "language": "vi",
+        "mode": "public"
+      },
+      "summary": {
+        "ok": true,
+        "status": 200,
+        "count": 3,
+        "api_count": 3,
+        "sample": {
+          "id": "prj_004",
+          "name": "AgriVision for Coffee Disease Monitoring",
+          "score": 0.99,
+          "keys": [
+            "data_quality_level",
+            "data_quality_notes",
+            "expert_id",
+            "explanation",
+            "extra",
+            "fallback_reason",
+            "final_score",
+            "id",
+            "metrics",
+            "name",
+            "path_diversity",
+            "provisional_nodes_count",
+            "raw_score",
+            "reasoning_paths",
+            "runtime_source_weight",
+            "score",
+            "scoring_method",
+            "stored_trust_weight",
+            "trust_override_reason",
+            "uses_provisional_data",
+            "verification_badges",
+            "xai_explanation"
+          ],
+          "missing_required_fields": [],
+          "legacy_field_presence": {
+            "id": true,
+            "name": true,
+            "score": true,
+            "reasoning_paths": true,
+            "explanation": true,
+            "xai_explanation": true,
+            "scoring_method": true
+          },
+          "reasoning_paths_count": 3,
+          "scoring_method": "pgpr_policy",
+          "uses_provisional_data": false,
+          "data_quality_level": "high"
+        },
+        "response_keys": [
+          "count",
+          "data",
+          "status"
+        ]
+      },
+      "response": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 9553,
+        "body": {
+          "status": "success",
+          "data": [
+            {
+              "id": "prj_004",
+              "name": "AgriVision for Coffee Disease Monitoring",
+              "score": 0.99,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **360 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.36)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: được hỗ trợ",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 35.9%):\n  ┌─ SUPPORTS_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\nPath 2 (Score: 0.4%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> OPERATES_IN\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\nPath 3 (Score: 0.3%):\n  ┌─ SUPPORTS_TOPIC\n  ├─> HAS_EXPERIENCE_IN\n  ├─> HAS_EXPERIENCE_IN\n  └─> FOCUSES_ON_TOPIC\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": 160000,
+                "status": "ongoing"
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **AgriVision for Coffee Disease Monitoring** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **99.0%** (Xuất sắc)\n\nTìm thấy **360 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.36)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nKết nối qua: được hỗ trợ",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "SUPPORTS_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                  "relations": [
+                    "SUPPORTS_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "ResearchTopic",
+                    "Enterprise",
+                    "ResearchTopic",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Medical Imaging",
+                    "TechMed Solutions VN",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "Medical Imaging",
+                      "type": "ResearchTopic",
+                      "name": "Medical Imaging"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    }
+                  ],
+                  "score": 0.359,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_SECTORS -> OPERATES_IN -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                  "relations": [
+                    "FOCUSES_ON_SECTORS",
+                    "OPERATES_IN",
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "Industry",
+                    "Enterprise",
+                    "ResearchTopic",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Healthcare Technology",
+                    "TechMed Solutions VN",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "ent_001",
+                      "type": "Enterprise",
+                      "name": "TechMed Solutions VN"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    }
+                  ],
+                  "score": 0.004,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "SUPPORTS_TOPIC -> HAS_EXPERIENCE_IN -> HAS_EXPERIENCE_IN -> FOCUSES_ON_TOPIC",
+                  "relations": [
+                    "SUPPORTS_TOPIC",
+                    "HAS_EXPERIENCE_IN",
+                    "HAS_EXPERIENCE_IN",
+                    "FOCUSES_ON_TOPIC"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "ResearchTopic",
+                    "Expert",
+                    "ResearchTopic",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Medical Imaging",
+                    "PGS.TS. Nguyễn Văn A",
+                    "Computer Vision",
+                    "AgriVision for Coffee Disease Monitoring"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "Medical Imaging",
+                      "type": "ResearchTopic",
+                      "name": "Medical Imaging"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "Computer Vision",
+                      "type": "ResearchTopic",
+                      "name": "Computer Vision"
+                    },
+                    {
+                      "id": "prj_004",
+                      "type": "Project",
+                      "name": "AgriVision for Coffee Disease Monitoring"
+                    }
+                  ],
+                  "score": 0.003,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 360,
+              "final_score": 0.99,
+              "raw_score": 0.99,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "prj_002",
+              "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+              "score": 0.2,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **20.0%** (Khá)\n\nTìm thấy **13 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.7%):\n  ┌─ SUPPORTS_TOPIC\n  ├─> HAS_EXPERIENCE_IN\n  ├─> HAS_ACCESS_TO\n  └─> REQUIRES_DATA\n\nPath 2 (Score: 0.1%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> HAS_APPLICATION_EXPERIENCE_IN\n  ├─> HAS_ACCESS_TO\n  └─> REQUIRES_DATA\n\nPath 3 (Score: 0.1%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> OPERATES_IN\n  └─> PARTNERS_WITH\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": 180000,
+                "status": "ongoing"
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **AI-driven Predictive Maintenance for CNC Production Lines** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **20.0%** (Khá)\n\nTìm thấy **13 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.01)**\nKết nối qua: được hỗ trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án\n\n**Đường dẫn 3 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "SUPPORTS_TOPIC -> HAS_EXPERIENCE_IN -> HAS_ACCESS_TO -> REQUIRES_DATA",
+                  "relations": [
+                    "SUPPORTS_TOPIC",
+                    "HAS_EXPERIENCE_IN",
+                    "HAS_ACCESS_TO",
+                    "REQUIRES_DATA"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "ResearchTopic",
+                    "Expert",
+                    "Dataset",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Medical Imaging",
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN CNC Sensor Stream 50M",
+                    "AI-driven Predictive Maintenance for CNC Production Lines"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "Medical Imaging",
+                      "type": "ResearchTopic",
+                      "name": "Medical Imaging"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_002",
+                      "type": "Dataset",
+                      "name": "VN CNC Sensor Stream 50M"
+                    },
+                    {
+                      "id": "prj_002",
+                      "type": "Project",
+                      "name": "AI-driven Predictive Maintenance for CNC Production Lines"
+                    }
+                  ],
+                  "score": 0.007,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_SECTORS -> HAS_APPLICATION_EXPERIENCE_IN -> HAS_ACCESS_TO -> REQUIRES_DATA",
+                  "relations": [
+                    "FOCUSES_ON_SECTORS",
+                    "HAS_APPLICATION_EXPERIENCE_IN",
+                    "HAS_ACCESS_TO",
+                    "REQUIRES_DATA"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "Industry",
+                    "Expert",
+                    "Dataset",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Healthcare Technology",
+                    "PGS.TS. Nguyễn Văn A",
+                    "VN CNC Sensor Stream 50M",
+                    "AI-driven Predictive Maintenance for CNC Production Lines"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "HEAL",
+                      "type": "Industry",
+                      "name": "Healthcare Technology"
+                    },
+                    {
+                      "id": "exp_001",
+                      "type": "Expert",
+                      "name": "PGS.TS. Nguyễn Văn A"
+                    },
+                    {
+                      "id": "ds_002",
+                      "type": "Dataset",
+                      "name": "VN CNC Sensor Stream 50M"
+                    },
+                    {
+                      "id": "prj_002",
+                      "type": "Project",
+                      "name": "AI-driven Predictive Maintenance for CNC Production Lines"
+                    }
+                  ],
+                  "score": 0.001,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_SECTORS -> OPERATES_IN -> PARTNERS_WITH",
+                  "relations": [
+                    "FOCUSES_ON_SECTORS",
+                    "OPERATES_IN",
+                    "PARTNERS_WITH"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "Industry",
+                    "Enterprise",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Information Technology",
+                    "VinaSmart Factory Tech",
+                    "AI-driven Predictive Maintenance for CNC Production Lines"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "ent_002",
+                      "type": "Enterprise",
+                      "name": "VinaSmart Factory Tech"
+                    },
+                    {
+                      "id": "prj_002",
+                      "type": "Project",
+                      "name": "AI-driven Predictive Maintenance for CNC Production Lines"
+                    }
+                  ],
+                  "score": 0.001,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 13,
+              "final_score": 0.2,
+              "raw_score": 0.2,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            },
+            {
+              "id": "prj_003",
+              "name": "SecurePay AI Fraud Intelligence",
+              "score": 0.17,
+              "explanation": {
+                "natural_language": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **17.0%** (Trung bình)\n\nTìm thấy **4 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+                "visualization": "```\nReasoning Paths Visualization:\n============================================================\n\nPath 1 (Score: 0.2%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> FOCUSES_ON_SECTORS\n  └─> FUNDS\n\nPath 2 (Score: 0.0%):\n  ┌─ FOCUSES_ON_SECTORS\n  ├─> OPERATES_IN\n  ├─> FOCUSES_ON_TOPIC\n  └─> FOCUSES_ON_TOPIC\n\n```"
+              },
+              "metrics": {
+                "h_index": null,
+                "budget": 140000,
+                "status": "ongoing"
+              },
+              "expert_id": null,
+              "xai_explanation": "Chúng tôi gợi ý dự án **SecurePay AI Fraud Intelligence** cho quỹ của bạn vì:\n\nĐộ phù hợp tổng thể: **17.0%** (Trung bình)\n\nTìm thấy **4 cách khác nhau** để kết nối dự án này với quỹ\n\n**Lý do chính:**\n\n**Đường dẫn 1 (mạnh nhất – score 0.00)**\nKết nối qua: tài trợ\n\n**Đường dẫn 2 (độ tin cậy 0% – score 0.00)**\nCó mối liên hệ với dự án",
+              "extra": null,
+              "reasoning_paths": [
+                {
+                  "path": "FOCUSES_ON_SECTORS -> FOCUSES_ON_SECTORS -> FUNDS",
+                  "relations": [
+                    "FOCUSES_ON_SECTORS",
+                    "FOCUSES_ON_SECTORS",
+                    "FUNDS"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "Industry",
+                    "Funder",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Information Technology",
+                    "Vietnam Digital Innovation Grant (VDIG)",
+                    "SecurePay AI Fraud Intelligence"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "fnd_003",
+                      "type": "Funder",
+                      "name": "Vietnam Digital Innovation Grant (VDIG)"
+                    },
+                    {
+                      "id": "prj_003",
+                      "type": "Project",
+                      "name": "SecurePay AI Fraud Intelligence"
+                    }
+                  ],
+                  "score": 0.002,
+                  "length": 3,
+                  "source": "pgpr_policy"
+                },
+                {
+                  "path": "FOCUSES_ON_SECTORS -> OPERATES_IN -> FOCUSES_ON_TOPIC -> FOCUSES_ON_TOPIC",
+                  "relations": [
+                    "FOCUSES_ON_SECTORS",
+                    "OPERATES_IN",
+                    "FOCUSES_ON_TOPIC",
+                    "FOCUSES_ON_TOPIC"
+                  ],
+                  "node_types": [
+                    "Funder",
+                    "Industry",
+                    "Enterprise",
+                    "ResearchTopic",
+                    "Project"
+                  ],
+                  "entity_names": [
+                    "Vietnam Innovation Fund (VINIF)",
+                    "Information Technology",
+                    "SecurePay Analytics JSC",
+                    "Fraud Detection",
+                    "SecurePay AI Fraud Intelligence"
+                  ],
+                  "entities": [
+                    {
+                      "id": "fnd_001",
+                      "type": "Funder",
+                      "name": "Vietnam Innovation Fund (VINIF)"
+                    },
+                    {
+                      "id": "IT",
+                      "type": "Industry",
+                      "name": "Information Technology"
+                    },
+                    {
+                      "id": "ent_003",
+                      "type": "Enterprise",
+                      "name": "SecurePay Analytics JSC"
+                    },
+                    {
+                      "id": "Fraud Detection",
+                      "type": "ResearchTopic",
+                      "name": "Fraud Detection"
+                    },
+                    {
+                      "id": "prj_003",
+                      "type": "Project",
+                      "name": "SecurePay AI Fraud Intelligence"
+                    }
+                  ],
+                  "score": 0.0,
+                  "length": 4,
+                  "source": "pgpr_policy"
+                }
+              ],
+              "path_diversity": 4,
+              "final_score": 0.17,
+              "raw_score": 0.17,
+              "stored_trust_weight": 1.0,
+              "runtime_source_weight": 1.0,
+              "trust_override_reason": null,
+              "uses_provisional_data": false,
+              "provisional_nodes_count": 0,
+              "data_quality_level": "high",
+              "data_quality_notes": [],
+              "verification_badges": {
+                "source": null,
+                "target": null
+              },
+              "scoring_method": "pgpr_policy",
+              "fallback_reason": null
+            }
+          ],
+          "count": 3
+        }
+      }
+    }
+  ]
+}

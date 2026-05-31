@@ -847,14 +847,38 @@ export default function DashboardPage() {
                       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         {item.scoring_method ? (
                           <Badge
-                            variant={item.scoring_method === "pgpr_policy" ? "default" : "secondary"}
+                            variant={
+                              item.scoring_method === "pgpr_policy" ||
+                              item.scoring_method === "hybrid_embedding_path"
+                                ? "default"
+                                : "secondary"
+                            }
                             className="rounded-md"
                           >
                             {item.scoring_method === "pgpr_policy"
                               ? "PGPR policy"
                               : item.scoring_method === "cypher_fallback"
                                 ? "Cypher fallback"
-                                : item.scoring_method}
+                                : item.scoring_method === "hybrid_embedding_path"
+                                  ? "Hybrid path+embedding"
+                                  : item.scoring_method === "hybrid_embedding"
+                                    ? "Hybrid embedding"
+                                    : item.scoring_method}
+                          </Badge>
+                        ) : null}
+                        {item.evidence_level ? (
+                          <Badge variant="outline" className="rounded-md">
+                            Evidence {item.evidence_level}
+                          </Badge>
+                        ) : null}
+                        {item.cold_start ? (
+                          <Badge variant="outline" className="rounded-md border-amber-300 text-amber-800">
+                            Cold-start
+                          </Badge>
+                        ) : null}
+                        {item.embedding_status ? (
+                          <Badge variant="outline" className="rounded-md">
+                            Embedding {item.embedding_status}
                           </Badge>
                         ) : null}
                         {item.data_quality_level ? (
@@ -877,6 +901,9 @@ export default function DashboardPage() {
                           </Badge>
                         ) : null}
                       </div>
+                      {item.recommendation_message ? (
+                        <p className="mt-2 text-xs text-amber-800">{item.recommendation_message}</p>
+                      ) : null}
                       {item.fallback_reason ? (
                         <p className="mt-2 text-xs text-amber-800">{item.fallback_reason}</p>
                       ) : null}

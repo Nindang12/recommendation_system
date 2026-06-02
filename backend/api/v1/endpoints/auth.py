@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.deps import get_auth_service, get_current_user
+from api.deps import get_auth_service, get_current_user, rate_limit
 from models.schemas import (
     AuthResponse,
     LoginRequest,
@@ -21,6 +21,7 @@ router = APIRouter()
 @router.post("/auth/register", response_model=AuthResponse)
 async def register(
     payload: RegisterRequest,
+    _: None = Depends(rate_limit("auth_register", limit=5, window_seconds=60)),
     service: AuthService = Depends(get_auth_service),
 ) -> Dict[str, Any]:
     try:
@@ -35,6 +36,7 @@ async def register(
 @router.post("/auth/login", response_model=AuthResponse)
 async def login(
     payload: LoginRequest,
+    _: None = Depends(rate_limit("auth_login", limit=10, window_seconds=60)),
     service: AuthService = Depends(get_auth_service),
 ) -> Dict[str, Any]:
     try:
@@ -60,6 +62,7 @@ async def me(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[s
 @router.put("/users/me")
 async def update_me(
     payload: ProfileUpdateRequest,
+    _: None = Depends(rate_limit("profile_update", limit=30, window_seconds=60)),
     current_user: Dict[str, Any] = Depends(get_current_user),
     service: AuthService = Depends(get_auth_service),
 ) -> Dict[str, Any]:
@@ -73,6 +76,7 @@ async def update_me(
 @router.post("/users/me/projects")
 async def create_my_project(
     payload: ProjectCreateRequest,
+    _: None = Depends(rate_limit("project_create", limit=10, window_seconds=60)),
     current_user: Dict[str, Any] = Depends(get_current_user),
     service: AuthService = Depends(get_auth_service),
 ) -> Dict[str, Any]:
@@ -89,4 +93,3 @@ async def list_my_projects(
 ) -> Dict[str, Any]:
     data = service.list_my_projects(current_user["id"], limit=limit, page=page)
     return {"status": "success", **data}
-

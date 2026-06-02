@@ -1,0 +1,8 @@
+{
+  "active_model": "graphsage_lite_v1",
+  "active_version": 1,
+  "model_status": "active",
+  "promoted_at": null,
+  "fallback_model": "graphsage_lite_v1",
+  "updated_at": "2026-06-01T15:48:50.965726+00:00"
+}

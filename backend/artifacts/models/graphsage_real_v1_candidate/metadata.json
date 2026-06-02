@@ -1,0 +1,17 @@
+{
+  "model_status": "candidate",
+  "training_data_version": "snapshot_20260601T160256_212664Z0000",
+  "evaluation_baseline": "v2_after_hybrid_anchor",
+  "dimension": 128,
+  "artifact_dir": "artifacts\\models\\graphsage_real_v1_candidate",
+  "model_artifact": "artifacts\\models\\graphsage_real_v1_candidate\\model_stub.json",
+  "encoder_artifact": "artifacts\\models\\graphsage_real_v1_candidate\\node_feature_encoder.pkl",
+  "evaluation_report": "artifacts\\models\\graphsage_real_v1_candidate\\evaluation_report.json",
+  "promote_allowed": false,
+  "runtime_unchanged": true,
+  "warnings": [
+    "torch_geometric_unavailable; emitted fallback candidate artifact only"
+  ],
+  "model_name": "graphsage_real_v1_candidate",
+  "updated_at": "2026-06-01T16:03:38.517268+00:00"
+}

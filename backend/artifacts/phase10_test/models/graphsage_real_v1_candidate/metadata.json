@@ -1,0 +1,17 @@
+{
+  "model_status": "rejected",
+  "training_data_version": "snapshot_phase10_unit",
+  "evaluation_baseline": "v2_after_hybrid_anchor",
+  "dimension": 16,
+  "artifact_dir": "D:\\Documents\\Đồ án\\backend\\artifacts\\phase10_test\\models\\graphsage_real_v1_candidate",
+  "model_artifact": "D:\\Documents\\Đồ án\\backend\\artifacts\\phase10_test\\models\\graphsage_real_v1_candidate\\model_stub.json",
+  "encoder_artifact": "D:\\Documents\\Đồ án\\backend\\artifacts\\phase10_test\\models\\graphsage_real_v1_candidate\\node_feature_encoder.pkl",
+  "evaluation_report": "D:\\Documents\\Đồ án\\backend\\artifacts\\phase10_test\\models\\graphsage_real_v1_candidate\\evaluation_report.json",
+  "promote_allowed": false,
+  "runtime_unchanged": true,
+  "warnings": [
+    "positive_edges_below_threshold(2<50)"
+  ],
+  "model_name": "graphsage_real_v1_candidate",
+  "updated_at": "2026-06-01T16:03:52.589581+00:00"
+}

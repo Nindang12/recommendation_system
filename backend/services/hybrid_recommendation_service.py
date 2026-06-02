@@ -22,6 +22,9 @@ WEIGHT_PGPR = 0.62
 WEIGHT_PATH = 0.18
 WEIGHT_EMBEDDING = 0.12
 WEIGHT_TOPIC = 0.08
+PATH_SUPPORTED_EMBEDDING_BOOST = 0.04
+PATH_SUPPORTED_TOPIC_BOOST = 0.03
+PATH_SUPPORTED_PATH_BOOST = 0.04
 
 
 class HybridRecommendationService:
@@ -217,7 +220,15 @@ class HybridRecommendationService:
         topic_part = topic_overlap * WEIGHT_TOPIC
 
         if has_pgpr_paths or (paths and pgpr_score > 0):
-            combined = pgpr_part + path_part + emb_part + topic_part
+            # Path-supported PGPR is the strongest evidence. Keep the policy
+            # score as the ranking anchor, then add small bounded hybrid boosts
+            # so embedding/topic signals cannot demote high-confidence paths.
+            combined = (
+                pgpr_score
+                + min(PATH_SUPPORTED_PATH_BOOST, path_boost)
+                + min(PATH_SUPPORTED_EMBEDDING_BOOST, emb_sim * PATH_SUPPORTED_EMBEDDING_BOOST)
+                + min(PATH_SUPPORTED_TOPIC_BOOST, topic_overlap * PATH_SUPPORTED_TOPIC_BOOST)
+            )
             evidence = "path_supported"
             if emb_part > 0:
                 method = "hybrid_embedding_path"

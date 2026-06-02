@@ -511,7 +511,7 @@ class PGPRRecommender:
         Convert candidate rows (from Cypher) into the same response shape as AI recommendations.
         This fallback intentionally does NOT depend on PGPR reasoning paths.
         """
-        logger.info(f"\n{'='*60}\n🔍 ĐANG CHẠY TÌM KIẾM ĐỒ THỊ (CYPHER FALLBACK)\n   Mục tiêu: {target_type} | Số lượng ứng viên: {len(candidates)}\n{'='*60}")
+        logger.debug(f"\n{'='*60}\n🔍 ĐANG CHẠY TÌM KIẾM ĐỒ THỊ (CYPHER FALLBACK)\n   Mục tiêu: {target_type} | Số lượng ứng viên: {len(candidates)}\n{'='*60}")
         out: List[Dict[str, Any]] = []
         total = len(candidates)
         for idx, c in enumerate(candidates[: max(0, int(limit))], start=1):
@@ -1583,7 +1583,7 @@ class PGPRRecommender:
         min_score: float = 0.0,
     ) -> List[Dict[str, Any]]:
         """Hàm duy nhất để chạy AI cho mọi luồng (Không có Cypher)"""
-        logger.info(f"\n{'='*60}\n🚀 ĐANG CHẠY MÔ HÌNH TRÍ TUỆ NHÂN TẠO (POLICY PGPR)\n   Luồng: {source_type} -> {target_type} | ID: {source_id}\n{'='*60}")
+        logger.debug(f"\n{'='*60}\n🚀 ĐANG CHẠY MÔ HÌNH TRÍ TUỆ NHÂN TẠO (POLICY PGPR)\n   Luồng: {source_type} -> {target_type} | ID: {source_id}\n{'='*60}")
         task_name = f"{source_type}_{target_type}"
         if task_name not in self.policies:
             logger.warning(f"Không tìm thấy bộ não AI cho {task_name}. Vui lòng train trước!")

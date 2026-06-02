@@ -7,11 +7,13 @@ from services.graph_service import GraphService
 from services.evaluation_service import EvaluationService
 from services.auth_service import AuthService
 from services.embedding_admin_service import EmbeddingAdminService
+from services.governance_audit_service import GovernanceAuditService
 from pgpr.pgpr_recommendation import PGPRRecommender
 from pgpr.pgpr_xai_explainer import PGPRExplainer
 from repositories.pgpr_graph_repo import PGPRGraphRepository
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from services.rate_limit_service import rate_limit_enabled, rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +97,10 @@ def get_embedding_admin_service() -> EmbeddingAdminService:
     return EmbeddingAdminService()
 
 
+def get_governance_audit_service() -> GovernanceAuditService:
+    return GovernanceAuditService()
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     service: AuthService = Depends(get_auth_service),
@@ -117,6 +123,37 @@ def get_current_root_admin(current_user=Depends(get_current_user)):
     if current_user.get("account_role") != "root_admin":
         raise HTTPException(status_code=403, detail="Root admin permission required")
     return current_user
+
+
+def require_non_empty_reason(reason: str | None, *, action: str = "this action") -> None:
+    if not str(reason or "").strip():
+        raise HTTPException(status_code=400, detail=f"Reason is required for {action}")
+
+
+def require_root_role(current_user: dict, *, action: str) -> None:
+    if current_user.get("account_role") != "root_admin":
+        raise HTTPException(status_code=403, detail=f"Root admin permission required for {action}")
+
+
+def rate_limit(scope: str, *, limit: int, window_seconds: int):
+    async def dependency(request: Request) -> None:
+        if not rate_limit_enabled():
+            return
+        client_host = request.client.host if request.client else "unknown"
+        key = f"{scope}:{client_host}"
+        allowed, retry_after = rate_limiter.check(
+            key,
+            limit=max(limit, 1),
+            window_seconds=max(window_seconds, 1),
+        )
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Rate limit exceeded for {scope}",
+                headers={"Retry-After": str(retry_after)},
+            )
+
+    return dependency
 
 
 def get_optional_current_user(

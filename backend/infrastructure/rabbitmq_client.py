@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
+
+logging.getLogger("pika").setLevel(logging.WARNING)
 
 
 @dataclass(frozen=True)
@@ -125,6 +128,20 @@ class RabbitMQClient:
             arguments={"x-dead-letter-exchange": "", "x-dead-letter-routing-key": self.dlq},
         )
         channel.queue_bind(exchange=self.exchange, queue=self.queue, routing_key=self.routing_key)
+
+    def queue_depth(self, queue: Optional[str] = None) -> int:
+        """Return current message count for a queue, or 0 when RabbitMQ is unavailable."""
+        try:
+            connection = self._connect()
+            try:
+                channel = connection.channel()
+                self._declare(channel)
+                state = channel.queue_declare(queue=queue or self.queue, durable=True, passive=True)
+                return int(state.method.message_count)
+            finally:
+                connection.close()
+        except Exception:
+            return 0
 
     def _connect(self) -> Any:
         pika = self._pika()

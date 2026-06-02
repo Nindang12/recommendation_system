@@ -247,6 +247,105 @@ def test_embedding_only_caps(
     }
 
 
+def test_pgpr_anchor_scoring_priority(
+    repo: AuthRepository,
+    embedding_repo: EmbeddingRepository,
+    hybrid: HybridRecommendationService,
+    suffix: str,
+    report: Dict[str, Any],
+) -> None:
+    source_id = f"phase6_prj_anchor_{suffix}"
+    path_id = f"phase6_exp_path_anchor_{suffix}"
+    embedding_only_id = f"phase6_exp_embedding_anchor_{suffix}"
+
+    src_emb = embedding_doc(unit_vector(1.0, 0.0), source_hash=f"anchor_src_{suffix}")
+    insert_entity(
+        repo,
+        "project",
+        {
+            "project_id": source_id,
+            "title": "Anchor Scoring Project",
+            **st.verified_state(),
+            "embedding": src_emb,
+            "embedding_status": st.EMBEDDING_READY,
+        },
+    )
+    embedding_repo.upsert_embedding_record("project", source_id, src_emb)
+
+    path_emb = embedding_doc(unit_vector(0.1, 0.99), source_hash=f"anchor_path_{suffix}")
+    insert_entity(
+        repo,
+        "expert",
+        {
+            "expert_id": path_id,
+            "name": "Strong Path Expert",
+            **st.verified_state(),
+            "embedding": path_emb,
+            "embedding_status": st.EMBEDDING_READY,
+        },
+    )
+    embedding_repo.upsert_embedding_record("expert", path_id, path_emb)
+
+    embedding_only_emb = embedding_doc(unit_vector(0.99, 0.01), source_hash=f"anchor_emb_{suffix}")
+    insert_entity(
+        repo,
+        "expert",
+        {
+            "expert_id": embedding_only_id,
+            "name": "Embedding Similar Expert",
+            **st.verified_state(),
+            "embedding": embedding_only_emb,
+            "embedding_status": st.EMBEDDING_READY,
+        },
+    )
+    embedding_repo.upsert_embedding_record("expert", embedding_only_id, embedding_only_emb)
+
+    src_ctx = hybrid.source_recommendation_context("project", source_id)
+    pgpr_pool = [
+        {
+            "id": path_id,
+            "name": "Strong Path Expert",
+            "score": 0.72,
+            "reasoning_paths": [{"source": "pgpr", "score": 0.72, "relations": ["REQUIRES_SKILL"]}],
+            "scoring_method": "pgpr_policy",
+        }
+    ]
+    ranked, _ = asyncio.run(
+        run_hybrid(
+            hybrid,
+            pgpr_pool,
+            source_type="project",
+            source_id=source_id,
+            target_type="expert",
+            src_ctx=src_ctx,
+            limit=5,
+        )
+    )
+    ids = [str(item.get("id")) for item in ranked]
+    assert_true(path_id in ids, ranked)
+    assert_true(embedding_only_id in ids, ranked)
+    path_index = ids.index(path_id)
+    embedding_index = ids.index(embedding_only_id)
+    assert_true(
+        path_index < embedding_index,
+        f"path-supported candidate should stay above embedding-only candidate: {ranked}",
+    )
+    path_item = next(item for item in ranked if item.get("id") == path_id)
+    embedding_item = next(item for item in ranked if item.get("id") == embedding_only_id)
+    assert_true(path_item.get("evidence_level") == "path_supported", path_item)
+    assert_true(embedding_item.get("evidence_level") == "embedding_only", embedding_item)
+    assert_true(float(path_item.get("score") or 0) > float(embedding_item.get("score") or 0), ranked)
+
+    report["pgpr_anchor_scoring_priority"] = {
+        "path_id": path_id,
+        "embedding_only_id": embedding_only_id,
+        "path_index": path_index,
+        "embedding_only_index": embedding_index,
+        "path_score": path_item.get("score"),
+        "embedding_only_score": embedding_item.get("score"),
+    }
+
+
 def test_fallback_status_modes(
     repo: AuthRepository,
     hybrid: HybridRecommendationService,
@@ -420,6 +519,7 @@ def main() -> int:
 
     test_hybrid_ready_new_source(repo, embedding_repo, hybrid, rs, suffix, report)
     test_embedding_only_caps(hybrid, rs, report)
+    test_pgpr_anchor_scoring_priority(repo, embedding_repo, hybrid, suffix, report)
     test_fallback_status_modes(repo, hybrid, suffix, report)
     test_pgpr_embedding_dedupe(repo, embedding_repo, hybrid, rs, suffix, report)
     test_xai_wording(rs, report)

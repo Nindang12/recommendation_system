@@ -41,6 +41,22 @@ python scripts/system_inventory_check.py
 python scripts/test_phase9_production_deploy.py
 ```
 
+## Kiểm tra embedding worker
+
+Embedding worker hiện dùng polling `basic_get`, nên RabbitMQ Management có thể hiển thị `consumers = 0` dù worker vẫn đang sống. Khi vận hành, đánh giá worker bằng heartbeat:
+
+```powershell
+cd backend
+python scripts/inspect_embedding_queue.py
+python scripts/worker_healthcheck.py --worker-type embedding
+```
+
+Nếu muốn xử lý backlog rồi thoát:
+
+```powershell
+python -m workers.embedding_worker --max-jobs 100 --stop-when-empty --poll-seconds 0
+```
+
 ## Backup
 
 **Infra ngoài** (container bạn đang dùng):

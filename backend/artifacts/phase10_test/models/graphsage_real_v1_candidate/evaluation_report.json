@@ -1,0 +1,39 @@
+{
+  "status": "insufficient_data_warning",
+  "created_at": "2026-06-01T16:03:52.588468+00:00",
+  "model_name": "graphsage_real_v1_candidate",
+  "model_status": "rejected",
+  "promote_allowed": false,
+  "training_data_version": "snapshot_phase10_unit",
+  "evaluation_baseline": "v2_after_hybrid_anchor",
+  "snapshot_path": "D:\\Documents\\Đồ án\\backend\\artifacts\\phase10_test\\snapshot_phase10_unit.json",
+  "dataset_stats": {
+    "node_count": 3,
+    "positive_edges": 2,
+    "negative_edges": 2,
+    "random_seed": 42,
+    "split_counts": {
+      "train": {
+        "positive": 1,
+        "negative": 1
+      },
+      "val": {
+        "positive": 0,
+        "negative": 0
+      },
+      "test": {
+        "positive": 1,
+        "negative": 1
+      }
+    }
+  },
+  "minimum_data_thresholds": {
+    "min_positive_edges": 50,
+    "min_nodes": 2
+  },
+  "pyg_available": false,
+  "warnings": [
+    "positive_edges_below_threshold(2<50)"
+  ],
+  "runtime_unchanged": true
+}

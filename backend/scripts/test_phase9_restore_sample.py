@@ -24,7 +24,9 @@ def main() -> int:
         return 0
 
     compose = ROOT / "docker-compose.production.yml"
-    env_file = ROOT / ".env.production"
+    env_file = ROOT / ".env"
+    if not env_file.exists():
+        env_file = ROOT / ".env.production"
     if not env_file.exists():
         env_file = ROOT / ".env.production.example"
     assert compose.exists(), "docker-compose.production.yml missing"
@@ -35,6 +37,8 @@ def main() -> int:
         cwd=str(ROOT),
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         raise RuntimeError(f"docker compose ps failed: {proc.stderr}")
@@ -45,10 +49,10 @@ def main() -> int:
     report = {
         "status": "passed",
         "note": "Compose reachable; run deploy/backup/backup_all.ps1 then restore_* on staging to complete full cycle.",
-        "compose_ps_lines": len([line for line in proc.stdout.splitlines() if line.strip()]),
+        "compose_ps_lines": len([line for line in (proc.stdout or "").splitlines() if line.strip()]),
     }
     OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"PASS written {OUT}")
+    print("PASS written scripts/phase9_restore_sample_report.json")
     return 0
 
 
@@ -57,5 +61,5 @@ if __name__ == "__main__":
         sys.exit(main())
     except Exception as exc:  # noqa: BLE001
         OUT.write_text(json.dumps({"status": "failed", "error": str(exc)}, indent=2), encoding="utf-8")
-        print(f"FAIL {exc}")
+        print(f"FAIL {str(exc).encode('ascii', errors='replace').decode('ascii')}")
         sys.exit(1)

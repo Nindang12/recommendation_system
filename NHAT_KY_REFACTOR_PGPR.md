@@ -7382,3 +7382,1703 @@ python scripts/test_phase9_production_deploy.py
 | `docker-compose.infra.yml` | 4 service DB (tuỳ chọn) |
 | `deploy/backup/backup_external.ps1` | Backup container Mongo/Neo4j co san |
 | `backend/scripts/system_inventory_check.py` | Kiem tra nhanh file/phase |
+
+---
+
+## 35. Audit va toi uu sau Phase 8/9 - 2026-06-01
+
+### 35.1 Van de phat hien
+
+1. **RabbitMQ bi ton job embedding**
+   - `embedding.jobs` co 54 message, `embedding.jobs.dlq` co 1 message.
+   - Nguyen nhan chinh: worker khong chay nen cac event embedding/recompute bi don lai.
+   - Luu y: worker hien dung polling `basic_get`, vi vay RabbitMQ Management co the hien `consumers=0` ngay ca khi worker nen dang chay. Can xem heartbeat thay vi chi xem consumer count.
+
+2. **DLQ co message khong hop le**
+   - DLQ sample la JSON hong, kich thuoc 9 bytes, khong co `event_id`, `job_id`, `entity_id`.
+   - Ket luan: day khong phai entity embedding that, kha nang la message test/thu cong bi day vao queue.
+
+3. **Hybrid recommendation chua vuot PGPR-only**
+   - Truoc khi toi uu, hybrid pass regression gate nhung `ndcg_at_5`/`mrr` thap hon PGPR-only.
+   - Nguyen nhan: cong thuc hybrid ha trong so PGPR xuong qua manh (`pgpr_score * 0.62`), lam cac path-supported result co the bi embedding/topic signal lam doi thu tu.
+
+4. **Log qua on**
+   - Evaluation/recommendation in nhieu banner PGPR/Cypher o muc INFO.
+   - Pika/Neo4j notification cung day log khong can thiet khi chay test.
+
+### 35.2 Viec da sua
+
+| File | Sua gi | Ly do |
+|------|--------|-------|
+| `backend/workers/embedding_worker.py` | Them `run_many()`, CLI `--max-jobs`, `--stop-when-empty` | Cho phep drain queue local/dev mot cach co gioi han, khong phai chay daemon vo thoi han khi chi muon xu ly backlog |
+| `backend/infrastructure/rabbitmq_client.py` | Them `queue_depth()` va giam log `pika` xuong WARNING | Worker can biet queue con job khong; giam log ket noi RabbitMQ lap lai |
+| `backend/scripts/inspect_embedding_queue.py` | Them `--purge-dlq` va hien thi heartbeat worker moi nhat | Co the don DLQ ma khong purge queue chinh; tranh hieu nham `consumers=0` la worker chet |
+| `backend/services/hybrid_recommendation_service.py` | Doi scoring path-supported: giu `pgpr_score` lam diem neo, embedding/topic/path chi boost nhe co gioi han | Hybrid khong nen lam giam hang cac ket qua da co path evidence tot; embedding chi ho tro cold-start/rerank nhe |
+| `backend/pgpr/pgpr_recommendation.py` | Doi banner PGPR/Cypher tu `logger.info` sang `logger.debug` | Giam nhieu dong log khi evaluation/recommendation chay hang loat |
+| `backend/repositories/pgpr_graph_repo.py` | Giam `neo4j.notifications` xuong WARNING | An cac notification INFO lap lai ve constraint da ton tai, van giu WARNING that |
+
+### 35.3 Xu ly du lieu/queue da lam
+
+- Da chay worker drain:
+
+```powershell
+python -m workers.embedding_worker --max-jobs 100 --stop-when-empty --poll-seconds 0
+```
+
+- Ket qua:
+  - Xu ly 54/54 message trong `embedding.jobs`.
+  - Mot so event moi duoc tinh embedding `ready`.
+  - Nhieu event cu duoc skip dung cach vi `source_hash changed` hoac `job_id changed`, tranh ghi de embedding moi.
+  - Khong co failed job trong lan drain.
+
+- Da purge rieng DLQ:
+
+```powershell
+python scripts\inspect_embedding_queue.py --purge-dlq
+```
+
+- Ket qua sau cung:
+  - `embedding.jobs`: 0 message.
+  - `embedding.jobs.dlq`: 0 message.
+  - Worker heartbeat: `running`.
+
+### 35.4 Kiem chung sau sua
+
+Da chay:
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase6_hybrid_recommendation.py
+python scripts\test_phase7_1_hardening.py
+$env:EVALUATION_ALLOW_SEED='true'
+python scripts\run_evaluation.py --seed-hybrid --baseline scripts\evaluation_baseline_report.json
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+- Compile pass: 80 file.
+- Phase 6 hybrid test pass.
+- Phase 7.1 hardening test pass.
+- Evaluation regression gate: PASS.
+- Queue va DLQ deu sach.
+- Worker heartbeat dang song.
+
+Chi so sau toi uu:
+
+| Method | NDCG@5 | MRR | Precision@5 | Coverage |
+|--------|--------|-----|-------------|----------|
+| Hybrid | 0.5184 | 0.5974 | 0.2538 | 0.2355 |
+| PGPR-only | 0.4774 | 0.5565 | 0.2674 | 0.1859 |
+| Embedding-only | 0.1762 | 0.2273 | 0.2045 | 0.1346 |
+
+Ket luan:
+
+- Hybrid da vuot PGPR-only o `ndcg_at_5` va `mrr`.
+- PGPR-only van nho hon ve `precision_at_5`, nhung hybrid co coverage cao hon va ranking quality tong the tot hon theo gate chinh.
+
+### 35.5 Ghi chu van hanh tiep theo
+
+- Khi chay local, neu dung RabbitMQ embedding pipeline thi nen chay them:
+
+```powershell
+python -m workers.embedding_worker --poll-seconds 2
+```
+
+- Khi muon xu ly backlog roi thoat:
+
+```powershell
+python -m workers.embedding_worker --max-jobs 100 --stop-when-empty --poll-seconds 0
+```
+
+- Khi debug queue, dung:
+
+```powershell
+python scripts\inspect_embedding_queue.py
+```
+
+Khong chi nhin `consumers=0`, vi worker polling co the van dang song; hay xem `embedding_worker.status` va `age_seconds`.
+
+---
+
+## 36. Bo sung sau feedback Phase 9 va Hybrid baseline - 2026-06-01
+
+### 36.1 Dieu chinh trang thai Phase 9
+
+Da cap nhat:
+
+- `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`
+- `deploy/SYSTEM_INVENTORY.md`
+
+Noi dung chot lai:
+
+- Phase 9 hien la **implementation done, deployment validation pending**.
+- Chua chot **Phase 9 completed** cho den khi:
+  - `docker compose -f docker-compose.production.yml up -d --build` chay that thanh cong tren may deploy.
+  - Restore staging that pass voi `RUN_PHASE9_RESTORE_TEST=1`.
+
+**Ly do:** Dockerfile/compose/healthcheck/backup scripts da co, nhung chua validation runtime that thi khong nen tick hoan tat tuyet doi. Cach ghi nay tranh danh gia qua tay khi bao cao do an.
+
+### 36.2 Baseline evaluation version moi
+
+Da tao file:
+
+- `backend/scripts/evaluation_baseline_report_v2_after_hybrid_anchor.json`
+
+Metadata them vao:
+
+```json
+{
+  "baseline_version": "v2_after_hybrid_anchor",
+  "ranking_policy": "hybrid_pgpr_anchor_v2",
+  "date": "2026-06-01",
+  "reason": "pgpr anchor scoring avoids degrading path-supported results; embedding/topic are bounded boosts"
+}
+```
+
+**Ly do:** Hybrid scoring da doi. Luu baseline moi co version giup so sanh regression sau nay ma khong lam mat baseline cu.
+
+### 36.3 Test rieng cho hybrid PGPR-anchor scoring
+
+Da cap nhat:
+
+- `backend/scripts/test_phase6_hybrid_recommendation.py`
+
+Them case `test_pgpr_anchor_scoring_priority`:
+
+- Tao 1 candidate `path_supported` co PGPR/path evidence manh.
+- Tao 1 candidate `embedding_only` co embedding similarity cao.
+- Ky vong: candidate co path PGPR manh van xep tren embedding-only.
+
+**Ly do:** Bao ve rule moi: embedding/topic chi duoc boost nhe, khong duoc lam tut hang ket qua da co evidence path manh.
+
+### 36.4 Tai lieu van hanh worker polling
+
+Da cap nhat:
+
+- `deploy/README.md`
+
+Noi dung:
+
+- Embedding worker hien dung polling `basic_get`.
+- RabbitMQ Management co the hien `consumers = 0` du worker van song.
+- Kiem tra worker bang:
+
+```powershell
+python scripts\inspect_embedding_queue.py
+python scripts\worker_healthcheck.py --worker-type embedding
+```
+
+**Ly do:** Tranh hieu nham operational: `consumer_count=0` khong du de ket luan worker chet trong mode polling.
+
+### 36.5 Kiem chung
+
+Da chay:
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase6_hybrid_recommendation.py
+python scripts\inspect_embedding_queue.py
+```
+
+Ket qua:
+
+- Compile pass: 80 file.
+- Phase 6 hybrid test pass, bao gom test PGPR-anchor moi.
+- `embedding.jobs`: 0.
+- `embedding.jobs.dlq`: 0.
+- Worker heartbeat: `running`.
+
+---
+
+## 37. Phase 9 production compose va restore smoke validation - 2026-06-01
+
+### 37.1 Viec da chay
+
+Da chay production compose that:
+
+```powershell
+$env:BACKEND_PORT='8010'
+$env:FRONTEND_PORT='3000'
+$env:NEXT_PUBLIC_API_BASE_URL='http://localhost:8010'
+$env:COMPOSE_BAKE='false'
+$env:DOCKER_BUILDKIT='0'
+docker compose -f docker-compose.production.yml up -d --build
+```
+
+Ly do dung `BACKEND_PORT=8010`:
+
+- Port `8000` dang bi Windows giu o trang thai LISTENING voi PID khong con ton tai, lam Docker khong nen bind vao port nay.
+- Container backend ben trong van chay port `8000`; chi doi port publish ben ngoai thanh `8010`.
+
+### 37.2 Loi gap va cach sua
+
+1. **Docker BuildKit/bake loi gRPC header**
+   - Loi: `x-docker-expose-session-sharedkey contains value with non-printable ASCII characters`.
+   - Cach xu ly: tat bake/BuildKit cho lan validation bang `COMPOSE_BAKE=false`, `DOCKER_BUILDKIT=0`.
+   - Ly do: du an nam trong duong dan co Unicode, BuildKit/bake tren Windows co the loi voi session header.
+
+2. **Frontend Dockerfile fail vi khong co thu muc `public`**
+   - Loi: `COPY failed: stat app/public: file does not exist`.
+   - Sua `frontend/Dockerfile`: `RUN npm run build && mkdir -p public`.
+   - Ly do: Next app hien khong co public assets, nhung runner stage van copy `/app/public`. Tao thu muc rong giup Dockerfile an toan cho ca app co/khong co public.
+
+3. **Restore smoke script loi encoding Windows**
+   - Loi: `charmap` khi doc/in output docker compose trong duong dan co tieng Viet.
+   - Sua `backend/scripts/test_phase9_restore_sample.py`:
+     - Uu tien `.env` that truoc `.env.production`.
+     - Dung `encoding="utf-8", errors="replace"` khi capture output.
+     - In duong dan report dang ASCII de tranh loi console.
+   - Ly do: day la test harness; khong nen fail chi vi PowerShell/Python mac dinh cp1252.
+
+### 37.3 Ket qua validation
+
+Da xac nhan:
+
+- `rd-backend:production` build thanh cong.
+- `rd-frontend:production` build thanh cong.
+- Production compose up thanh cong voi 4 service:
+  - backend: healthy, publish `8010 -> 8000`.
+  - frontend: healthy, publish `3000 -> 3000`.
+  - embedding_worker: healthy.
+  - outbox_publisher: healthy.
+- Backend health:
+
+```json
+{
+  "status": "ok",
+  "services": {
+    "mongodb": "connected",
+    "neo4j": "connected",
+    "redis": "optional",
+    "rabbitmq": "connected",
+    "pgpr": "ready"
+  }
+}
+```
+
+- Frontend HTTP:
+  - `curl -I http://127.0.0.1:3000/` tra `307 Temporary Redirect` den `/dashboard`, Next.js server hoat dong.
+- Restore staging smoke:
+
+```powershell
+$env:RUN_PHASE9_RESTORE_TEST='1'
+python backend\scripts\test_phase9_restore_sample.py
+```
+
+Ket qua: `PASS`, `compose_ps_lines=4`.
+
+### 37.4 Ghi chu trung thuc ve restore
+
+`test_phase9_restore_sample.py` hien la **restore smoke validation**:
+
+- Xac nhan compose reachable.
+- Xac nhan backup/restore scripts ton tai.
+- Khong thuc hien destructive restore Mongo/Neo4j tu archive/dump that.
+
+Truoc go-live that, van nen chay full restore tren staging rieng voi backup archive/dump that de dam bao backup co the khoi phuc du lieu.
+
+### 37.5 Trang thai sau validation
+
+- Phase 9: **completed for app-only production smoke validation**.
+- Full destructive restore staging: khuyen nghi tiep tuc chay rieng truoc go-live.
+
+---
+
+## 38. Cap nhat `.env` theo production smoke validation - 2026-06-01
+
+Da doc `.env` goc va cap nhat cac bien runtime de khop voi stack production vua validation:
+
+- `BACKEND_PORT=8010`
+- `FRONTEND_PORT=3000`
+- `NEXT_PUBLIC_API_BASE_URL=http://localhost:8010`
+- `FRONTEND_URL=http://localhost:3000`
+- Them `http://127.0.0.1:3000` vao `CORS_ORIGINS`
+
+Ly do:
+
+- Port `8000` tren Windows dang bi giu bat thuong nen production compose da validate voi publish port `8010 -> 8000`.
+- Frontend Docker production chay o port `3000`, nen `FRONTEND_URL` va API base URL can khop voi runtime production.
+- Them `127.0.0.1:3000` de nguoi dung co the mo frontend bang ca `localhost` va `127.0.0.1` ma khong gap CORS.
+
+Ghi chu bao mat: khong ghi lai gia tri secret/password trong nhat ky.
+
+---
+
+## 39. Rebuild frontend production sau khi doi NEXT_PUBLIC_API_BASE_URL - 2026-06-01
+
+Sau khi cap nhat `.env` sang `NEXT_PUBLIC_API_BASE_URL=http://localhost:8010`, da rebuild frontend image de dam bao bien `NEXT_PUBLIC_*` duoc dong vao bundle Next.js.
+
+Da chay:
+
+```powershell
+$env:COMPOSE_BAKE='false'
+$env:DOCKER_BUILDKIT='0'
+docker compose -f docker-compose.production.yml build --no-cache frontend
+docker compose -f docker-compose.production.yml up -d --force-recreate frontend
+```
+
+Ly do:
+
+- Bien `NEXT_PUBLIC_*` cua Next.js la build-time variable, neu chi restart container thi bundle co the van giu `localhost:8000`.
+- Docker BuildKit/bake tiep tuc loi voi path Unicode, nen dung classic builder cho validation nay.
+
+Kiem chung:
+
+- `docker compose config` hien `NEXT_PUBLIC_API_BASE_URL: http://localhost:8010` trong build args.
+- `curl -I http://127.0.0.1:3000/` tra `307 Temporary Redirect` den `/dashboard`.
+- `curl http://127.0.0.1:8010/api/v1/health` tra `status=ok`.
+- Kiem tra bundle trong container thay `.next/static` co `http://localhost:8010`.
+
+---
+
+## 40. Dong bo nhan FastAPI tren frontend voi API base URL - 2026-06-01
+
+Da sua frontend de khong con hard-code nhan `FastAPI: localhost:8000` tren navbar.
+
+File da sua:
+
+- `frontend/src/lib/api.ts`
+  - Export `API_BASE_URL` de cac component UI co the dung chung mot nguon cau hinh voi API client.
+- `frontend/src/components/navigation/navbar.tsx`
+  - Import `API_BASE_URL`.
+  - Tao `apiDisplayUrl` tu `API_BASE_URL` va hien thi `FastAPI: {apiDisplayUrl}`.
+
+Ly do:
+
+- Backend production dang publish `localhost:8010 -> container:8000`.
+- API client da goi dung `http://localhost:8010`, nhung navbar van hien `localhost:8000`, gay nham lan khi debug/deploy.
+- Cho navbar doc chung `API_BASE_URL` giup lan sau doi port/domain chi can doi bien moi truong va rebuild frontend.
+
+Validation:
+
+- Build frontend lan dau bat duoc loi regex escape trong `navbar.tsx`; da sua ve regex TypeScript hop le `replace(/^https?:\/\//, '')`.
+- Rebuild frontend production bang classic builder thanh cong.
+- Recreate frontend container thanh cong.
+- `curl -I http://127.0.0.1:3000/` tra `307 Temporary Redirect` den `/dashboard`.
+- `curl http://127.0.0.1:8010/api/v1/health` tra `status=ok`, cac service MongoDB/Neo4j/RabbitMQ/PGPR deu san sang.
+- Kiem tra bundle trong container thay `http://localhost:8010` va khong con chuoi `localhost:8000`.
+
+Ghi chu:
+
+- `npm ci` trong Docker van bao 53 vulnerabilities tu dependency tree frontend. Chua sua bang `npm audit fix` vi co nguy co lam thay doi lon dependency; nen dua vao nhom hardening rieng.
+
+---
+
+## 41. Chuyen sang Phase 10 theo huong GraphSAGE real candidate - 2026-06-01
+
+Da cap nhat checklist Phase 10 de bat dau model lifecycle theo huong an toan, khong lam vo runtime hien tai.
+
+Da chot trang thai dau vao Phase 10:
+
+- GraphSAGE-lite da chay on theo Phase 3/9.
+- Embedding ready rate on trong seed/dev sau drain queue theo Phase 3/7.
+- Hybrid recommendation da co evaluation so bo theo Phase 8/8.1 va baseline v2.
+- Du lieu du lon de train chua tick vi dataset hien van nghieng ve seed/demo.
+
+Da chot nguyen tac Phase 10:
+
+- GraphSAGE-lite van la active baseline.
+- GraphSAGE real chi la candidate model.
+- Khong thay worker runtime sang GraphSAGE real neu candidate chua duoc promote.
+- Khong promote model neu regression gate fail hoac XAI/evidence coverage giam ro.
+
+Da chia Phase 10 thanh cac buoc nho:
+
+1. Phase 10.1 - Export graph snapshot.
+2. Phase 10.2 - Build feature encoder.
+3. Phase 10.3 - Build train/val/test dataset.
+4. Phase 10.4 - Train GraphSAGE candidate.
+5. Phase 10.5 - Evaluate against baseline v2.
+6. Phase 10.6 - Promote/rollback model version.
+
+Ly do:
+
+- Tranh thay doi truc tiep worker/recommendation runtime khi model GraphSAGE real chua duoc validate.
+- Cho phep phat trien model that nhu mot artifact co version, co evaluation, co regression gate va co rollback.
+- Giu PGPR/GraphSAGE-lite/hybrid hien tai lam baseline on dinh cho demo va deploy.
+
+---
+
+## 42. Bo sung an toan cho Phase 10 GraphSAGE real lifecycle - 2026-06-01
+
+Da cap nhat checklist Phase 10 de tranh hieu nham rang Phase 10 bat buoc phai tao ra model GraphSAGE real tot hon ngay.
+
+Bo sung da chot:
+
+- Phase 10 van co gia tri neu hoan thanh lifecycle/scaffold nhung GraphSAGE real chua du dieu kien promote.
+- Graph snapshot khong export secret, password hash, token, email/phone neu khong can cho training.
+- Snapshot chi nen export feature can cho model: id, type, labels, topic/skill/industry/location/status/trust_weight.
+- Negative sampling phai co `random_seed` co dinh de ket qua train/evaluate tai lap duoc.
+- Candidate model phai luu artifact rieng, khong overwrite active GraphSAGE-lite.
+- Them active model pointer du kien: `backend/artifacts/models/active_embedding_model.json`.
+- Neu GraphSAGE real khong vuot baseline v2, tiep tuc giu GraphSAGE-lite lam active model.
+
+Ly do:
+
+- Dataset hien tai van co kha nang chua du lon de train GraphSAGE real chat luong production.
+- Can bao ve du lieu nhay cam khi export snapshot.
+- Can dam bao evaluation tai lap duoc va regression gate co y nghia.
+- Can tach ro candidate model va active model de co the rollback an toan.
+
+---
+
+## 43. Bo sung model registry metadata cho Phase 10 - 2026-06-01
+
+Da cap nhat checklist Phase 10 de quan ly model GraphSAGE real nhu mot artifact co trang thai va lineage ro rang.
+
+Bo sung da chot:
+
+- Model metadata can co `model_status`.
+- Cac trang thai model registry gom: `candidate`, `active`, `rejected`, `archived`, `rollback`.
+- Model metadata can co `training_data_version` de biet model train tu snapshot nao.
+- Model metadata can co `evaluation_baseline`, vi du `v2_after_hybrid_anchor`.
+- Train script can canh bao neu positive edges/node count duoi nguong toi thieu; neu du lieu qua it thi chi tao warning report, khong promote.
+- Candidate evaluation report can duoc luu kem artifact model, vi du `backend/artifacts/models/graphsage_real_v1_candidate/evaluation_report.json`.
+
+Ly do:
+
+- Sau nay co nhieu phien ban model, can biet model nao dang active, model nao bi reject/rollback/archive.
+- Can truy vet model duoc train tu snapshot/evaluation baseline nao de debug va so sanh regression.
+- Dataset hien tai co the con nho, nen train script phai co guard de khong promote model yeu chi vi train thanh cong ve mat ky thuat.
+
+---
+
+## 44. Thuc hien Phase 10 lifecycle/scaffold GraphSAGE real - 2026-06-01
+
+Da bat dau implement Phase 10 theo huong an toan: GraphSAGE real la candidate model, khong thay runtime worker va khong ghi nguoc vao MongoDB/Neo4j.
+
+### 44.1 File/module da tao
+
+- `backend/ml/__init__.py`
+- `backend/ml/graphsage/__init__.py`
+- `backend/ml/graphsage/constants.py`
+- `backend/ml/graphsage/snapshot.py`
+- `backend/ml/graphsage/encoder.py`
+- `backend/ml/graphsage/dataset.py`
+- `backend/ml/graphsage/registry.py`
+- `backend/ml/graphsage/trainer.py`
+- `backend/scripts/export_graph_snapshot.py`
+- `backend/scripts/train_graphsage.py`
+- `backend/scripts/test_phase10_graphsage_lifecycle.py`
+
+Da cap nhat:
+
+- `backend/scripts/compile_project.py` de compile ca thu muc `ml`.
+- `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md` de danh dau scaffold da lam va giu cac viec real training/export that chua tick neu chua du dieu kien.
+
+### 44.2 Chuc nang da co
+
+- Read-only Neo4j snapshot exporter.
+- Sanitize snapshot de khong export secret/password hash/token/email/phone/vector neu khong can cho training.
+- Deterministic node feature encoder dimension 128.
+- Dataset builder tao positive edges tu snapshot va negative samples voi `random_seed` co dinh.
+- Candidate trainer tao artifact rieng, khong overwrite active GraphSAGE-lite.
+- Model registry scaffold voi `active_embedding_model.json`.
+- Candidate metadata co `model_status`, `training_data_version`, `evaluation_baseline`.
+- Candidate evaluation report luu kem artifact.
+- Guard du lieu it: neu positive edges duoi nguong thi tao warning report, `promote_allowed=false`, khong promote.
+- Guard PyTorch Geometric: neu chua co PyG thi tao fallback stub, khong anh huong runtime.
+
+### 44.3 Validation da chay
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase10_graphsage_lifecycle.py
+python scripts\train_graphsage.py --snapshot artifacts\phase10_test\snapshot_phase10_unit.json --model-name graphsage_real_v1_candidate --dimension 128 --min-positive-edges 50 --random-seed 42
+```
+
+Ket qua:
+
+- Compile pass: 91 file.
+- Phase 10 lifecycle smoke test pass.
+- Candidate artifact duoc tao tai `backend/artifacts/models/graphsage_real_v1_candidate/`.
+- `active_embedding_model.json` van giu `active_model=graphsage_lite_v1`.
+- Candidate report tra `insufficient_data_warning`, `model_status=rejected`, `promote_allowed=false`, `runtime_unchanged=true`.
+
+### 44.4 Blocker hien tai
+
+Da thu export snapshot that tu Neo4j nhung bi chan vi Neo4j external hien unavailable:
+
+- Host khong ket noi duoc `127.0.0.1:7687`.
+- Host khong ket noi duoc `host.docker.internal:7687`.
+- Backend container health tra `status=degraded`, `neo4j=unavailable`.
+
+Da ghi report: `backend/scripts/phase10_blocked_neo4j_report.json`.
+
+Viec can lam tiep:
+
+- Bat/fix Neo4j external service de health tra `neo4j=connected`.
+- Chay lai `python scripts/export_graph_snapshot.py --node-limit 2000 --edge-limit 10000`.
+- Chay `python scripts/train_graphsage.py --snapshot <snapshot_path>` tren snapshot that.
+- Chi promote neu evaluation/regression gate pass baseline v2.
+
+---
+
+## 45. Chay lai Phase 10 sau khi bat Neo4j external - 2026-06-01
+
+Sau khi Neo4j external duoc bat lai, da chay lai cac buoc Phase 10 bi block truoc do.
+
+### 45.1 Health check
+
+`curl http://127.0.0.1:8010/api/v1/health` tra:
+
+- `status=ok`
+- `mongodb=connected`
+- `neo4j=connected`
+- `rabbitmq=connected`
+- `pgpr=ready`
+
+### 45.2 Export snapshot that
+
+Da chay:
+
+```powershell
+python scripts\export_graph_snapshot.py --node-limit 2000 --edge-limit 10000
+```
+
+Ket qua:
+
+- Output: `backend/artifacts/graph_snapshots/snapshot_20260601T160256_211731Z0000.json`
+- Node count: 197
+- Edge count: 499
+- Label chinh: Expert 48, Project 34, ResearchTopic 25, Location 21, Skill 19, ResearchDirection 12, Enterprise/Funder/Industry 8 moi loai.
+- Relationship count chinh: LOCATED_IN 69, HAS_SKILL 47, HAS_EXPERIENCE_IN 42, FOCUSES_ON_TOPIC 36, FOCUSES_ON 28, INTERESTED_IN 27.
+
+Snapshot exporter van giu nguyen tac read-only va sanitize: khong export secret/password/token/email/phone/vector.
+
+### 45.3 Train/scaffold candidate tu snapshot that
+
+Da chay:
+
+```powershell
+python scripts\train_graphsage.py --snapshot artifacts\graph_snapshots\snapshot_20260601T160256_211731Z0000.json --model-name graphsage_real_v1_candidate --dimension 128 --min-positive-edges 50 --random-seed 42
+```
+
+Ket qua:
+
+- Dataset tu snapshot that dat nguong toi thieu: 197 nodes, 499 positive edges, 499 negative edges.
+- Split reproducible:
+  - train: 349 positive / 349 negative
+  - val: 75 positive / 75 negative
+  - test: 75 positive / 75 negative
+- `training_data_version=snapshot_20260601T160256_212664Z0000`
+- `evaluation_baseline=v2_after_hybrid_anchor`
+- `model_status=candidate`
+- `promote_allowed=false`
+- `runtime_unchanged=true`
+- Warning: `torch_geometric_unavailable; emitted fallback candidate artifact only`
+
+Ly do chua promote:
+
+- Du lieu da du nguong toi thieu, nhung moi truong hien tai chua co PyTorch Geometric nen chua train GraphSAGE real 2-layer that.
+- Candidate artifact da duoc tao de kiem tra lifecycle/registry, nhung active model van la `graphsage_lite_v1`.
+
+### 45.4 Validation sau khi sua output Unicode
+
+Lan dau `train_graphsage.py` tao report nhung loi khi in JSON ra terminal Windows do path co tieng Viet va stdout cp1252. Da sua script de `sys.stdout.reconfigure(encoding="utf-8", errors="replace")`.
+
+Da chay lai:
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase10_graphsage_lifecycle.py
+```
+
+Ket qua:
+
+- Compile pass: 91 file.
+- Phase 10 lifecycle smoke test pass.
+
+---
+
+## 46. Chot trang thai Phase 10 candidate lifecycle ready - 2026-06-01
+
+Da chot Phase 10 o muc **candidate lifecycle ready**.
+
+Ket luan hien tai:
+
+- Export snapshot that tu Neo4j da chay duoc.
+- Snapshot sanitize du lieu nhay cam.
+- Dataset builder da tao positive/negative edges.
+- Negative sampling co `random_seed` co dinh.
+- Feature encoder deterministic da co.
+- Registry/artifact format da co.
+- Active model pointer van giu `graphsage_lite_v1`.
+- Candidate artifact fallback da duoc tao.
+- Runtime khong doi.
+
+Cac muc van pending:
+
+- Train GraphSAGE 2 layers bang PyTorch Geometric.
+- Evaluate GraphSAGE real vs baseline v2.
+- Promote GraphSAGE real.
+- Worker load GraphSAGE real sau promote.
+
+Ly do chua promote:
+
+- Moi truong hien tai chua co PyTorch Geometric.
+- Graph hien tai co khoang 197 nodes / 499 edges, du de kiem tra lifecycle pipeline nhung chua nen ky vong GraphSAGE real production vuot GraphSAGE-lite.
+
+Day khong phai that bai cua Phase 10. Ket qua dung o giai doan nay la lifecycle/artifact/registry da san sang, con model real production se thuc hien sau khi co du lieu lon hon va moi truong train day du.
+
+---
+
+## 47. Bat dau Phase 11 - Data Governance nang cao - 2026-06-01
+
+Da bat dau Phase 11 theo huong **audit/report-first**, chua thuc hien xoa/sua du lieu that.
+
+Ly do lam theo huong nay:
+
+- Giai doan data governance de gay anh huong truc tiep den KG va recommendation.
+- Can nhin thay van de duplicate, orphan, provisional, taxonomy rac truoc khi viet action cleanup/merge.
+- GraphSAGE real sau nay se hoc tu data KG, nen phai co co che cham chat luong va audit data truoc khi them data lon.
+
+### 47.1 Tao canonical taxonomy helper
+
+File moi:
+
+- `backend/models/canonical_taxonomy.py`
+
+Da lam:
+
+- Tao canonical topic dua tren `models/research_taxonomy.py`.
+- Tao canonical skill va industry co ban.
+- Them alias mapping cho cac cach nhap pho bien:
+  - `AI y te`, `ai trong y te`, `medical ai` -> `ai-healthcare`
+  - `ML`, `hoc may` -> `machine-learning`
+  - `torch` -> `pytorch`
+  - `edtech` -> `education`
+- Them helper phat hien value chua map canonical.
+
+Lam nhu vay de:
+
+- Giam phan manh graph khi user nhap topic/skill tu do.
+- Tao dau vao cho admin review queue: custom topic/skill nao can map ve taxonomy chuan.
+- Giu recommendation va GraphSAGE sau nay khong bi nhieu boi nhieu node cung nghia.
+
+### 47.2 Tao DataQualityService
+
+File moi:
+
+- `backend/services/data_quality_service.py`
+
+Da lam:
+
+- Tinh `data_quality.score` trong khoang 0..1.
+- Gan `level`: `excellent`, `good`, `fair`, `poor`.
+- Tra `missing_fields`, `warnings`, `signals`, `updated_at`.
+- Cham diem dua tren:
+  - research topic
+  - skill / technology
+  - industry / sector
+  - location
+  - relationship ids
+  - entity verification
+  - KG sync status
+  - participation scope
+  - trust weight
+  - embedding status/signal
+  - duplicate candidates
+  - unmapped taxonomy values
+- Them `review_status` goi y:
+  - `verified`
+  - `pending_review`
+  - `needs_more_info`
+  - `merge_required`
+  - `rejected`
+
+Lam nhu vay de:
+
+- Recommendation/admin co the biet entity nao dang du tin cay.
+- Admin co danh sach ho so can bo sung thong tin truoc khi public.
+- GraphSAGE sau nay co feature chat luong data thay vi hoc tu node nhieu.
+
+### 47.3 Tao GovernanceAuditService
+
+File moi:
+
+- `backend/services/governance_audit_service.py`
+
+Da lam:
+
+- Audit entity quality tu MongoDB.
+- Audit orphan node tu Neo4j bang query read-only.
+- Audit provisional lifecycle theo tuoi node va status.
+- Tong hop retention policy cho:
+  - `embedding_event_outbox`
+  - `admin_audit_logs`
+  - `embedding_failed_jobs`
+- Service khong crash neu Mongo/Neo4j loi; report ghi ro source nao unavailable.
+
+Lam nhu vay de:
+
+- Co cong cu quan sat chat luong data truoc khi viet cleanup action.
+- Tranh viec tool governance lam sap pipeline khi mot service tam thoi mat ket noi.
+- Tach ro audit read-only va action mutating.
+
+### 47.4 Tao script va test Phase 11
+
+File moi:
+
+- `backend/scripts/test_phase11_data_governance.py`
+- `backend/scripts/run_phase11_governance_audit.py`
+- `backend/scripts/phase11_governance_audit_report.json`
+
+Da chay:
+
+```powershell
+python scripts\test_phase11_data_governance.py
+python scripts\compile_project.py
+python scripts\run_phase11_governance_audit.py --limit 100
+```
+
+Ket qua:
+
+- Phase 11 data governance tests passed.
+- Compile pass: 96 file.
+- Governance audit report duoc tao thanh cong.
+- Neo4j audit doc duoc graph va phat hien 1 orphan Project:
+  - `user_prj_6a147c20d073082c41212a70`
+  - `Codex Provisional Project Smoke Test`
+  - `entity_verification_status=unverified`
+  - `kg_sync_status=synced_unverified`
+  - `participation_scope=owner_only`
+
+Luu y:
+
+- MongoDB query trong script local dang bi `Command find requires authentication`.
+- Script da ghi `entities.summary.available=false` thay vi crash.
+- Can chay audit voi `MONGO_URI` co credential dung hoac trong environment container/backend de lay entity quality report day du.
+
+### 47.5 Cap nhat checklist
+
+Da cap nhat `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`:
+
+- Tick cac muc da lam cho canonical taxonomy, data quality score, governance audit, script/test.
+- Giu pending cac muc can admin action that:
+  - merge/duplicate policy mo rong
+  - review queue that cho topic/skill/entity
+  - orphan cleanup action
+  - retention enforcement
+
+Trang thai Phase 11 hien tai:
+
+- Da co nen audit/report-first.
+- Chua thuc hien merge/cleanup mutating.
+- Buoc tiep theo nen la admin review queue dua tren `review_status` va action mapping custom taxonomy.
+
+---
+
+## 48. Phase 11 - Chay audit voi Mongo credential dung va tao review queue API - 2026-06-01
+
+Sau khi co nen audit/report-first, da lam tiep 2 viec:
+
+1. Chay lai governance audit voi Mongo credential dung.
+2. Tao admin review queue read-only.
+
+### 48.1 Sua load `.env` cho governance audit
+
+Van de gap phai:
+
+- `run_phase11_governance_audit.py` van bao Mongo `Command find requires authentication`.
+- Kiem tra `.env` thay `MONGO_URI` co credential, nhung file `.env` co UTF-8 BOM o dau file.
+- `python-dotenv` trong script khong nap dung key dau tien, nen `MONGO_URI` khong duoc set va repository roi ve default `mongodb://localhost:27017`.
+
+Da sua:
+
+- `backend/scripts/run_phase11_governance_audit.py`
+  - Parse `.env` bang `utf-8-sig`.
+  - Set env var thu cong truoc khi import service/repository.
+  - Van goi `load_dotenv(..., override=True)` cho cac file env binh thuong.
+
+Lam nhu vay de:
+
+- Script audit dung dung credential Mongo trong `.env`.
+- Tranh loi BOM tren Windows lam mat bien dau tien.
+- Khong can sua global repository runtime luc nay.
+
+### 48.2 Chay lai governance audit thanh cong
+
+Da chay:
+
+```powershell
+python scripts\run_phase11_governance_audit.py --limit 100
+```
+
+Ket qua moi:
+
+- Entity audit doc duoc Mongo thanh cong.
+- Tong entity audit: 193.
+- Quality level:
+  - poor: 145
+  - fair: 14
+  - good: 22
+  - excellent: 12
+- Review status:
+  - needs_more_info: 168
+  - pending_review: 7
+  - merge_required: 9
+  - rejected: 9
+- Unmapped taxonomy warnings: 42.
+- Duplicate/merge required: 9.
+- Neo4j orphan audit van phat hien 1 orphan Project owner_only.
+
+Y nghia:
+
+- Data hien tai con nhieu entity thieu topic/skill/location/industry hoac dang provisional.
+- Chua nen them data lon/train GraphSAGE real truoc khi co review queue va taxonomy mapping.
+
+### 48.3 Tao admin governance review queue read-only
+
+File sua:
+
+- `backend/services/governance_audit_service.py`
+- `backend/api/deps.py`
+- `backend/api/v1/endpoints/admin.py`
+
+Endpoint moi:
+
+```http
+GET /api/v1/admin/governance/review-queue
+```
+
+Filter ho tro:
+
+- `review_status`
+- `level`
+- `has_unmapped_taxonomy`
+- `has_duplicate_candidates`
+- `entity_type`
+- `limit`
+
+Output moi item gom:
+
+- `entity_id`
+- `entity_type`
+- `name`
+- `data_quality.score`
+- `data_quality.level`
+- `data_quality.missing_fields`
+- `data_quality.warnings`
+- `review_status`
+- `unmapped_taxonomy_values`
+- `duplicate_candidates_count`
+- `matched_existing_entity_id`
+- `recommended_action`
+- `kg_sync_status`
+- `entity_verification_status`
+- `participation_scope`
+- `trust_weight`
+
+Lam read-only truoc de:
+
+- Admin co the xem queue truoc khi co action nguy hiem.
+- Chua merge/delete/cleanup bat ky node nao.
+- Co nen UI admin sau nay chi can goi endpoint nay.
+
+### 48.4 Validation
+
+Da chay:
+
+```powershell
+python scripts\test_phase11_data_governance.py
+python scripts\compile_project.py
+```
+
+Ket qua:
+
+- Phase 11 data governance tests passed.
+- Compile pass: 96 file.
+
+### 48.5 Trang thai tiep theo
+
+Da xong:
+
+- Audit Mongo + Neo4j day du.
+- Review queue backend read-only.
+
+Con nen lam tiep:
+
+- UI admin review queue.
+- Taxonomy alias mapping action co audit log.
+- Orphan cleanup action theo huong mark/disable, khong delete.
+- Retention dry-run/enforcement co `--apply`.
+
+---
+
+## 49. Phase 11 - UI review queue, taxonomy action, orphan mark va retention dry-run - 2026-06-02
+
+Da lam tiep cac muc uu tien cua Phase 11 sau khi backend review queue read-only da co.
+
+### 49.1 UI admin governance review queue
+
+File sua:
+
+- `frontend/src/app/admin/page.tsx`
+- `frontend/src/lib/api.ts`
+
+Da them:
+
+- Panel moi trong `/admin#review-queue`: `Governance review queue`.
+- Goi API `GET /api/v1/admin/governance/review-queue`.
+- Filter UI:
+  - review_status
+  - quality level
+  - unmapped taxonomy
+  - duplicate candidates
+- Hien thi:
+  - entity_id / entity_type / name
+  - data_quality score va level
+  - review_status
+  - missing_fields
+  - warnings
+  - recommended_action
+  - badge `owner_only`, `unverified`, `unmapped_taxonomy`
+
+Lam nhu vay de:
+
+- Admin nhin duoc hang cho data quality thay vi chi xem KG sync status.
+- Tach review governance voi bang entity review cu.
+- Chua tao action nguy hiem tren UI.
+
+### 49.2 Taxonomy alias mapping action
+
+File moi/sua:
+
+- `backend/services/governance_action_service.py`
+- `backend/api/v1/endpoints/admin.py`
+- `backend/services/data_quality_service.py`
+- `backend/services/governance_audit_service.py`
+
+Endpoint moi:
+
+```http
+POST /api/v1/admin/governance/taxonomy-alias
+```
+
+Body:
+
+```json
+{
+  "taxonomy_type": "topic",
+  "raw_value": "AI y te",
+  "canonical_id": "ai-healthcare",
+  "reason": "Vietnamese alias for AI in healthcare"
+}
+```
+
+Rule da co:
+
+- Chi admin/root_admin qua dependency admin hien co.
+- Bat buoc `reason`.
+- Validate `taxonomy_type`.
+- Validate `canonical_id` ton tai trong canonical taxonomy.
+- Luu mapping vao collection `taxonomy_aliases`.
+- Ghi audit log `map_taxonomy_alias`.
+- Khong rewrite entity hang loat o buoc dau.
+
+Lam nhu vay de:
+
+- Day la mutating action it rui ro hon merge/delete.
+- Lan audit sau se dung `taxonomy_aliases` de giam warning unmapped taxonomy.
+- Van giu duoc trace ai map alias nao va vi sao.
+
+### 49.3 Orphan cleanup safe action
+
+Endpoint moi:
+
+```http
+POST /api/v1/admin/governance/orphans/{entity_type}/{entity_id}/mark-cleanup-candidate
+```
+
+Body:
+
+```json
+{
+  "reason": "Smoke test orphan project, owner_only, no useful edges"
+}
+```
+
+Rule da co:
+
+- Bat buoc `reason`.
+- Chi mark:
+  - `cleanup_candidate=true`
+  - `cleanup_candidate_reason`
+  - `cleanup_candidate_marked_by`
+  - `cleanup_candidate_marked_at`
+- Cap nhat Mongo neu entity ton tai.
+- Cap nhat Neo4j node bang property marker.
+- Ghi audit log `mark_orphan_cleanup_candidate`.
+- Khong physical delete.
+
+Lam nhu vay de:
+
+- Orphan node duoc dua vao review/cleanup workflow nhung chua pha graph.
+- Van rollback/debug duoc vi node khong bi xoa.
+
+### 49.4 Retention policy dry-run
+
+File moi:
+
+- `backend/scripts/run_retention_policy.py`
+- `backend/scripts/retention_policy_report.json`
+
+Command:
+
+```powershell
+python scripts\run_retention_policy.py --dry-run
+```
+
+Report co:
+
+- `matched_count`
+- `would_delete_count`
+- `applied_count`
+- `collection`
+- `cutoff_date`
+- mode `dry-run` hoac `apply`
+
+Rule hien tai:
+
+- Published outbox cu hon 90 ngay.
+- Failed outbox cu hon 90 ngay.
+- Admin audit log cu hon 365 ngay.
+- Mac dinh khong xoa neu khong truyen `--apply`.
+
+Ket qua dry-run hien tai:
+
+- `embedding_event_outbox` published old: 0.
+- `embedding_event_outbox` failed old: 0.
+- `admin_audit_logs` older than 365 days: 0.
+
+### 49.5 Validation
+
+Da chay:
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase11_data_governance.py
+python scripts\run_retention_policy.py --dry-run
+python scripts\run_phase11_governance_audit.py --limit 100
+cd frontend
+npm run typecheck
+npm run build
+```
+
+Ket qua:
+
+- Backend compile pass: 98 file.
+- Phase 11 data governance tests passed.
+- Retention dry-run pass va tao report.
+- Governance audit doc duoc 193 entity.
+- Frontend typecheck pass.
+- Frontend production build pass.
+
+Luu y:
+
+- Lan audit co log `Unable to retrieve routing information` sau khi ghi report, nhung process exit code 0 va report entity summary van day du. Can theo doi Neo4j routing/driver neu loi nay lap lai trong API runtime.
+
+### 49.6 Trang thai tiep theo
+
+Nen lam tiep:
+
+- UI cho taxonomy alias mapping action.
+- UI cho orphan cleanup candidate.
+- Request-more-information workflow cho entity `needs_more_info`.
+- Soft-disable orphan khoi recommendation khi admin xac nhan.
+
+---
+
+## 50. Phase 11 - Hoan thien UI/action governance tiep theo - 2026-06-02
+
+Da lam tiep cac buoc:
+
+- UI taxonomy alias mapping.
+- UI orphan cleanup candidate.
+- Request-more-information workflow MVP.
+- Soft-disable orphan khoi recommendation.
+
+### 50.1 Canonical taxonomy endpoint
+
+File sua:
+
+- `backend/api/v1/endpoints/taxonomy.py`
+
+Endpoint moi:
+
+```http
+GET /api/v1/taxonomy/canonical
+```
+
+Tra ve:
+
+- canonical topics
+- canonical skills
+- canonical industries
+
+Lam nhu vay de:
+
+- UI admin dung dropdown canonical value thay vi bat admin nhap tay `canonical_id`.
+- Giam loi mapping sai id.
+
+### 50.2 UI taxonomy alias mapping
+
+File sua:
+
+- `frontend/src/app/admin/page.tsx`
+- `frontend/src/lib/api.ts`
+
+Da them:
+
+- Nut `Map taxonomy` tren item co `unmapped_taxonomy_values`.
+- Modal gom:
+  - taxonomy_type
+  - raw_value
+  - canonical_id dropdown
+  - reason
+- Submit goi:
+
+```http
+POST /api/v1/admin/governance/taxonomy-alias
+```
+
+Lam nhu vay de:
+
+- Admin sua duoc taxonomy rac ngay tu review queue.
+- Action van an toan: chi them alias mapping va audit log, chua rewrite entity hang loat.
+
+### 50.3 Request-more-information workflow MVP
+
+File sua:
+
+- `backend/services/governance_action_service.py`
+- `backend/api/v1/endpoints/admin.py`
+- `frontend/src/app/admin/page.tsx`
+- `frontend/src/lib/api.ts`
+
+Endpoint moi:
+
+```http
+POST /api/v1/admin/governance/entities/{entity_type}/{entity_id}/request-more-info
+```
+
+Body:
+
+```json
+{
+  "requested_fields": ["research_topics", "skills_or_technology"],
+  "admin_note": "Can bo sung topic va skill de he thong recommend tot hon",
+  "reason": "Entity is missing required recommendation fields"
+}
+```
+
+Da lam:
+
+- Luu request vao collection `data_quality_requests`.
+- Gan `latest_data_quality_request` vao entity.
+- Ghi audit log `request_more_information`.
+- UI co modal `Request info` cho item `needs_more_info`.
+
+Lam nhu vay de:
+
+- Admin co workflow ro rang voi nhom 168 entity `needs_more_info`.
+- Sau nay profile user co the hien warning dua tren `latest_data_quality_request`.
+
+### 50.4 Orphan cleanup UI va soft-disable action
+
+File sua:
+
+- `backend/services/governance_action_service.py`
+- `backend/api/v1/endpoints/admin.py`
+- `frontend/src/app/admin/page.tsx`
+- `frontend/src/lib/api.ts`
+
+Endpoint moi:
+
+```http
+GET /api/v1/admin/governance/orphans
+POST /api/v1/admin/governance/orphans/{entity_type}/{entity_id}/disable-from-recommendation
+```
+
+Da them UI:
+
+- Panel `Orphan cleanup candidates`.
+- Nut `Mark cleanup`.
+- Nut `Disable recommendation`.
+- Confirm modal co reason bat buoc.
+
+Soft-disable set:
+
+- `visibility=hidden`
+- `participation_scope=disabled`
+- `recommendable_as_target=false`
+- `allow_as_intermediate_node=false`
+- `cleanup_candidate=true`
+- `disabled_from_recommendation=true`
+
+Lam nhu vay de:
+
+- Node orphan khong bi xoa vat ly.
+- Recommendation se khong dung node nay sau khi admin xac nhan.
+- Van co audit log va du lieu rollback/debug.
+
+### 50.5 Validation
+
+Da chay:
+
+```powershell
+python scripts\compile_project.py
+python scripts\test_phase11_data_governance.py
+python scripts\run_phase11_governance_audit.py --limit 100
+python scripts\run_retention_policy.py --dry-run
+cd frontend
+npm run typecheck
+npm run build
+```
+
+Ket qua:
+
+- Backend compile pass: 98 file.
+- Phase 11 data governance tests passed.
+- Governance audit pass, 193 entity.
+- Retention dry-run pass.
+- Frontend typecheck pass.
+- Frontend production build pass.
+
+Trang thai Phase 11 hien tai:
+
+- Review queue backend + UI da co.
+- Taxonomy alias backend + UI da co.
+- Request-more-information MVP da co.
+- Orphan mark cleanup + soft-disable da co.
+- Retention dry-run da co.
+- Chua co physical delete va khong co cleanup nguy hiem.
+
+---
+
+## 51. Phase 11 - Hardening tests va retention apply guard - 2026-06-02
+
+Da bo sung mot vong hardening truoc khi chot Phase 11.
+
+### 51.1 Them test cho mutating governance actions
+
+File sua:
+
+- `backend/scripts/test_phase11_data_governance.py`
+
+Da them fake repository/graph de test action ma khong dung Mongo/Neo4j that.
+
+Test cover:
+
+- `map_taxonomy_alias` thieu `reason` -> fail.
+- `map_taxonomy_alias` sai `canonical_id` -> fail.
+- `map_taxonomy_alias` thanh cong -> co record va co audit log.
+- `request_more_information` -> tao request va gan `latest_data_quality_request`.
+- `mark_orphan_cleanup_candidate` -> set `cleanup_candidate=true` va update graph marker.
+- `disable_orphan_from_recommendation` -> set hidden/disabled flags.
+- `CandidateMaskService.evaluate_target_status` block node da soft-disable khoi public recommendation target.
+
+Ly do:
+
+- Khong chi kiem tra field duoc set, ma kiem tra rule recommendation safety that su chan node soft-disabled.
+- Test khong lam ban data that.
+
+### 51.2 Them guard cho retention apply
+
+File sua:
+
+- `backend/scripts/run_retention_policy.py`
+
+Rule moi:
+
+```powershell
+python scripts\run_retention_policy.py --apply
+```
+
+se fail neu khong co mot trong hai dieu kien:
+
+```powershell
+python scripts\run_retention_policy.py --apply --confirm-retention-delete
+```
+
+hoac:
+
+```powershell
+$env:RETENTION_ALLOW_APPLY='true'
+python scripts\run_retention_policy.py --apply
+```
+
+Ly do:
+
+- Khong de mot flag `--apply` don le co the xoa nham outbox/audit data.
+- Buoc dry-run van la mac dinh va an toan.
+
+### 51.3 Validation
+
+Da chay:
+
+```powershell
+python scripts\test_phase11_data_governance.py
+python scripts\compile_project.py
+python scripts\run_retention_policy.py --apply
+python scripts\run_retention_policy.py --dry-run
+python scripts\run_phase11_governance_audit.py --limit 100
+cd frontend
+npm run typecheck
+npm run build
+```
+
+Ket qua:
+
+- Phase 11 data governance tests passed.
+- Backend compile pass: 98 file.
+- `run_retention_policy.py --apply` tra fail-safe dung mong doi:
+  - `--apply requires --confirm-retention-delete or RETENTION_ALLOW_APPLY=true`
+- Retention dry-run pass.
+- Governance audit pass, 193 entity.
+- Frontend typecheck pass.
+- Frontend production build pass.
+
+Trang thai sau hardening:
+
+- Mutating governance actions da co test muc service/safety.
+- Soft-disable orphan da duoc chung minh bi mask khoi recommendation target.
+- Retention apply da co guard manh.
+
+---
+
+## 52. Phase 12 - Security hardening - 2026-06-02
+
+Da thuc hien Phase 12 theo huong tang bao ve runtime ma khong pha PGPR/hybrid pipeline hien tai.
+
+### 52.1 RBAC va reason guard cho admin action
+
+File sua:
+
+- `backend/api/deps.py`
+- `backend/api/v1/endpoints/admin.py`
+
+Da them:
+
+- `require_non_empty_reason()`.
+- `require_root_role()`.
+- Guard bat buoc `reason` cho:
+  - reject entity
+  - disable KG
+  - merge entity
+- Guard root admin cho retry embedding job loai `permanent` hoac `include_permanent=true`.
+
+Ly do:
+
+- Reject/disable/merge la action anh huong truc tiep den KG va recommendation, nen khong duoc chay ma khong co ly do audit.
+- Job permanent co the la loi du lieu/validation, admin thuong khong nen retry hang loat vi co the lam queue lap loi.
+
+### 52.2 Rate limit va abuse protection
+
+File moi/sua:
+
+- `backend/services/rate_limit_service.py`
+- `backend/api/deps.py`
+- `backend/api/v1/endpoints/auth.py`
+- `backend/api/v1/endpoints/entities.py`
+- `backend/api/v1/endpoints/admin.py`
+- `backend/.env.example`
+
+Da them in-memory sliding-window rate limiter.
+
+Scope dang bao ve:
+
+- `auth_register`: 5 request/phut/IP.
+- `auth_login`: 10 request/phut/IP.
+- `profile_update`: 30 request/phut/IP.
+- `project_create`: 10 request/phut/IP.
+- `embedding_recompute`: 20 request/phut/IP.
+- Admin governance/entity/embedding/user-management mutations.
+
+Ly do:
+
+- Bao ve login/register khoi brute-force/spam.
+- Bao ve recompute/queue khoi viec bi bam lien tuc gay spam RabbitMQ/worker.
+- Giai phap hien tai phu hop single backend process; khi scale nhieu replica can chuyen sang Redis-backed limiter.
+
+### 52.3 Secret/config audit cho production
+
+File moi:
+
+- `backend/scripts/check_phase12_security_config.py`
+- `backend/scripts/phase12_security_config_report.json`
+- `deploy/SECURITY_HARDENING.md`
+
+Script kiem tra:
+
+- `APP_AUTH_SECRET` default/thieu/qua ngan.
+- `ROOT_ADMIN_PASSWORD` default/yeu.
+- `NEO4J_PASSWORD` placeholder/default.
+- RabbitMQ `guest:guest` khi `ENVIRONMENT=production`.
+- `CORS_ORIGINS=*`.
+- `RATE_LIMIT_ENABLED=false`.
+
+Ket qua hien tai:
+
+- Report phat hien 2 high issue:
+  - `APP_AUTH_SECRET` van la default.
+  - `ROOT_ADMIN_PASSWORD` van la default.
+
+Ly do khong tu dong sua:
+
+- Doi `APP_AUTH_SECRET` se lam token hien tai het hieu luc.
+- Doi `ROOT_ADMIN_PASSWORD` lien quan tai khoan root admin va quy trinh ban giao credential.
+- Day la production blocker can rotate thu cong trong `.env` truoc go-live.
+
+### 52.4 Frontend dependency audit va giam attack surface
+
+File sua/xoa:
+
+- `frontend/package.json`
+- `frontend/package-lock.json`
+- Xoa `frontend/src/ai/dev.ts`
+- Xoa `frontend/src/ai/genkit.ts`
+- Xoa `frontend/src/ai/flows/knowledge-graph-entity-summary.ts`
+- Xoa `frontend/src/ai/flows/natural-language-knowledge-graph-search.ts`
+
+Da lam:
+
+- Chay `npm audit`.
+- Luu `frontend/npm-audit-report.json`.
+- Luu `frontend/npm-audit-summary.json`.
+- Loai bo scaffold Genkit/Firebase Studio khong duoc UI hien tai su dung.
+- Go dependency khong dung:
+  - `genkit`
+  - `@genkit-ai/google-genai`
+  - `firebase`
+  - `dotenv`
+  - `genkit-cli`
+- Nang `next` tu `15.5.9` len `15.5.19`.
+- Pin/override `postcss` thanh `8.5.15`.
+- Khong chay `npm audit fix --force`.
+
+Ket qua audit:
+
+- Truoc khi don: 53 vulnerabilities.
+- Sau khi bo Genkit/Firebase scaffold: 10 vulnerabilities.
+- Sau `npm audit fix` khong force + nang Next patch + override PostCSS: 0 vulnerabilities.
+
+Ly do:
+
+- Genkit/Firebase la scaffold tu Firebase Studio, khong co import vao cac page/component runtime hien tai.
+- Loai bo dependency khong dung giam attack surface va giam kich thuoc dependency tree.
+- Next/PostCSS duoc nang theo huong patch/safe, khong ep major/breaking change.
+
+### 52.5 Validation
+
+Da chay:
+
+```powershell
+cd backend
+python scripts\compile_project.py
+python scripts\test_phase12_security_hardening.py
+python scripts\check_phase12_security_config.py
+
+cd ..\frontend
+npm audit --json
+npm run build
+npm run typecheck
+```
+
+Ket qua:
+
+- Backend compile pass: 101 file.
+- Phase 12 security hardening tests passed.
+- Security config report generated, con 2 production secret blockers.
+- Frontend npm audit: 0 vulnerabilities.
+- Frontend build pass voi Next.js 15.5.19.
+- Frontend typecheck pass.
+
+Trang thai Phase 12:
+
+- Code hardening da hoan thanh.
+- Dependency audit da sach.
+- Go-live bi chan cho den khi rotate `APP_AUTH_SECRET` va `ROOT_ADMIN_PASSWORD` trong `.env`; blocker nay da duoc xu ly o muc 53.
+
+---
+
+## 53. Phase 12 - Rotate production secrets - 2026-06-02
+
+Da xu ly 2 blocker con lai cua Phase 12.
+
+### 53.1 Rotate secret trong `.env`
+
+File sua:
+
+- `.env` goc tai thu muc project.
+
+Da rotate:
+
+- `APP_AUTH_SECRET`
+- `ROOT_ADMIN_PASSWORD`
+
+Gia tri moi khong duoc in ra terminal/nhat ky. Chi kiem tra dang redacted:
+
+- `APP_AUTH_SECRET`: length 64.
+- `ROOT_ADMIN_PASSWORD`: length 48.
+
+Ly do:
+
+- `APP_AUTH_SECRET=dev-change-me` lam token auth co the bi gia mao trong moi truong public/demo chung.
+- `ROOT_ADMIN_PASSWORD=Admin@123456` la mat khau scaffold, khong duoc dung cho go-live.
+
+### 53.2 Cap nhat root admin password hash trong MongoDB
+
+Da cap nhat password hash cho root admin hien co:
+
+- Email: `admin@example.com`
+- Role: `root_admin`
+
+Ly do:
+
+- `main._ensure_root_admin()` chi tao root admin neu chua ton tai.
+- Neu account da ton tai, viec doi `.env` khong tu dong doi password trong MongoDB.
+- Can update hash de root admin dang nhap bang password moi trong `.env`.
+
+### 53.3 Validation sau rotate
+
+Da chay:
+
+```powershell
+python scripts\check_phase12_security_config.py
+```
+
+Ket qua:
+
+- `issue_count`: 0.
+- High issues: 0.
+- Medium issues: 0.
+- Low issues: 0.
+
+Da kiem tra login root admin bang `AuthService.login()`:
+
+- Login pass.
+- Token khong in ra log.
+- Role xac nhan: `root_admin`.
+
+Trang thai sau rotate:
+
+- Phase 12 secret blockers da duoc xu ly.
+- Can restart backend/container de `APP_AUTH_SECRET` moi co hieu luc voi runtime dang chay.
+
+---
+
+## 54. Cleanup he thong sau Phase 12 - 2026-06-02
+
+Da don cac file loi thoi va output tam de workspace gon hon.
+
+### 54.1 Xoa tai lieu `.md` loi thoi
+
+Da xoa cac ke hoach/checklist cu da bi thay the boi:
+
+- `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`
+- `NHAT_KY_REFACTOR_PGPR.md`
+- `README.md`
+
+File da xoa:
+
+- `CHECKLIST_HOAN_THIEN_HE_THONG_MOI.md`
+- `CHECKLIST_REFACTOR_KIEN_TRUC_PGPR.md`
+- `DEMO_CASES.md`
+- `KE_HOACH_COLD_START_RABBITMQ_GRAPHSAGE.md`
+- `KE_HOACH_HOAN_THIEN_HE_THONG.md`
+- `KE_HOACH_PROVISIONAL_KG_SYNC.md`
+- `KE_HOACH_UPGRADE_UI_AUTH_VERIFICATION.md`
+- `KIEN_TRUC_DA_CHOT.md`
+- `THIEU_THUOC_TINH_DATA_TRAIN_MODEL.md`
+- `TONG_QUAN_HE_THONG_HIEN_TAI.md`
+
+Ly do:
+
+- Cac tai lieu nay la ke hoach/phan tich tung giai doan cu.
+- Noi dung da duoc gom lai va cap nhat trong checklist scale-up va nhat ky hien tai.
+- Giam nhieu nguon su that tranh nham lan khi review do an.
+
+### 54.2 Xoa script phuc hoi PGPR cu
+
+File da xoa:
+
+- `backend/scripts/patch_pgpr_recommendation.py`
+- `backend/scripts/restore_pgpr_methods.py`
+- `backend/scripts/restored_middle.py`
+
+Da cap nhat:
+
+- `backend/scripts/compile_project.py`
+
+Ly do:
+
+- Day la artifact phuc hoi tam thoi tu giai doan refactor cu.
+- `restored_middle.py` tung bi exclude khoi compile vi loi cu phap/indent.
+- Sau khi xoa file nay, compile script khong con can exclusion dac biet.
+
+### 54.3 Xoa report/output tam
+
+Da xoa cac report JSON/CSV/MD sinh ra tu test/snapshot theo tung phase, bao gom:
+
+- `baseline_recommendation_snapshot_after_phase*.json`
+- `phase*_report.json`
+- `api_test_results.json`
+- `evaluation_report.*`
+- `retention_policy_report.json`
+- `phase11_governance_audit_report.json`
+- `phase12_security_config_report.json`
+- `frontend/npm-audit-report.json`
+- `frontend/npm-audit-summary.json`
+
+Da giu lai cac file can thiet:
+
+- `backend/scripts/baseline_recommendation_snapshot.py`
+- `backend/scripts/baseline_recommendation_snapshot.json`
+- `backend/scripts/evaluation_cases.json`
+- `backend/scripts/evaluation_config.json`
+- `backend/scripts/evaluation_baseline_report_v2_after_hybrid_anchor.json`
+
+Ly do:
+
+- Report tam co the tao lai bang script tuong ung.
+- Baseline/case/config evaluation van can de so sanh regression.
+
+### 54.4 Xoa cache/log build
+
+Da xoa:
+
+- `backend/**/__pycache__`
+- `backend/uvicorn.err.log`
+- `backend/uvicorn.out.log`
+- `frontend/.next`
+- `layer_detail.txt`
+
+Khong xoa:
+
+- `frontend/node_modules`
+
+Ly do:
+
+- `node_modules` giu lai de van co the chay frontend local nhanh.
+- `.next` la build artifact co the tao lai bang `npm run build`.
+
+### 54.5 Validation sau cleanup
+
+Da chay:
+
+```powershell
+cd backend
+python scripts\compile_project.py
+
+cd ..\frontend
+npm audit --audit-level=low
+```
+
+Ket qua:
+
+- Backend compile pass: 99 file.
+- Frontend npm audit: 0 vulnerabilities.
+- Thu muc root hien chi con 3 file `.md` chinh: `README.md`, `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`, `NHAT_KY_REFACTOR_PGPR.md`.

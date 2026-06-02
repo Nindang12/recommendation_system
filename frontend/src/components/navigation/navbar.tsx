@@ -1,4 +1,4 @@
-
+﻿
 'use client';
 
 import Link from 'next/link';
@@ -7,6 +7,7 @@ import { Activity, BarChart3, ClipboardList, Compass, FolderKanban, GitBranch, H
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { API_BASE_URL } from '@/lib/api';
 
 const navItems = [
   { label: 'Entities', href: '/search', icon: Compass },
@@ -28,6 +29,7 @@ export function Navbar() {
   const canOpenAdmin = user?.account_role === "admin" || user?.account_role === "root_admin";
   const isAdminRoute = pathname?.startsWith('/admin');
   const visibleNavItems = isAdminRoute ? adminNavItems : navItems;
+  const apiDisplayUrl = API_BASE_URL.replace(/^https?:\/\//, '');
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 shadow-sm backdrop-blur">
@@ -96,10 +98,12 @@ export function Navbar() {
           )}
           <div className="hidden max-w-[170px] items-center gap-2 text-sm text-muted-foreground xl:flex">
             <Activity className="h-4 w-4 text-emerald-600" />
-            <span className="truncate">FastAPI: localhost:8000</span>
+            <span className="truncate">FastAPI: {apiDisplayUrl}</span>
           </div>
         </div>
       </div>
     </nav>
   );
 }
+
+

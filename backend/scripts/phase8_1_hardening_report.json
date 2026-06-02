@@ -1,8 +1,0 @@
-{
-  "status": "passed",
-  "explicit_case_count": 22,
-  "hybrid_ready_case_count": 6,
-  "queries_run": 22,
-  "rows": 132,
-  "baseline_comparison_rows": 0
-}

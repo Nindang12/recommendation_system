@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.deps import get_current_user, get_embedding_admin_service, get_entity_service
+from api.deps import get_current_user, get_embedding_admin_service, get_entity_service, rate_limit
 from models.schemas import EmbeddingRecomputeRequest
 from services.embedding_admin_service import EmbeddingAdminService
 from services.entity_service import EntityService
@@ -79,6 +79,7 @@ async def recompute_entity_embedding(
     entity_type: str,
     entity_id: str,
     payload: EmbeddingRecomputeRequest | None = None,
+    _: None = Depends(rate_limit("embedding_recompute", limit=20, window_seconds=60)),
     current_user: dict = Depends(get_current_user),
     service: EmbeddingAdminService = Depends(get_embedding_admin_service),
 ) -> Dict[str, Any]:

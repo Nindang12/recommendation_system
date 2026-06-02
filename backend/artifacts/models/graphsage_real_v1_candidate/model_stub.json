@@ -1,0 +1,7 @@
+{
+  "status": "pyg_unavailable_warning",
+  "training_mode": "fallback_stub",
+  "dimension": 128,
+  "normalized": true,
+  "note": "Runtime worker still uses GraphSAGE-lite until explicit promotion."
+}

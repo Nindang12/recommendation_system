@@ -110,6 +110,26 @@ class EmbeddingWorker:
             self.run_once()
             time.sleep(poll_seconds)
 
+    def run_many(self, *, max_jobs: int, stop_when_empty: bool = True, poll_seconds: float = 0.25) -> Dict[str, int]:
+        """Process a bounded number of jobs for local maintenance/drain scripts."""
+        summary = {"attempted": 0, "succeeded": 0, "failed": 0}
+        for _ in range(max(0, int(max_jobs))):
+            before = self.rabbitmq.queue_depth()
+            if stop_when_empty and before <= 0:
+                break
+            code = self.run_once()
+            summary["attempted"] += 1
+            if code == 0:
+                summary["succeeded"] += 1
+            else:
+                summary["failed"] += 1
+            if stop_when_empty and self.rabbitmq.queue_depth() <= 0:
+                break
+            if poll_seconds > 0:
+                time.sleep(poll_seconds)
+        self.heartbeats.upsert_heartbeat(self.worker_id, status="idle")
+        return summary
+
     def process_event(self, event: EmbeddingEvent) -> Dict[str, Any]:
         entity = self.embedding_repo.find_entity(event.entity_type, event.entity_id)
         if not entity:
@@ -251,6 +271,8 @@ def osafe_time() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--once", action="store_true", help="Process one message and exit.")
+    parser.add_argument("--max-jobs", type=int, default=0, help="Process up to N messages and exit.")
+    parser.add_argument("--stop-when-empty", action="store_true", help="Stop a bounded run when the queue is empty.")
     parser.add_argument("--poll-seconds", type=float, default=1.0)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
@@ -258,6 +280,14 @@ def main() -> int:
     worker = EmbeddingWorker()
     if args.once:
         return worker.run_once()
+    if args.max_jobs:
+        result = worker.run_many(
+            max_jobs=args.max_jobs,
+            stop_when_empty=args.stop_when_empty,
+            poll_seconds=args.poll_seconds,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["failed"] == 0 else 1
     worker.run_forever(poll_seconds=args.poll_seconds)
     return 0
 

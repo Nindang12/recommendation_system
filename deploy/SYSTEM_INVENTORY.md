@@ -35,7 +35,7 @@ Async embedding pipeline:
 | 7.1 | Heartbeat, DLQ, retry filters, audit reason | ✅ |
 | 8 | `backend/evaluation/`, metrics, regression gate | ✅ |
 | 8.1 | 22 GT cases, seed guard, primary_metrics | ✅ |
-| 9 | Docker app-only, healthcheck, backup scripts | ✅ (infra ngoài) |
+| 9 | Docker app-only, healthcheck, backup scripts | ✅ App-only smoke validated; ⚠️ full destructive restore staging still recommended |
 | 10–12 | GraphSAGE real, governance, security hardening | ⏳ Chưa |
 
 ## 3. API endpoints (`backend/main.py`)
@@ -77,6 +77,8 @@ Theo `.env` gốc dự án — **chạy sẵn ngoài Docker**:
 Phase 9 **không** khởi tạo lại các dịch vụ này; chỉ đóng gói app và map `host.docker.internal`.
 
 ## 6. Phase 9 — phạm vi thực tế
+
+Trạng thái: **app-only production smoke validated**. Đã build/up production compose và chạy restore smoke opt-in. Full destructive restore từ backup archive/dump thật vẫn nên chạy trên staging riêng trước go-live.
 
 | Hạng mục | Có | Ghi chú |
 |----------|-----|---------|

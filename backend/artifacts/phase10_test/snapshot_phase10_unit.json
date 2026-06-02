@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "snapshot_id": "snapshot_phase10_unit",
+  "created_at": "2026-06-01T00:00:00+00:00",
+  "nodes": [
+    {
+      "element_id": "n1",
+      "id": "exp_a",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "expert_id": "exp_a",
+        "name": "Expert A",
+        "trust_weight": 1.0
+      }
+    },
+    {
+      "element_id": "n2",
+      "id": "prj_a",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "project_id": "prj_a",
+        "title": "Project A",
+        "trust_weight": 1.0
+      }
+    },
+    {
+      "element_id": "n3",
+      "id": "topic_ai",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "topic_id": "topic_ai",
+        "name": "Artificial Intelligence"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "element_id": "r1",
+      "source": "n1",
+      "target": "n3",
+      "type": "INTERESTED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "r2",
+      "source": "n2",
+      "target": "n3",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    }
+  ],
+  "metadata": {
+    "node_count": 3,
+    "edge_count": 2
+  }
+}

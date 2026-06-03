@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FolderKanban, Loader2, Plus } from "lucide-react";
+import { FolderKanban, Loader2, Plus, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/navigation/navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export default function MyProjectsPage() {
   const [projects, setProjects] = useState<ApiEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -46,6 +47,23 @@ export default function MyProjectsPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Khong tai duoc project"))
       .finally(() => setLoading(false));
   }, [isLoading, router, user]);
+
+  async function handleDeleteProject(project: ApiEntity) {
+    const confirmed = window.confirm(
+      `Remove project "${project.name}"?\n\nProject se bi an khoi danh sach cua ban va bi vo hieu hoa khoi recommendation.`,
+    );
+    if (!confirmed) return;
+    setDeletingId(project.id);
+    setError("");
+    try {
+      await api.deleteMyProject(project.id);
+      setProjects((current) => current.filter((item) => item.id !== project.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Khong xoa duoc project");
+    } finally {
+      setDeletingId("");
+    }
+  }
 
   return (
     <div className="min-h-svh bg-background">
@@ -117,6 +135,19 @@ export default function MyProjectsPage() {
                         Graph
                       </Button>
                     </Link>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={deletingId === project.id}
+                      onClick={() => handleDeleteProject(project)}
+                    >
+                      {deletingId === project.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="mr-2 h-4 w-4" />
+                      )}
+                      Remove
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

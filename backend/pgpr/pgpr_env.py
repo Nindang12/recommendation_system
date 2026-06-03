@@ -10,14 +10,14 @@ import logging
 from typing import List, Any, Tuple, Optional
 
 from neo4j import GraphDatabase
-from dotenv import load_dotenv
+from core.env import load_project_env
 
 try:
     from .pgpr_kg import KG
 except ImportError:
     from pgpr_kg import KG
 
-load_dotenv()
+load_project_env()
 logger = logging.getLogger(__name__)
 
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")

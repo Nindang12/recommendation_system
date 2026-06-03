@@ -93,3 +93,17 @@ async def list_my_projects(
 ) -> Dict[str, Any]:
     data = service.list_my_projects(current_user["id"], limit=limit, page=page)
     return {"status": "success", **data}
+
+
+@router.delete("/users/me/projects/{project_id}")
+async def delete_my_project(
+    project_id: str,
+    _: None = Depends(rate_limit("project_delete", limit=20, window_seconds=60)),
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    service: AuthService = Depends(get_auth_service),
+) -> Dict[str, Any]:
+    try:
+        project = service.delete_project(current_user["id"], project_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"status": "success", "data": project}

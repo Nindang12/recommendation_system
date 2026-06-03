@@ -4,10 +4,11 @@ import os
 from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
-from dotenv import find_dotenv, load_dotenv
 from pymongo import MongoClient
 
-load_dotenv(find_dotenv())
+from core.env import load_project_env
+
+load_project_env()
 
 
 ENTITY_COLLECTIONS = {

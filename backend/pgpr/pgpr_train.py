@@ -13,13 +13,13 @@ from typing import List, Tuple, Dict
 
 import torch
 from neo4j import GraphDatabase
-from dotenv import load_dotenv
 
+from core.env import load_project_env
 from pgpr_kg import KG, _entity_key, build_kg_from_neo4j, LABEL_TO_ID_PROP
 from pgpr_env import KGEnv
 from pgpr_policy import PolicyNetwork
 
-load_dotenv()
+load_project_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

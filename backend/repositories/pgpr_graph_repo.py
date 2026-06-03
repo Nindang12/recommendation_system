@@ -10,10 +10,11 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-from dotenv import find_dotenv, load_dotenv
 from neo4j import GraphDatabase
 
-load_dotenv(find_dotenv())
+from core.env import load_project_env
+
+load_project_env()
 
 logger = logging.getLogger(__name__)
 logging.getLogger("neo4j.notifications").setLevel(logging.WARNING)

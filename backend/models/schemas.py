@@ -314,6 +314,12 @@ class ProjectCreateRequest(BaseModel):
     trl: Optional[int] = Field(default=None, ge=1, le=9)
     location: str = ""
     keywords: List[str] = Field(default_factory=list)
+    basic_info: Optional[Dict[str, Any]] = None
+    requirements_and_timeline: Optional[Dict[str, Any]] = None
+    rd_profile: Optional[Dict[str, Any]] = None
+    relations: Optional[Dict[str, Any]] = None
+    follow_up_opportunities: Optional[Dict[str, Any]] = None
+    governance: Optional[Dict[str, Any]] = None
 
 
 class MyProjectsResponse(BaseModel):

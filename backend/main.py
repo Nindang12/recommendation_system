@@ -8,6 +8,10 @@ from fastapi import Request
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from core.env import load_project_env
+
+load_project_env()
+
 from api.deps import get_pgpr_graph_repo
 from api.v1.endpoints import admin, auth, entities, evaluation, explanations, graph, health, recommendations, taxonomy
 from services.auth_service import AuthService

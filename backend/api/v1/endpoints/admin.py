@@ -72,6 +72,7 @@ async def list_entities_for_review(
     entity_type: str | None = None,
     kg_sync_status: str | None = None,
     entity_verification_status: str | None = None,
+    search: str | None = None,
     limit: int = 50,
     page: int = 1,
     current_user: Dict[str, Any] = Depends(get_current_admin_user),
@@ -80,17 +81,22 @@ async def list_entities_for_review(
     if kg_sync_status and kg_sync_status not in REVIEW_KG_STATUSES:
         raise HTTPException(status_code=400, detail=f"Invalid kg_sync_status: {kg_sync_status}")
     repo = AuthRepository()
-    rows = repo.list_entities_for_admin(
+    result = repo.list_entities_for_admin(
         entity_type=entity_type,
         kg_sync_status=kg_sync_status,
         entity_verification_status=entity_verification_status,
+        search=search,
         limit=min(max(limit, 1), 100),
         page=max(page, 1),
     )
+    rows = result.get("rows", [])
     return {
         "status": "success",
         "data": [repo._json_safe(row) for row in rows],
         "count": len(rows),
+        "total": result.get("total", len(rows)),
+        "page": max(page, 1),
+        "limit": min(max(limit, 1), 100),
     }
 
 
@@ -105,6 +111,8 @@ async def get_entity_for_review(
     entity = repo.find_entity_by_id(entity_type, entity_id)
     if not entity:
         raise HTTPException(status_code=404, detail="Entity not found")
+    if not entity.get("duplicate_candidates"):
+        entity["duplicate_candidates"] = repo.find_duplicate_candidates_for_entity(entity_type, entity)
     return {"status": "success", "data": repo._json_safe(entity)}
 
 

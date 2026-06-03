@@ -22,8 +22,9 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      await login(email, password);
-      router.push("/dashboard");
+      const loggedInUser = await login(email, password);
+      const isAdmin = loggedInUser.account_role === "admin" || loggedInUser.account_role === "root_admin";
+      router.push(isAdmin ? "/admin" : "/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Dang nhap that bai");
     } finally {
@@ -77,4 +78,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

@@ -12,6 +12,7 @@ import {
   Loader2,
   RotateCw,
   ShieldAlert,
+  Target,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -49,7 +50,16 @@ function display(value: unknown, fallback = "-") {
 
 function candidateId(candidate: unknown) {
   if (!candidate || typeof candidate !== "object") return "";
-  return String((candidate as Record<string, unknown>).id ?? "");
+  const record = candidate as Record<string, unknown>;
+  return String(
+    record.id ??
+      record.entity_id ??
+      record.expert_id ??
+      record.enterprise_id ??
+      record.funder_id ??
+      record.project_id ??
+      "",
+  );
 }
 
 function candidateName(candidate: unknown) {
@@ -69,6 +79,7 @@ export default function AdminEntityDetailPage() {
   const [entity, setEntity] = useState<Record<string, unknown> | null>(null);
   const [reason, setReason] = useState("");
   const [mergeTargetId, setMergeTargetId] = useState("");
+  const [manualMergeMode, setManualMergeMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -123,8 +134,17 @@ export default function AdminEntityDetailPage() {
     const targetFromUrl = searchParams.get("mergeTarget");
     if (targetFromUrl) {
       setMergeTargetId(targetFromUrl);
+      setManualMergeMode(false);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (mergeTargetId || duplicateCandidates.length === 0) return;
+    const firstCandidateId = candidateId(duplicateCandidates[0]);
+    if (firstCandidateId) {
+      setMergeTargetId(firstCandidateId);
+    }
+  }, [duplicateCandidates, mergeTargetId]);
 
   const runAction = async (action: () => Promise<unknown>, successMessage: string) => {
     setIsBusy(true);
@@ -152,6 +172,9 @@ export default function AdminEntityDetailPage() {
       "Da merge entity.",
     );
   };
+
+  const selectedMergeCandidate =
+    duplicateCandidates.find((candidate) => candidateId(candidate) === mergeTargetId) ?? null;
 
   return (
     <div ref={rootRef} className="min-h-svh bg-slate-50">
@@ -261,13 +284,13 @@ export default function AdminEntityDetailPage() {
                               <Button
                                 type="button"
                                 size="sm"
-                                variant="default"
+                                variant={mergeTargetId === id ? "default" : "outline"}
                                 className="gap-2"
                                 onClick={() => setMergeTargetId(id)}
                                 disabled={!id}
                               >
-                                <GitMerge className="h-4 w-4" />
-                                Chon lam target merge
+                                <Target className="h-4 w-4" />
+                                {mergeTargetId === id ? "Dang chon lam target" : "Chon lam target merge"}
                               </Button>
                               {id ? (
                                 <Link href={`/entities/${entityType}/${id}`}>
@@ -358,18 +381,66 @@ export default function AdminEntityDetailPage() {
                         Merge se vo hieu hoa entity hien tai, chuyen user dang link voi entity nay sang target entity,
                         va luu audit log. Entity cu khong bi xoa khoi database.
                       </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="merge-target">Target entity ID</Label>
-                        <Input
-                          id="merge-target"
-                          value={mergeTargetId}
-                          onChange={(event) => setMergeTargetId(event.target.value)}
-                          placeholder="exp_001"
-                        />
+                      {duplicateCandidates.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold">He thong de xuat merge voi entity co san</div>
+                          {selectedMergeCandidate ? (
+                            <div className="rounded-md border bg-slate-50 p-3">
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                  <div className="font-semibold">{candidateName(selectedMergeCandidate)}</div>
+                                  <div className="mt-1 break-all text-xs text-muted-foreground">
+                                    Target ID: {candidateId(selectedMergeCandidate)}
+                                  </div>
+                                </div>
+                                <Badge variant="outline" className="rounded-md">
+                                  selected
+                                </Badge>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                              Chua chon target. Hay chon mot duplicate candidate o ben trai.
+                            </div>
+                          )}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => setManualMergeMode((value) => !value)}
+                          >
+                            {manualMergeMode ? "An nhap target thu cong" : "Nhap target thu cong neu can"}
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-muted-foreground">
+                          Entity nay chua co duplicate candidate tu he thong. Chi merge thu cong neu admin da kiem tra
+                          target chac chan.
+                        </div>
+                      )}
+                      {manualMergeMode || duplicateCandidates.length === 0 ? (
+                        <div className="space-y-1">
+                          <Label htmlFor="merge-target">Target entity ID</Label>
+                          <Input
+                            id="merge-target"
+                            value={mergeTargetId}
+                            onChange={(event) => setMergeTargetId(event.target.value)}
+                            placeholder="exp_001"
+                          />
+                        </div>
+                      ) : null}
+                      <div className="rounded-md border bg-slate-50 p-3">
+                        <div className="text-xs uppercase text-muted-foreground">Target merge dang chon</div>
+                        <div className="mt-1 font-semibold">
+                          {selectedMergeCandidate ? candidateName(selectedMergeCandidate) : "Chua chon target"}
+                        </div>
+                        <div className="mt-1 break-all text-xs text-muted-foreground">
+                          {mergeTargetId ? `ID: ${mergeTargetId}` : "Hay chon mot duplicate candidate truoc khi merge."}
+                        </div>
                       </div>
-                      <Button type="submit" disabled={isBusy} className="w-full gap-2">
+                      <Button type="submit" disabled={isBusy || !mergeTargetId} className="w-full gap-2">
                         <GitMerge className="h-4 w-4" />
-                        Merge vao target
+                        Merge entity
                       </Button>
                     </form>
                   </CardContent>

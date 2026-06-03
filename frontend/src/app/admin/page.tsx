@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Activity,
   AlertCircle,
   CheckCircle2,
   Clock3,
   DatabaseZap,
   GitMerge,
   Loader2,
+  Search,
   Shield,
   ShieldCheck,
+  Sparkles,
   UserCog,
   Users,
 } from "lucide-react";
@@ -57,6 +60,8 @@ import {
   EmbeddingJobRow,
   EmbeddingPipelineStatus,
   EntityType,
+  HealthResponse,
+  RecommendationItem,
 } from "@/lib/api";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -96,6 +101,59 @@ const QUALITY_FILTERS = [
   { value: "good", label: "good" },
   { value: "excellent", label: "excellent" },
 ];
+
+const ADMIN_TEST_ENTITY_OPTIONS: Array<{ value: EntityType; label: string }> = [
+  { value: "project", label: "Project" },
+  { value: "expert", label: "Expert" },
+  { value: "enterprise", label: "Enterprise" },
+  { value: "funder", label: "Funder" },
+];
+
+const ENTITY_ROWS_PER_PAGE = 6;
+type AdminTab = "overview" | "governance" | "entities" | "embedding" | "audit";
+
+function tabFromHash(hash: string): AdminTab | null {
+  const normalized = hash.replace("#", "");
+  if (normalized === "review-queue") return "governance";
+  if (normalized === "admin-users" || normalized === "audit-log") return "audit";
+  if (normalized === "entity-review" || normalized === "entities") return "entities";
+  if (normalized === "embedding" || normalized === "embedding-workers") return "embedding";
+  if (normalized === "overview" || normalized === "system-test") return "overview";
+  return null;
+}
+
+function hashFromTab(tab: AdminTab) {
+  return {
+    overview: "system-test",
+    governance: "review-queue",
+    entities: "entity-review",
+    embedding: "embedding-workers",
+    audit: "audit-log",
+  }[tab];
+}
+
+function normalizeRecommendations(response: unknown): RecommendationItem[] {
+  const payload = response as {
+    data?: RecommendationItem[] | { recommendations?: RecommendationItem[] };
+    recommendations?: RecommendationItem[];
+  };
+
+  if (Array.isArray(payload.recommendations)) return payload.recommendations;
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && !Array.isArray(payload.data) && Array.isArray(payload.data.recommendations)) {
+    return payload.data.recommendations;
+  }
+  return [];
+}
+
+function healthTone(value?: string) {
+  const normalized = String(value ?? "").toLowerCase();
+  if (["connected", "ready", "ok"].some((item) => normalized.includes(item))) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (normalized.includes("optional")) return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-rose-200 bg-rose-50 text-rose-700";
+}
 
 function statusClass(value?: string | null) {
   const normalized = String(value ?? "").toLowerCase();
@@ -142,9 +200,31 @@ function orphanEntityType(row: AdminOrphanRow): EntityType | null {
   return null;
 }
 
+function LimitSelector({ value, onChange, label = "Hiển thị" }: { value: number; onChange: (val: number) => void; label?: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+      <span>{label}:</span>
+      <Select value={String(value)} onValueChange={(val) => onChange(Number(val))}>
+        <SelectTrigger className="h-8 w-[72px] rounded-lg bg-white border-slate-200">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="10">10</SelectItem>
+          <SelectItem value="15">15</SelectItem>
+          <SelectItem value="25">25</SelectItem>
+          <SelectItem value="50">50</SelectItem>
+          <SelectItem value="100">100</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { user, isLoading: authLoading } = useAuth();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
+  const [tabLoading, setTabLoading] = useState(false);
   const [rows, setRows] = useState<AdminEntityRow[]>([]);
   const [governanceRows, setGovernanceRows] = useState<AdminGovernanceReviewRow[]>([]);
   const [governanceSummary, setGovernanceSummary] = useState<Record<string, unknown>>({});
@@ -166,11 +246,22 @@ export default function AdminPage() {
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
   const [auditLogs, setAuditLogs] = useState<Record<string, unknown>[]>([]);
   const [pipeline, setPipeline] = useState<EmbeddingPipelineStatus | null>(null);
+  const [health, setHealth] = useState<HealthResponse | null>(null);
   const [embeddingJobs, setEmbeddingJobs] = useState<EmbeddingJobRow[]>([]);
   const [embeddingBusy, setEmbeddingBusy] = useState(false);
+  const [systemTestBusy, setSystemTestBusy] = useState(false);
+  const [systemTestError, setSystemTestError] = useState("");
+  const [systemSourceType, setSystemSourceType] = useState<EntityType>("project");
+  const [systemSourceId, setSystemSourceId] = useState("prj_001");
+  const [systemTargetType, setSystemTargetType] = useState<EntityType>("expert");
+  const [systemLimit, setSystemLimit] = useState("5");
+  const [systemMode, setSystemMode] = useState<"public" | "personal">("public");
+  const [systemRecommendations, setSystemRecommendations] = useState<RecommendationItem[]>([]);
   const [governanceBusy, setGovernanceBusy] = useState(false);
   const [kgFilter, setKgFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [entitySearch, setEntitySearch] = useState("");
+  const [entityTotal, setEntityTotal] = useState(0);
   const [reviewStatusFilter, setReviewStatusFilter] = useState("all");
   const [qualityFilter, setQualityFilter] = useState("all");
   const [taxonomyFilter, setTaxonomyFilter] = useState("all");
@@ -179,8 +270,38 @@ export default function AdminPage() {
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [error, setError] = useState("");
   const [adminForm, setAdminForm] = useState({ email: "", password: "", full_name: "" });
+
+  // Limit States for display constraints
+  const [entityPage, setEntityPage] = useState(1);
+  const [governanceLimit, setGovernanceLimit] = useState(15);
+  const [orphanLimit, setOrphanLimit] = useState(15);
+  const [embeddingLimit, setEmbeddingLimit] = useState(10);
+  const [auditLimit, setAuditLimit] = useState(15);
+  const [usersLimit, setUsersLimit] = useState(15);
+
   const canAdmin = user?.account_role === "admin" || user?.account_role === "root_admin";
   const isRootAdmin = user?.account_role === "root_admin";
+
+  useEffect(() => {
+    const applyHash = (hash = window.location.hash) => {
+      const nextTab = tabFromHash(hash);
+      if (nextTab) setActiveTab(nextTab);
+    };
+
+    const handleHashChange = () => applyHash();
+    const handleAdminTabChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ hash?: string }>).detail;
+      applyHash(detail?.hash ?? window.location.hash);
+    };
+
+    applyHash();
+    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("admin-tab-change", handleAdminTabChange);
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+      window.removeEventListener("admin-tab-change", handleAdminTabChange);
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const pending = rows.filter((row) =>
@@ -191,6 +312,124 @@ export default function AdminPage() {
     const syncFailed = rows.filter((row) => String(row.kg_sync_status).includes("failed")).length;
     return { pending, rejected, verified, syncFailed, total: rows.length };
   }, [rows]);
+
+  const entityTotalPages = Math.max(1, Math.ceil(entityTotal / ENTITY_ROWS_PER_PAGE));
+  const entityPageNumbers = useMemo(() => {
+    const start = Math.max(1, Math.min(entityPage - 1, Math.max(1, entityTotalPages - 2)));
+    const end = Math.min(entityTotalPages, start + 2);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }, [entityPage, entityTotalPages]);
+
+  useEffect(() => {
+    setEntityPage(1);
+  }, [entitySearch, typeFilter, kgFilter]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setError("Cần đăng nhập để mở trang admin.");
+      setIsLoading(false);
+      return;
+    }
+    if (!canAdmin) {
+      setError("Tài khoản hiện tại không có quyền admin.");
+      setIsLoading(false);
+      return;
+    }
+
+    setTabLoading(true);
+    setError("");
+
+    const fetchers: Promise<any>[] = [];
+
+    if (activeTab === "overview") {
+      fetchers.push(
+        api.health().then((res) => setHealth(res))
+      );
+      // Fetch 100 entities to calculate the dashboard overview stats
+      fetchers.push(
+        api.adminListEntities({ limit: 100 }).then((res) => {
+          setRows(res.data ?? []);
+        })
+      );
+    } else if (activeTab === "governance") {
+      fetchers.push(
+        api.adminGovernanceReviewQueue({
+          entity_type: typeFilter === "all" ? undefined : (typeFilter as EntityType),
+          review_status: reviewStatusFilter === "all" ? undefined : reviewStatusFilter,
+          level: qualityFilter === "all" ? undefined : qualityFilter,
+          has_unmapped_taxonomy: taxonomyFilter === "all" ? undefined : taxonomyFilter === "yes",
+          has_duplicate_candidates: duplicateFilter === "all" ? undefined : duplicateFilter === "yes",
+          limit: governanceLimit,
+        }).then((res) => {
+          setGovernanceRows(res.data ?? []);
+          setGovernanceSummary(res.source_summary ?? {});
+        })
+      );
+      fetchers.push(
+        api.canonicalTaxonomy().then((res) => setCanonicalTaxonomy(res.data ?? null))
+      );
+      fetchers.push(
+        api.adminListOrphans(orphanLimit).then((res) => setOrphanRows(res.data ?? []))
+      );
+    } else if (activeTab === "entities") {
+      fetchers.push(
+        api.adminListEntities({
+          entity_type: typeFilter === "all" ? undefined : (typeFilter as EntityType),
+          kg_sync_status: kgFilter === "all" ? undefined : kgFilter === "verified" ? "synced_verified" : kgFilter,
+          search: entitySearch.trim() || undefined,
+          limit: ENTITY_ROWS_PER_PAGE,
+          page: entityPage,
+        }).then((res) => {
+          setRows(res.data ?? []);
+          setEntityTotal(res.total ?? res.count ?? 0);
+        })
+      );
+    } else if (activeTab === "embedding") {
+      fetchers.push(
+        api.adminEmbeddingPipelineStatus().then((res) => setPipeline(res.data ?? null))
+      );
+      fetchers.push(
+        api.adminListEmbeddingJobs({ status: "failed", limit: embeddingLimit }).then((res) => setEmbeddingJobs(res.jobs ?? []))
+      );
+    } else if (activeTab === "audit") {
+      fetchers.push(
+        api.adminAuditLogs(auditLimit).then((res) => setAuditLogs(res.data ?? []))
+      );
+      if (isRootAdmin) {
+        fetchers.push(
+          api.adminListUsers(usersLimit).then((res) => setAdminUsers(res.data ?? []))
+        );
+      }
+    }
+
+    Promise.all(fetchers)
+      .catch((requestError) => {
+        setError(requestError instanceof Error ? requestError.message : "Không tải được phân hệ dữ liệu admin");
+      })
+      .finally(() => {
+        setTabLoading(false);
+        setIsLoading(false);
+      });
+  }, [
+    authLoading,
+    user,
+    canAdmin,
+    activeTab,
+    kgFilter,
+    typeFilter,
+    entitySearch,
+    entityPage,
+    reviewStatusFilter,
+    qualityFilter,
+    taxonomyFilter,
+    duplicateFilter,
+    governanceLimit,
+    orphanLimit,
+    embeddingLimit,
+    auditLimit,
+    usersLimit,
+  ]);
 
   useEffect(() => {
     const scope = rootRef.current;
@@ -234,72 +473,11 @@ export default function AdminPage() {
     return () => context.revert();
   }, [rows.length, auditLogs.length, adminUsers.length]);
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setError("Can dang nhap de mo trang admin.");
-      setIsLoading(false);
-      return;
-    }
-    if (!canAdmin) {
-      setError("Tai khoan hien tai khong co quyen admin.");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-    Promise.all([
-      api.adminListEntities({
-        entity_type: typeFilter === "all" ? undefined : (typeFilter as EntityType),
-        kg_sync_status: kgFilter === "all" ? undefined : kgFilter === "verified" ? "synced_verified" : kgFilter,
-        limit: 80,
-      }),
-      api.adminAuditLogs(30),
-      api.adminEmbeddingPipelineStatus(),
-      api.adminListEmbeddingJobs({ status: "failed", limit: 20 }),
-      api.adminGovernanceReviewQueue({
-        entity_type: typeFilter === "all" ? undefined : (typeFilter as EntityType),
-        review_status: reviewStatusFilter === "all" ? undefined : reviewStatusFilter,
-        level: qualityFilter === "all" ? undefined : qualityFilter,
-        has_unmapped_taxonomy: taxonomyFilter === "all" ? undefined : taxonomyFilter === "yes",
-        has_duplicate_candidates: duplicateFilter === "all" ? undefined : duplicateFilter === "yes",
-        limit: 80,
-      }),
-      api.canonicalTaxonomy(),
-      api.adminListOrphans(80),
-    ])
-      .then(([entitiesRes, logsRes, pipelineRes, jobsRes, governanceRes, taxonomyRes, orphanRes]) => {
-        setRows(entitiesRes.data ?? []);
-        setAuditLogs(logsRes.data ?? []);
-        setPipeline(pipelineRes.data ?? null);
-        setEmbeddingJobs(jobsRes.jobs ?? []);
-        setGovernanceRows(governanceRes.data ?? []);
-        setGovernanceSummary(governanceRes.source_summary ?? {});
-        setCanonicalTaxonomy(taxonomyRes.data ?? null);
-        setOrphanRows(orphanRes.data ?? []);
-      })
-      .catch((requestError) => {
-        setError(requestError instanceof Error ? requestError.message : "Khong tai duoc du lieu admin");
-      })
-      .finally(() => setIsLoading(false));
-  }, [authLoading, user, canAdmin, kgFilter, typeFilter, reviewStatusFilter, qualityFilter, taxonomyFilter, duplicateFilter]);
-
-  useEffect(() => {
-    if (!isRootAdmin) return;
-    setIsUsersLoading(true);
-    api
-      .adminListUsers(80)
-      .then((response) => setAdminUsers(response.data ?? []))
-      .catch(() => setAdminUsers([]))
-      .finally(() => setIsUsersLoading(false));
-  }, [isRootAdmin]);
-
   const reloadAdminUsers = () => {
     if (!isRootAdmin) return;
     setIsUsersLoading(true);
     api
-      .adminListUsers(80)
+      .adminListUsers(usersLimit)
       .then((response) => setAdminUsers(response.data ?? []))
       .finally(() => setIsUsersLoading(false));
   };
@@ -461,6 +639,33 @@ export default function AdminPage() {
     }
   };
 
+  const runSystemRecommendationTest = async () => {
+    const sourceId = systemSourceId.trim();
+    if (!sourceId) {
+      setSystemTestError("Can nhap Source ID de test recommendation.");
+      return;
+    }
+
+    setSystemTestBusy(true);
+    setSystemTestError("");
+    setSystemRecommendations([]);
+    try {
+      const response = await api.recommend(
+        sourceId,
+        systemSourceType,
+        systemTargetType,
+        Number(systemLimit) || 5,
+        systemMode,
+        systemMode === "personal" ? user?.id : undefined,
+      );
+      setSystemRecommendations(normalizeRecommendations(response));
+    } catch (requestError) {
+      setSystemTestError(requestError instanceof Error ? requestError.message : "Khong chay duoc system test");
+    } finally {
+      setSystemTestBusy(false);
+    }
+  };
+
   return (
     <div ref={rootRef} className="min-h-svh bg-slate-50">
       <Navbar />
@@ -522,750 +727,1024 @@ export default function AdminPage() {
           ))}
         </section>
 
-        <Card className="admin-scroll-reveal rounded-md bg-white">
-          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle>Embedding pipeline</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Theo doi queue RabbitMQ, outbox va trang thai embedding. Model:{" "}
-                {pipeline?.model ?? "graphsage_lite_v1"} ({pipeline?.embedding_dimension ?? 128}d).
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" disabled={embeddingBusy} onClick={() => void reloadEmbeddingPanel()}>
-                Lam moi
+        {/* Tab Navigation Taskbar */}
+        <div className="admin-reveal grid grid-cols-2 md:grid-cols-5 gap-2 rounded-xl bg-slate-100 p-2 shadow-sm border border-slate-200/80">
+          {[
+            { id: "overview", label: "Tổng quan & Diagnostics", icon: Activity },
+            { id: "governance", label: "Data Quality & Orphans", icon: GitMerge },
+            { id: "entities", label: "Lưới thực thể", icon: DatabaseZap },
+            { id: "embedding", label: "Embedding Workers", icon: Sparkles },
+            { id: "audit", label: "Security & Audit Logs", icon: ShieldCheck },
+          ].map((tab) => {
+            const isSelected = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <Button
+                key={tab.id}
+                type="button"
+                variant={isSelected ? "default" : "ghost"}
+                className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all duration-300 ${
+                  isSelected
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-800 hover:bg-slate-200"
+                }`}
+                onClick={() => {
+                  const nextTab = tab.id as AdminTab;
+                  setActiveTab(nextTab);
+                  window.history.replaceState(null, "", `/admin#${hashFromTab(nextTab)}`);
+                }}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.label}
               </Button>
-              <Button size="sm" disabled={embeddingBusy} onClick={() => void retryFailedEmbeddings()}>
-                {embeddingBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Retry failed jobs
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-              <div className="rounded-md border bg-slate-50 p-3 text-sm">
-                <div className="text-xs uppercase text-muted-foreground">RabbitMQ</div>
-                <div className="mt-1 font-semibold">{pipeline?.rabbitmq ?? "-"}</div>
-              </div>
-              <div className="rounded-md border bg-slate-50 p-3 text-sm">
-                <div className="text-xs uppercase text-muted-foreground">Queue jobs</div>
-                <div className="mt-1 font-semibold">
-                  {pipeline?.queues && typeof pipeline.queues === "object"
-                    ? String((pipeline.queues["embedding.jobs"] as { messages?: number })?.messages ?? "-")
-                    : "-"}
-                </div>
-              </div>
-              <div className="rounded-md border bg-slate-50 p-3 text-sm">
-                <div className="text-xs uppercase text-muted-foreground">DLQ</div>
-                <div className={`mt-1 font-semibold ${pipeline?.dlq?.alert ? "text-amber-800" : ""}`}>
-                  {pipeline?.dlq?.messages ?? "-"}
-                </div>
-                {pipeline?.dlq?.alert ? (
-                  <p className="mt-1 text-xs text-amber-800">Co message malformed trong DLQ — can kiem tra worker/logs.</p>
-                ) : null}
-              </div>
-              <div className="rounded-md border bg-slate-50 p-3 text-sm">
-                <div className="text-xs uppercase text-muted-foreground">Outbox pending</div>
-                <div className="mt-1 font-semibold">{pipeline?.outbox?.pending ?? "-"}</div>
-              </div>
-              <div className="rounded-md border bg-slate-50 p-3 text-sm">
-                <div className="text-xs uppercase text-muted-foreground">Workers alive</div>
-                <div className="mt-1 font-semibold">
-                  {(pipeline?.worker_summary?.alive_count ?? 0) > 0
-                    ? `${pipeline?.worker_summary?.alive_count ?? 0} alive`
-                    : "none alive"}
-                  {(pipeline?.worker_summary?.stale_count ?? 0) > 0
-                    ? ` / ${pipeline?.worker_summary?.stale_count} stale`
-                    : ""}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {pipeline?.worker_summary?.count ?? 0} worker(s), stale &gt;{" "}
-                  {pipeline?.worker_summary?.stale_after_seconds ?? 120}s
-                </p>
-              </div>
-            </div>
-            {pipeline && (pipeline.worker_heartbeats?.length ?? 0) > 0 ? (
-              <div className="rounded-md border">
-                <div className="border-b px-3 py-2 text-sm font-medium">Worker heartbeats</div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Worker</TableHead>
-                      <TableHead>Liveness</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last seen</TableHead>
-                      <TableHead>Processed</TableHead>
-                      <TableHead>Failed</TableHead>
-                      <TableHead>Current job</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pipeline.worker_heartbeats?.map((worker) => (
-                      <TableRow key={worker.worker_id}>
-                        <TableCell className="text-xs">{worker.worker_id}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              worker.liveness === "alive"
-                                ? "border-emerald-300"
-                                : worker.liveness === "stale"
-                                  ? "border-amber-300"
-                                  : "border-slate-300"
-                            }
-                          >
-                            {worker.liveness ?? "unknown"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs">{worker.status ?? "-"}</TableCell>
-                        <TableCell className="text-xs">{compact(worker.last_seen_at)}</TableCell>
-                        <TableCell>{worker.processed_count ?? 0}</TableCell>
-                        <TableCell>{worker.failed_count ?? 0}</TableCell>
-                        <TableCell className="text-xs">{compact(worker.current_job_id)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Chua co worker heartbeat. Chay `python -m workers.embedding_worker` de worker ghi trang thai.
-              </p>
-            )}
-            {pipeline?.entity_embedding_status ? (
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(pipeline.entity_embedding_status).map(([key, value]) => (
-                  <Badge key={key} variant="outline" className="rounded-md">
-                    {key}: {value}
-                  </Badge>
-                ))}
-              </div>
-            ) : null}
-            <div className="rounded-md border">
-              <div className="border-b px-3 py-2 text-sm font-medium">Failed / recent jobs</div>
-              {embeddingJobs.length === 0 ? (
-                <p className="p-3 text-sm text-muted-foreground">Khong co job failed trong outbox.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Entity</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Error</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {embeddingJobs.map((job) => (
-                      <TableRow key={job.event_id ?? job.job_id}>
-                        <TableCell className="text-xs">
-                          {job.entity_type}/{job.entity_id}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusClass(job.status)}>
-                            {job.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
-                          {compact(job.last_error)}
-                        </TableCell>
-                        <TableCell className="text-xs">{compact((job as { error_type?: string }).error_type)}</TableCell>
-                        <TableCell>
-                          {job.entity_type && job.entity_id ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={embeddingBusy}
-                              onClick={() =>
-                                void recomputeEmbedding(job.entity_type as EntityType, String(job.entity_id))
-                              }
-                            >
-                              Recompute
-                            </Button>
-                          ) : null}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            );
+          })}
+        </div>
 
-        <Card id="review-queue" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
-          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle>Governance review queue</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Hang cho data quality: ho so thieu thong tin, can merge, taxonomy chua chuan hoa.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Select value={reviewStatusFilter} onValueChange={setReviewStatusFilter}>
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Review status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {REVIEW_STATUS_FILTERS.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={qualityFilter} onValueChange={setQualityFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Quality" />
-                </SelectTrigger>
-                <SelectContent>
-                  {QUALITY_FILTERS.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={taxonomyFilter} onValueChange={setTaxonomyFilter}>
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Taxonomy" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tat ca taxonomy</SelectItem>
-                  <SelectItem value="yes">Co unmapped taxonomy</SelectItem>
-                  <SelectItem value="no">Khong unmapped taxonomy</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={duplicateFilter} onValueChange={setDuplicateFilter}>
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Duplicate" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tat ca duplicate</SelectItem>
-                  <SelectItem value="yes">Co duplicate candidate</SelectItem>
-                  <SelectItem value="no">Khong duplicate candidate</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2 md:grid-cols-4">
-              {[
-                ["total", (governanceSummary.total as number | undefined) ?? governanceRows.length],
-                ["poor", (governanceSummary.by_quality_level as Record<string, number> | undefined)?.poor ?? 0],
-                ["needs_more_info", (governanceSummary.by_review_status as Record<string, number> | undefined)?.needs_more_info ?? 0],
-                ["unmapped_taxonomy", (governanceSummary.unmapped_taxonomy_warnings as number | undefined) ?? 0],
-              ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-md border bg-slate-50 p-3">
-                  <div className="text-xs uppercase text-muted-foreground">{String(label)}</div>
-                  <div className="mt-1 text-xl font-bold">{String(value)}</div>
-                </div>
-              ))}
-            </div>
-
-            {governanceRows.length === 0 ? (
-              <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-                Khong co item nao khop bo loc governance hien tai.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Entity</TableHead>
-                      <TableHead>Quality</TableHead>
-                      <TableHead>Review</TableHead>
-                      <TableHead>Warnings</TableHead>
-                      <TableHead>Recommended action</TableHead>
-                      <TableHead />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {governanceRows.map((row) => {
-                      const warnings = row.data_quality?.warnings ?? [];
-                      const level = row.data_quality?.level ?? "-";
-                      const score = typeof row.data_quality?.score === "number" ? row.data_quality.score : null;
-                      return (
-                        <TableRow key={`${row.entity_type}-${row.entity_id}`} className="align-top">
-                          <TableCell className="min-w-[280px]">
-                            <div className="font-semibold">{row.name || row.entity_id}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              {row.entity_type} / {row.entity_id}
-                            </div>
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {row.participation_scope === "owner_only" ? (
-                                <Badge variant="outline" className="rounded-md border-sky-200 bg-sky-50 text-sky-700">
-                                  owner_only
-                                </Badge>
-                              ) : null}
-                              {row.entity_verification_status === "unverified" ? (
-                                <Badge variant="outline" className="rounded-md border-amber-200 bg-amber-50 text-amber-700">
-                                  unverified
-                                </Badge>
-                              ) : null}
-                              {(row.unmapped_taxonomy_values?.length ?? 0) > 0 ? (
-                                <Badge variant="outline" className="rounded-md border-purple-200 bg-purple-50 text-purple-700">
-                                  unmapped_taxonomy
-                                </Badge>
-                              ) : null}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`rounded-md ${statusClass(level)}`}>
-                              {level}
-                            </Badge>
-                            <div className="mt-1 text-2xl font-bold">
-                              {score === null ? "-" : `${Math.round(score * 100)}%`}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`rounded-md ${statusClass(row.review_status)}`}>
-                              {compact(row.review_status)}
-                            </Badge>
-                            {(row.duplicate_candidates_count ?? 0) > 0 ? (
-                              <div className="mt-2 text-xs text-amber-700">
-                                {row.duplicate_candidates_count} duplicate candidate(s)
-                              </div>
-                            ) : null}
-                          </TableCell>
-                          <TableCell className="min-w-[280px]">
-                            <div className="flex flex-wrap gap-1">
-                              {warnings.slice(0, 5).map((warning) => (
-                                <Badge key={warning} variant="outline" className="rounded-md">
-                                  {warning}
-                                </Badge>
-                              ))}
-                              {warnings.length > 5 ? (
-                                <Badge variant="outline" className="rounded-md">
-                                  +{warnings.length - 5}
-                                </Badge>
-                              ) : null}
-                            </div>
-                            {(row.data_quality?.missing_fields?.length ?? 0) > 0 ? (
-                              <div className="mt-2 text-xs text-muted-foreground">
-                                Missing: {row.data_quality?.missing_fields?.join(", ")}
-                              </div>
-                            ) : null}
-                          </TableCell>
-                          <TableCell className="text-sm">{compact(row.recommended_action)}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {(row.unmapped_taxonomy_values?.length ?? 0) > 0
-                                ? row.unmapped_taxonomy_values
-                                    ?.flatMap(parseUnmappedWarning)
-                                    .slice(0, 1)
-                                    .map((item) => (
-                                      <Button
-                                        key={`${item.taxonomyType}-${item.rawValue}`}
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => {
-                                          setSelectedTaxonomyItem({
-                                            row,
-                                            rawValue: item.rawValue,
-                                            taxonomyType: item.taxonomyType,
-                                          });
-                                          setTaxonomyForm({ canonical_id: "", reason: "" });
-                                        }}
-                                      >
-                                        Map taxonomy
-                                      </Button>
-                                    ))
-                                : null}
-                              {row.review_status === "needs_more_info" && row.entity_type && row.entity_id ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setRequestInfoItem(row);
-                                    setRequestInfoForm({
-                                      requested_fields: row.data_quality?.missing_fields?.join(", ") ?? "",
-                                      admin_note: "",
-                                      reason: "Entity is missing required recommendation fields",
-                                    });
-                                  }}
-                                >
-                                  Request info
-                                </Button>
-                              ) : null}
-                              {row.entity_type && row.entity_id ? (
-                                <Link href={`/admin/entities/${row.entity_type}/${row.entity_id}`}>
-                                  <Button size="sm" variant="outline">
-                                    Review
-                                  </Button>
-                                </Link>
-                              ) : null}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card id="orphan-cleanup" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
-          <CardHeader>
-            <CardTitle>Orphan cleanup candidates</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Node khong co relationship. Chi mark/disable khoi recommendation, khong physical delete.
-            </p>
-          </CardHeader>
-          <CardContent>
-            {orphanRows.length === 0 ? (
-              <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-                Khong co orphan node trong graph.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Node</TableHead>
-                      <TableHead>KG</TableHead>
-                      <TableHead>Visibility</TableHead>
-                      <TableHead />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orphanRows.map((row) => {
-                      const entityType = orphanEntityType(row);
-                      return (
-                        <TableRow key={`${row.labels?.join("-")}-${row.entity_id}`}>
-                          <TableCell>
-                            <div className="font-semibold">{row.name || row.entity_id}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              {row.labels?.join(", ") || "-"} / {row.entity_id}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`rounded-md ${statusClass(row.kg_sync_status)}`}>
-                              {compact(row.kg_sync_status)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {compact(row.visibility)} / {compact(row.participation_scope)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {entityType && row.entity_id ? (
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setOrphanAction({ row, action: "mark" });
-                                    setOrphanReason("");
-                                  }}
-                                >
-                                  Mark cleanup
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setOrphanAction({ row, action: "disable" });
-                                    setOrphanReason("");
-                                  }}
-                                >
-                                  Disable recommendation
-                                </Button>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">Unsupported label</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card id="entity-review" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
-          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle>Entity review queue</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">Loc entity theo loai va KG status truoc khi xu ly.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Loai entity" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TYPE_FILTERS.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={kgFilter} onValueChange={setKgFilter}>
-                <SelectTrigger className="w-[210px]">
-                  <SelectValue placeholder="KG status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {KG_FILTERS.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex min-h-[240px] items-center justify-center gap-2 text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Dang tai queue...
-              </div>
-            ) : error ? (
-              <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-                <AlertCircle className="mt-0.5 h-4 w-4" />
-                {error}
-              </div>
-            ) : rows.length === 0 ? (
-              <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-                Khong co entity nao khop bo loc hien tai.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Entity</TableHead>
-                      <TableHead>KG sync</TableHead>
-                      <TableHead>Verification</TableHead>
-                      <TableHead>Duplicate</TableHead>
-                      <TableHead>Scope</TableHead>
-                      <TableHead>Trust</TableHead>
-                      <TableHead />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((row) => (
-                      <TableRow key={`${row.entity_type}-${row.entity_id}`} className="align-top">
-                        <TableCell className="min-w-[320px]">
-                          <div className="font-semibold">{row.name || row.entity_id}</div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {row.entity_type} / {row.entity_id}
-                          </div>
-                          {row.sync_error ? (
-                            <div className="mt-2 max-w-md rounded-md bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                              {String(row.sync_error)}
-                            </div>
-                          ) : null}
-                          {row.merged_into ? (
-                            <div className="mt-2 max-w-md rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                              Da merge vao {row.merged_into}
-                            </div>
-                          ) : null}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={`rounded-md ${statusClass(row.kg_sync_status)}`}>
-                            {compact(row.kg_sync_status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={`rounded-md ${statusClass(row.entity_verification_status)}`}
-                          >
-                            {compact(row.entity_verification_status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="min-w-[220px] text-sm">
-                          {(row.duplicate_candidates?.length ?? 0) > 0 ? (
-                            <div className="space-y-1">
-                              <Badge variant="outline" className="rounded-md border-amber-200 bg-amber-50 text-amber-700">
-                                {row.duplicate_candidates?.length} candidate
-                              </Badge>
-                              {firstDuplicateCandidate(row) ? (
-                                <div className="text-xs text-muted-foreground">
-                                  {String(firstDuplicateCandidate(row)?.name ?? firstDuplicateCandidate(row)?.id ?? "")}
-                                </div>
-                              ) : null}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm">{compact(row.participation_scope)}</TableCell>
-                        <TableCell className="text-sm">
-                          {typeof row.trust_weight === "number" ? row.trust_weight.toFixed(2) : "-"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            {firstDuplicateCandidate(row)?.id ? (
-                              <Link
-                                href={`/admin/entities/${row.entity_type}/${row.entity_id}?mergeTarget=${encodeURIComponent(
-                                  String(firstDuplicateCandidate(row)?.id),
-                                )}`}
-                              >
-                                <Button size="sm" variant="default" className="gap-1">
-                                  <GitMerge className="h-3.5 w-3.5" />
-                                  Merge
-                                </Button>
-                              </Link>
-                            ) : null}
-                            <Link href={`/admin/entities/${row.entity_type}/${row.entity_id}`}>
-                              <Button size="sm" variant="outline">
-                                Review
-                              </Button>
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {isRootAdmin ? (
-          <Card id="admin-users" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-white">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle>Root admin controls</CardTitle>
-                  <p className="mt-1 text-sm text-muted-foreground">Tao admin moi va cap quyen cho user hien co.</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <form onSubmit={createAdmin} className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
-                <div className="space-y-1">
-                  <Label>Email admin moi</Label>
-                  <Input
-                    value={adminForm.email}
-                    onChange={(event) => setAdminForm((prev) => ({ ...prev, email: event.target.value }))}
-                    placeholder="admin@example.com"
-                    type="email"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>Ho ten</Label>
-                  <Input
-                    value={adminForm.full_name}
-                    onChange={(event) => setAdminForm((prev) => ({ ...prev, full_name: event.target.value }))}
-                    placeholder="Admin name"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>Mat khau</Label>
-                  <Input
-                    value={adminForm.password}
-                    onChange={(event) => setAdminForm((prev) => ({ ...prev, password: event.target.value }))}
-                    placeholder="Admin@123456"
-                    type="password"
-                  />
-                </div>
-                <Button className="self-end gap-2" type="submit">
-                  <UserCog className="h-4 w-4" />
-                  Tao admin
-                </Button>
-              </form>
-
-              {isUsersLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Dang tai users...
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Business role</TableHead>
-                        <TableHead>Account role</TableHead>
-                        <TableHead />
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {adminUsers.map((adminUser) => {
-                        const id = String(adminUser._id ?? adminUser.id ?? "");
-                        const accountRole = String(adminUser.account_role ?? "user");
-                        return (
-                          <TableRow key={id}>
-                            <TableCell>
-                              <div className="font-medium">{adminUser.full_name || adminUser.email}</div>
-                              <div className="text-xs text-muted-foreground">{adminUser.email}</div>
-                            </TableCell>
-                            <TableCell>{adminUser.role ?? "expert"}</TableCell>
-                            <TableCell>
-                              <Badge className={`rounded-md ${statusClass(accountRole)}`} variant="outline">
-                                {accountRole}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="space-x-2 text-right">
-                              {accountRole === "user" ? (
-                                <Button size="sm" variant="outline" onClick={() => void changeRole(id, "promote")}>
-                                  Promote admin
-                                </Button>
-                              ) : accountRole === "admin" ? (
-                                <Button size="sm" variant="outline" onClick={() => void changeRole(id, "demote")}>
-                                  Demote user
-                                </Button>
-                              ) : null}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : null}
-
-        <Card id="audit-log" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Audit log gan day</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">Theo doi thao tac quan tri de phuc vu audit.</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {auditLogs.length === 0 ? (
-              <p className="text-muted-foreground">Chua co audit log.</p>
-            ) : (
-              auditLogs.map((log, index) => (
-                <div key={String(log._id ?? index)} className="relative rounded-md border bg-slate-50 p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-medium">
-                      {String(log.action ?? "action")} - {String(log.entity_type ?? "")}/{String(log.entity_id ?? "")}
-                    </div>
-                    <Badge variant="outline" className="rounded-md">
-                      {String(log.created_at ?? "").slice(0, 19)}
-                    </Badge>
+        {tabLoading ? (
+          <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-sm text-slate-400">
+            <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+            <span className="font-semibold text-slate-600">Đang tải cấu phần quản trị...</span>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {activeTab === "overview" && (
+              <Card className="admin-scroll-reveal rounded-md bg-white">
+                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      System Health & Recommendation Test
+                    </CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Theo doi trang thai backend, MongoDB, Neo4j, RabbitMQ va chay thu PGPR recommendation bang source/target thu cong.
+                    </p>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">Admin {String(log.admin_user_id ?? "")}</div>
-                  {log.reason ? <div className="mt-2 text-xs">{String(log.reason)}</div> : null}
-                </div>
-              ))
+                  <Badge variant="outline" className="rounded-md">
+                    admin only
+                  </Badge>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                    <div className="rounded-md border bg-white p-3 text-sm shadow-sm">
+                      <div className="text-xs uppercase text-muted-foreground">API status</div>
+                      <div className={`mt-2 inline-flex rounded-md border px-2 py-1 text-xs font-semibold ${healthTone(health?.status)}`}>
+                        {health?.status ?? "unknown"}
+                      </div>
+                    </div>
+                    {Object.entries(health?.services ?? {}).map(([name, value]) => (
+                      <div key={name} className="rounded-md border bg-white p-3 text-sm shadow-sm">
+                        <div className="text-xs uppercase text-muted-foreground">{name}</div>
+                        <div className={`mt-2 inline-flex rounded-md border px-2 py-1 text-xs font-semibold ${healthTone(String(value))}`}>
+                          {String(value)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-4 rounded-md border bg-slate-50 p-4 lg:grid-cols-[1fr_auto]">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                      <div className="space-y-2">
+                        <Label>Source type</Label>
+                        <Select value={systemSourceType} onValueChange={(value) => setSystemSourceType(value as EntityType)}>
+                          <SelectTrigger className="rounded-md bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ADMIN_TEST_ENTITY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Source ID</Label>
+                        <Input
+                          value={systemSourceId}
+                          onChange={(event) => setSystemSourceId(event.target.value)}
+                          placeholder="prj_001 / exp_001..."
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Target type</Label>
+                        <Select value={systemTargetType} onValueChange={(value) => setSystemTargetType(value as EntityType)}>
+                          <SelectTrigger className="rounded-md bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ADMIN_TEST_ENTITY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Mode</Label>
+                        <Select value={systemMode} onValueChange={(value) => setSystemMode(value as "public" | "personal")}>
+                          <SelectTrigger className="rounded-md bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="public">Public</SelectItem>
+                            <SelectItem value="personal">Personal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Limit</Label>
+                        <Input
+                          value={systemLimit}
+                          onChange={(event) => setSystemLimit(event.target.value)}
+                          inputMode="numeric"
+                          className="bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-end">
+                      <Button className="w-full gap-2 lg:w-auto" disabled={systemTestBusy} onClick={() => void runSystemRecommendationTest()}>
+                        {systemTestBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        Test recommendation
+                      </Button>
+                    </div>
+                  </div>
+
+                  {systemTestError ? (
+                    <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{systemTestError}</div>
+                  ) : null}
+
+                  <div className="rounded-md border">
+                    <div className="flex items-center justify-between border-b px-3 py-2">
+                      <div className="text-sm font-medium">Recommendation result</div>
+                      <Badge variant="outline" className="rounded-md">
+                        {systemRecommendations.length} ket qua
+                      </Badge>
+                    </div>
+                    {systemRecommendations.length === 0 ? (
+                      <div className="flex min-h-[160px] flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+                        <Search className="h-7 w-7" />
+                        Chua co ket qua test.
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {systemRecommendations.map((item, index) => (
+                          <div key={`${item.id}-${index}`} className="grid gap-3 p-3 md:grid-cols-[1fr_auto]">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" className="rounded-md">
+                                  #{index + 1}
+                                </Badge>
+                                <Badge variant="secondary" className="rounded-md">
+                                  {item.type ?? systemTargetType}
+                                </Badge>
+                              </div>
+                              <div className="mt-2 font-semibold">{item.name || item.id}</div>
+                              <div className="mt-1 break-all text-xs text-muted-foreground">ID: {item.id}</div>
+                              {item.explanation ? (
+                                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{String(item.explanation).replace(/\*\*/g, "")}</p>
+                              ) : null}
+                            </div>
+                            <div className="rounded-md border bg-slate-50 px-3 py-2 text-right">
+                              <div className="text-xs text-muted-foreground">Score</div>
+                              <div className="text-lg font-bold">{typeof item.score === "number" ? item.score.toFixed(3) : "N/A"}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
+
+            {activeTab === "embedding" && (
+              <Card className="admin-scroll-reveal rounded-md bg-white">
+                <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Embedding pipeline</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Theo doi queue RabbitMQ, outbox va trang thai embedding. Model:{" "}
+                      {pipeline?.model ?? "graphsage_lite_v1"} ({pipeline?.embedding_dimension ?? 128}d).
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" disabled={embeddingBusy} onClick={() => void reloadEmbeddingPanel()}>
+                      Lam moi
+                    </Button>
+                    <Button size="sm" disabled={embeddingBusy} onClick={() => void retryFailedEmbeddings()}>
+                      {embeddingBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Retry failed jobs
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                    <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                      <div className="text-xs uppercase text-muted-foreground">RabbitMQ</div>
+                      <div className="mt-1 font-semibold">{pipeline?.rabbitmq ?? "-"}</div>
+                    </div>
+                    <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                      <div className="text-xs uppercase text-muted-foreground">Queue jobs</div>
+                      <div className="mt-1 font-semibold">
+                        {pipeline?.queues && typeof pipeline.queues === "object"
+                          ? String((pipeline.queues["embedding.jobs"] as { messages?: number })?.messages ?? "-")
+                          : "-"}
+                      </div>
+                    </div>
+                    <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                      <div className="text-xs uppercase text-muted-foreground">DLQ</div>
+                      <div className={`mt-1 font-semibold ${pipeline?.dlq?.alert ? "text-amber-800" : ""}`}>
+                        {pipeline?.dlq?.messages ?? "-"}
+                      </div>
+                      {pipeline?.dlq?.alert ? (
+                        <p className="mt-1 text-xs text-amber-800">Co message malformed trong DLQ — can kiem tra worker/logs.</p>
+                      ) : null}
+                    </div>
+                    <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                      <div className="text-xs uppercase text-muted-foreground">Outbox pending</div>
+                      <div className="mt-1 font-semibold">{pipeline?.outbox?.pending ?? "-"}</div>
+                    </div>
+                    <div className="rounded-md border bg-slate-50 p-3 text-sm">
+                      <div className="text-xs uppercase text-muted-foreground">Workers alive</div>
+                      <div className="mt-1 font-semibold">
+                        {(pipeline?.worker_summary?.alive_count ?? 0) > 0
+                          ? `${pipeline?.worker_summary?.alive_count ?? 0} alive`
+                          : "none alive"}
+                        {(pipeline?.worker_summary?.stale_count ?? 0) > 0
+                          ? ` / ${pipeline?.worker_summary?.stale_count} stale`
+                          : ""}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {pipeline?.worker_summary?.count ?? 0} worker(s), stale &gt;{" "}
+                        {pipeline?.worker_summary?.stale_after_seconds ?? 120}s
+                      </p>
+                    </div>
+                  </div>
+                  {pipeline && (pipeline.worker_heartbeats?.length ?? 0) > 0 ? (
+                    <div className="rounded-md border">
+                      <div className="border-b px-3 py-2 text-sm font-medium">Worker heartbeats</div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Worker</TableHead>
+                            <TableHead>Liveness</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Last seen</TableHead>
+                            <TableHead>Processed</TableHead>
+                            <TableHead>Failed</TableHead>
+                            <TableHead>Current job</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pipeline.worker_heartbeats?.map((worker) => (
+                            <TableRow key={worker.worker_id}>
+                              <TableCell className="text-xs">{worker.worker_id}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    worker.liveness === "alive"
+                                      ? "border-emerald-300"
+                                      : worker.liveness === "stale"
+                                        ? "border-amber-300"
+                                        : "border-slate-300"
+                                  }
+                                >
+                                  {worker.liveness ?? "unknown"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-xs">{worker.status ?? "-"}</TableCell>
+                              <TableCell className="text-xs">{compact(worker.last_seen_at)}</TableCell>
+                              <TableCell>{worker.processed_count ?? 0}</TableCell>
+                              <TableCell>{worker.failed_count ?? 0}</TableCell>
+                              <TableCell className="text-xs">{compact(worker.current_job_id)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Chua co worker heartbeat. Chay `python -m workers.embedding_worker` de worker ghi trang thai.
+                    </p>
+                  )}
+                  {pipeline?.entity_embedding_status ? (
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(pipeline.entity_embedding_status).map(([key, value]) => (
+                        <Badge key={key} variant="outline" className="rounded-md">
+                          {key}: {value}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="rounded-md border">
+                    <div className="border-b px-3 py-2 text-sm font-medium">Failed / recent jobs</div>
+                    {embeddingJobs.length === 0 ? (
+                      <p className="p-3 text-sm text-muted-foreground">Khong co job failed trong outbox.</p>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Entity</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Error</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead />
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {embeddingJobs.map((job) => (
+                            <TableRow key={job.event_id ?? job.job_id}>
+                              <TableCell className="text-xs">
+                                {job.entity_type}/{job.entity_id}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={statusClass(job.status)}>
+                                  {job.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                                {compact(job.last_error)}
+                              </TableCell>
+                              <TableCell className="text-xs">{compact((job as { error_type?: string }).error_type)}</TableCell>
+                              <TableCell>
+                                {job.entity_type && job.entity_id ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={embeddingBusy}
+                                    onClick={() =>
+                                      void recomputeEmbedding(job.entity_type as EntityType, String(job.entity_id))
+                                    }
+                                  >
+                                    Recompute
+                                  </Button>
+                                ) : null}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "governance" && (
+              <>
+                <Card id="review-queue" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
+                  <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle>Governance review queue</CardTitle>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Hang cho data quality: ho so thieu thong tin, can merge, taxonomy chua chuan hoa.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Select value={reviewStatusFilter} onValueChange={setReviewStatusFilter}>
+                        <SelectTrigger className="w-[190px]">
+                          <SelectValue placeholder="Review status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {REVIEW_STATUS_FILTERS.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={qualityFilter} onValueChange={setQualityFilter}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Quality" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {QUALITY_FILTERS.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={taxonomyFilter} onValueChange={setTaxonomyFilter}>
+                        <SelectTrigger className="w-[190px]">
+                          <SelectValue placeholder="Taxonomy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tat ca taxonomy</SelectItem>
+                          <SelectItem value="yes">Co unmapped taxonomy</SelectItem>
+                          <SelectItem value="no">Khong unmapped taxonomy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={duplicateFilter} onValueChange={setDuplicateFilter}>
+                        <SelectTrigger className="w-[190px]">
+                          <SelectValue placeholder="Duplicate" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tat ca duplicate</SelectItem>
+                          <SelectItem value="yes">Co duplicate candidate</SelectItem>
+                          <SelectItem value="no">Khong duplicate candidate</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-2 md:grid-cols-4">
+                      {[
+                        ["total", (governanceSummary.total as number | undefined) ?? governanceRows.length],
+                        ["poor", (governanceSummary.by_quality_level as Record<string, number> | undefined)?.poor ?? 0],
+                        ["needs_more_info", (governanceSummary.by_review_status as Record<string, number> | undefined)?.needs_more_info ?? 0],
+                        ["unmapped_taxonomy", (governanceSummary.unmapped_taxonomy_warnings as number | undefined) ?? 0],
+                      ].map(([label, value]) => (
+                        <div key={String(label)} className="rounded-md border bg-slate-50 p-3">
+                          <div className="text-xs uppercase text-muted-foreground">{String(label)}</div>
+                          <div className="mt-1 text-xl font-bold">{String(value)}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {governanceRows.length === 0 ? (
+                      <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                        Khong co item nao khop bo loc governance hien tai.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Entity</TableHead>
+                              <TableHead>Quality</TableHead>
+                              <TableHead>Review</TableHead>
+                              <TableHead>Warnings</TableHead>
+                              <TableHead>Recommended action</TableHead>
+                              <TableHead />
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {governanceRows.map((row) => {
+                              const warnings = row.data_quality?.warnings ?? [];
+                              const level = row.data_quality?.level ?? "-";
+                              const score = typeof row.data_quality?.score === "number" ? row.data_quality.score : null;
+                              return (
+                                <TableRow key={`${row.entity_type}-${row.entity_id}`} className="align-top">
+                                  <TableCell className="min-w-[280px]">
+                                    <div className="font-semibold">{row.name || row.entity_id}</div>
+                                    <div className="mt-1 text-xs text-muted-foreground">
+                                      {row.entity_type} / {row.entity_id}
+                                    </div>
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                      {row.participation_scope === "owner_only" ? (
+                                        <Badge variant="outline" className="rounded-md border-sky-200 bg-sky-50 text-sky-700">
+                                          owner_only
+                                        </Badge>
+                                      ) : null}
+                                      {row.entity_verification_status === "unverified" ? (
+                                        <Badge variant="outline" className="rounded-md border-amber-200 bg-amber-50 text-amber-700">
+                                          unverified
+                                        </Badge>
+                                      ) : null}
+                                      {(row.unmapped_taxonomy_values?.length ?? 0) > 0 ? (
+                                        <Badge variant="outline" className="rounded-md border-purple-200 bg-purple-50 text-purple-700">
+                                          unmapped_taxonomy
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className={`rounded-md ${statusClass(level)}`}>
+                                      {level}
+                                    </Badge>
+                                    <div className="mt-1 text-2xl font-bold">
+                                      {score === null ? "-" : `${Math.round(score * 100)}%`}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className={`rounded-md ${statusClass(row.review_status)}`}>
+                                      {compact(row.review_status)}
+                                    </Badge>
+                                    {(row.duplicate_candidates_count ?? 0) > 0 ? (
+                                      <div className="mt-2 text-xs text-amber-700">
+                                        {row.duplicate_candidates_count} duplicate candidate(s)
+                                      </div>
+                                    ) : null}
+                                  </TableCell>
+                                  <TableCell className="min-w-[280px]">
+                                    <div className="flex flex-wrap gap-1">
+                                      {warnings.slice(0, 5).map((warning) => (
+                                        <Badge key={warning} variant="outline" className="rounded-md">
+                                          {warning}
+                                        </Badge>
+                                      ))}
+                                      {warnings.length > 5 ? (
+                                        <Badge variant="outline" className="rounded-md">
+                                          +{warnings.length - 5}
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                    {(row.data_quality?.missing_fields?.length ?? 0) > 0 ? (
+                                      <div className="mt-2 text-xs text-muted-foreground">
+                                        Missing: {row.data_quality?.missing_fields?.join(", ")}
+                                      </div>
+                                    ) : null}
+                                  </TableCell>
+                                  <TableCell className="text-sm">{compact(row.recommended_action)}</TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                      {(row.unmapped_taxonomy_values?.length ?? 0) > 0
+                                        ? row.unmapped_taxonomy_values
+                                            ?.flatMap(parseUnmappedWarning)
+                                            .slice(0, 1)
+                                            .map((item) => (
+                                              <Button
+                                                key={`${item.taxonomyType}-${item.rawValue}`}
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                  setSelectedTaxonomyItem({
+                                                    row,
+                                                    rawValue: item.rawValue,
+                                                    taxonomyType: item.taxonomyType,
+                                                  });
+                                                  setTaxonomyForm({ canonical_id: "", reason: "" });
+                                                }}
+                                              >
+                                                Map taxonomy
+                                              </Button>
+                                            ))
+                                        : null}
+                                      {row.review_status === "needs_more_info" && row.entity_type && row.entity_id ? (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            setRequestInfoItem(row);
+                                            setRequestInfoForm({
+                                              requested_fields: row.data_quality?.missing_fields?.join(", ") ?? "",
+                                              admin_note: "",
+                                              reason: "Entity is missing required recommendation fields",
+                                            });
+                                          }}
+                                        >
+                                          Request info
+                                        </Button>
+                                      ) : null}
+                                      {row.entity_type && row.entity_id ? (
+                                        <Link href={`/admin/entities/${row.entity_type}/${row.entity_id}`}>
+                                          <Button size="sm" variant="outline">
+                                            Review
+                                          </Button>
+                                        </Link>
+                                      ) : null}
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card id="orphan-cleanup" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
+                  <CardHeader>
+                    <CardTitle>Orphan cleanup candidates</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Node khong co relationship. Chi mark/disable khoi recommendation, khong physical delete.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    {orphanRows.length === 0 ? (
+                      <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        Khong co orphan node trong graph.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Node</TableHead>
+                              <TableHead>KG</TableHead>
+                              <TableHead>Visibility</TableHead>
+                              <TableHead />
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {orphanRows.map((row) => {
+                              const entityType = orphanEntityType(row);
+                              return (
+                                <TableRow key={`${row.labels?.join("-")}-${row.entity_id}`}>
+                                  <TableCell>
+                                    <div className="font-semibold">{row.name || row.entity_id}</div>
+                                    <div className="mt-1 text-xs text-muted-foreground">
+                                      {row.labels?.join(", ") || "-"} / {row.entity_id}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className={`rounded-md ${statusClass(row.kg_sync_status)}`}>
+                                      {compact(row.kg_sync_status)}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-sm">
+                                    {compact(row.visibility)} / {compact(row.participation_scope)}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {entityType && row.entity_id ? (
+                                      <div className="flex justify-end gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            setOrphanAction({ row, action: "mark" });
+                                            setOrphanReason("");
+                                          }}
+                                        >
+                                          Mark cleanup
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            setOrphanAction({ row, action: "disable" });
+                                            setOrphanReason("");
+                                          }}
+                                        >
+                                          Disable recommendation
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">Unsupported label</span>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {activeTab === "entities" && (
+              <Card id="entity-review" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
+                <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Entity review queue</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Loc entity theo ten, id, loai va KG status truoc khi xu ly. Mac dinh chi tai mot so luong gioi han.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Input
+                      value={entitySearch}
+                      onChange={(event) => setEntitySearch(event.target.value)}
+                      placeholder="Tim ten, email hoac id..."
+                      className="w-[240px]"
+                    />
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Loai entity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TYPE_FILTERS.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={kgFilter} onValueChange={setKgFilter}>
+                      <SelectTrigger className="w-[210px]">
+                        <SelectValue placeholder="KG status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {KG_FILTERS.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setTypeFilter("expert");
+                        setKgFilter("synced_unverified");
+                        setEntitySearch("");
+                      }}
+                    >
+                      Chua xac thuc
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setTypeFilter("all");
+                        setKgFilter("all");
+                        setEntitySearch("");
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="flex min-h-[240px] items-center justify-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Dang tai queue...
+                    </div>
+                  ) : error ? (
+                    <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                      <AlertCircle className="mt-0.5 h-4 w-4" />
+                      {error}
+                    </div>
+                  ) : rows.length === 0 ? (
+                    <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                      Khong co entity nao khop bo loc hien tai.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Entity</TableHead>
+                            <TableHead>KG sync</TableHead>
+                            <TableHead>Verification</TableHead>
+                            <TableHead>Duplicate</TableHead>
+                            <TableHead>Scope</TableHead>
+                            <TableHead>Trust</TableHead>
+                            <TableHead />
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rows.map((row) => (
+                            <TableRow key={`${row.entity_type}-${row.entity_id}`} className="align-top">
+                              <TableCell className="min-w-[320px]">
+                                <div className="font-semibold">{row.name || row.entity_id}</div>
+                                <div className="mt-1 text-xs text-muted-foreground">
+                                  {row.entity_type} / {row.entity_id}
+                                </div>
+                                {row.sync_error ? (
+                                  <div className="mt-2 max-w-md rounded-md bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                    {String(row.sync_error)}
+                                  </div>
+                                ) : null}
+                                {row.merged_into ? (
+                                  <div className="mt-2 max-w-md rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                                    Da merge vao {row.merged_into}
+                                  </div>
+                                ) : null}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={`rounded-md ${statusClass(row.kg_sync_status)}`}>
+                                  {compact(row.kg_sync_status)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={`rounded-md ${statusClass(row.entity_verification_status)}`}
+                                >
+                                  {compact(row.entity_verification_status)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="min-w-[220px] text-sm">
+                                {(row.duplicate_candidates?.length ?? 0) > 0 ? (
+                                  <div className="space-y-1">
+                                    <Badge variant="outline" className="rounded-md border-amber-200 bg-amber-50 text-amber-700">
+                                      {row.duplicate_candidates?.length} candidate
+                                    </Badge>
+                                    {firstDuplicateCandidate(row) ? (
+                                      <div className="text-xs text-muted-foreground">
+                                        {String(firstDuplicateCandidate(row)?.name ?? firstDuplicateCandidate(row)?.id ?? "")}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-sm">{compact(row.participation_scope)}</TableCell>
+                              <TableCell className="text-sm">
+                                {typeof row.trust_weight === "number" ? row.trust_weight.toFixed(2) : "-"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  {firstDuplicateCandidate(row)?.id ? (
+                                    <Link
+                                      href={`/admin/entities/${row.entity_type}/${row.entity_id}?mergeTarget=${encodeURIComponent(
+                                        String(firstDuplicateCandidate(row)?.id),
+                                      )}`}
+                                    >
+                                      <Button size="sm" variant="default" className="gap-1">
+                                        <GitMerge className="h-3.5 w-3.5" />
+                                        Merge
+                                      </Button>
+                                    </Link>
+                                  ) : null}
+                                  <Link href={`/admin/entities/${row.entity_type}/${row.entity_id}`}>
+                                    <Button size="sm" variant="outline">
+                                      Review
+                                    </Button>
+                                  </Link>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                        <div className="text-sm text-muted-foreground">
+                          Page {entityPage} / {entityTotalPages} - hien {rows.length} trong tong {entityTotal} entity
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={entityPage <= 1}
+                            onClick={() => setEntityPage((page) => Math.max(1, page - 1))}
+                          >
+                            Truoc
+                          </Button>
+                          {entityPageNumbers.map((pageNumber) => (
+                            <Button
+                              key={pageNumber}
+                              type="button"
+                              variant={entityPage === pageNumber ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setEntityPage(pageNumber)}
+                            >
+                              Page {pageNumber}
+                            </Button>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={entityPage >= entityTotalPages}
+                            onClick={() => setEntityPage((page) => Math.min(entityTotalPages, page + 1))}
+                          >
+                            Sau
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "audit" && (
+              <>
+                {isRootAdmin && (
+                  <Card id="admin-users" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-white">
+                          <ShieldCheck className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <CardTitle>Root admin controls</CardTitle>
+                          <p className="mt-1 text-sm text-muted-foreground">Tao admin moi va cap quyen cho user hien co.</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                      <form onSubmit={createAdmin} className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
+                        <div className="space-y-1">
+                          <Label>Email admin moi</Label>
+                          <Input
+                            value={adminForm.email}
+                            onChange={(event) => setAdminForm((prev) => ({ ...prev, email: event.target.value }))}
+                            placeholder="admin@example.com"
+                            type="email"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Ho ten</Label>
+                          <Input
+                            value={adminForm.full_name}
+                            onChange={(event) => setAdminForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                            placeholder="Admin name"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Mat khau</Label>
+                          <Input
+                            value={adminForm.password}
+                            onChange={(event) => setAdminForm((prev) => ({ ...prev, password: event.target.value }))}
+                            placeholder="Admin@123456"
+                            type="password"
+                          />
+                        </div>
+                        <Button className="self-end gap-2" type="submit">
+                          <UserCog className="h-4 w-4" />
+                          Tao admin
+                        </Button>
+                      </form>
+
+                      {isUsersLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Dang tai users...
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>User</TableHead>
+                                <TableHead>Business role</TableHead>
+                                <TableHead>Account role</TableHead>
+                                <TableHead />
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {adminUsers.map((adminUser) => {
+                                const id = String(adminUser._id ?? adminUser.id ?? "");
+                                const accountRole = String(adminUser.account_role ?? "user");
+                                return (
+                                  <TableRow key={id}>
+                                    <TableCell>
+                                      <div className="font-medium">{adminUser.full_name || adminUser.email}</div>
+                                      <div className="text-xs text-muted-foreground">{adminUser.email}</div>
+                                    </TableCell>
+                                    <TableCell>{adminUser.role ?? "expert"}</TableCell>
+                                    <TableCell>
+                                      <Badge className={`rounded-md ${statusClass(accountRole)}`} variant="outline">
+                                        {accountRole}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell className="space-x-2 text-right">
+                                      {accountRole === "user" ? (
+                                        <Button size="sm" variant="outline" onClick={() => void changeRole(id, "promote")}>
+                                          Promote admin
+                                        </Button>
+                                      ) : accountRole === "admin" ? (
+                                        <Button size="sm" variant="outline" onClick={() => void changeRole(id, "demote")}>
+                                          Demote user
+                                        </Button>
+                                      ) : null}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card id="audit-log" className="admin-scroll-reveal scroll-mt-24 rounded-md bg-white">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100">
+                        <Users className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <CardTitle>Audit log gan day</CardTitle>
+                        <p className="mt-1 text-sm text-muted-foreground">Theo doi thao tac quan tri de phuc vu audit.</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {auditLogs.length === 0 ? (
+                      <p className="text-muted-foreground">Chua co audit log.</p>
+                    ) : (
+                      auditLogs.map((log, index) => (
+                        <div key={String(log._id ?? index)} className="relative rounded-md border bg-slate-50 p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="font-medium">
+                              {String(log.action ?? "action")} - {String(log.entity_type ?? "")}/{String(log.entity_id ?? "")}
+                            </div>
+                            <Badge variant="outline" className="rounded-md">
+                              {String(log.created_at ?? "").slice(0, 19)}
+                            </Badge>
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground">Admin {String(log.admin_user_id ?? "")}</div>
+                          {log.reason ? <div className="mt-2 text-xs">{String(log.reason)}</div> : null}
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
       </main>
 
       <Dialog open={Boolean(selectedTaxonomyItem)} onOpenChange={(open) => !open && setSelectedTaxonomyItem(null)}>

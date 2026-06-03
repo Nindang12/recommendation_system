@@ -91,7 +91,7 @@ class GovernanceAuditService:
         limit: int = 100,
     ) -> Dict[str, Any]:
         """Return admin-facing governance queue rows without mutating data."""
-        audit = self.audit_entities(limit=max(limit, 100))
+        audit = self.audit_entities(limit=1000)
         rows: List[Dict[str, Any]] = []
         for item in audit.get("items") or []:
             quality = item.get("data_quality") or {}

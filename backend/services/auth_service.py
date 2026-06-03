@@ -134,6 +134,20 @@ class AuthService:
             "count": self.repo.count_user_projects(user_id),
         }
 
+    def delete_project(self, user_id: str, project_id: str) -> Dict[str, Any]:
+        project = self.repo.soft_delete_user_project(user_id, project_id)
+        if not project:
+            raise ValueError("Project not found or you are not the owner")
+        try:
+            self.kg_sync.disable_entity("project", project_id)
+            refreshed = self.repo.find_entity_by_id("project", project_id)
+            if refreshed:
+                project = refreshed
+        except Exception:
+            # The user-facing delete should still hide the MongoDB project if Neo4j is down.
+            pass
+        return self._project_response(project)
+
     def _auth_response(self, user: Dict[str, Any]) -> Dict[str, Any]:
         public = self._public_user(user)
         return {

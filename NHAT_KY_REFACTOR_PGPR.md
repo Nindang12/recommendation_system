@@ -9082,3 +9082,840 @@ Ket qua:
 - Backend compile pass: 99 file.
 - Frontend npm audit: 0 vulnerabilities.
 - Thu muc root hien chi con 3 file `.md` chinh: `README.md`, `CHECKLIST_SCALE_UP_COLD_START_HYBRID.md`, `NHAT_KY_REFACTOR_PGPR.md`.
+
+---
+
+## 55. Sua loi frontend/admin sau cleanup va production config - 2026-06-02
+
+Sau khi don he thong va chuyen frontend/backend sang cau hinh Docker/API port moi, da gap mot so loi UX va du lieu trong admin UI. Cac loi nay chu yeu nam o frontend state, pagination/filter va cach hien thi workflow quan tri.
+
+### 55.1 Loi frontend local/Docker API port
+
+Van de:
+
+- Frontend local can goi backend Docker o `localhost:8010`, khong phai port cu `localhost:8000`.
+- Mot so UI label/API display van de nguoi dung nghi frontend dang goi sai backend.
+
+Da lam:
+
+- Kiem tra cau hinh frontend runtime API.
+- Giu `NEXT_PUBLIC_API_BASE_URL=http://localhost:8010` cho frontend/browser.
+- Dieu chinh UI navbar/doc hien thi API theo `API_BASE_URL` thay vi hard-code port cu.
+
+Ly do:
+
+- Backend container van chay noi bo o `8000`, nhung host publish ra `8010`.
+- Browser khong truy cap duoc hostname Docker internal nhu `backend:8000`.
+- Neu hard-code port cu, nguoi dung se nghi frontend khong connect backend du Docker API van dang chay dung.
+
+### 55.2 Tach Dashboard user va Admin
+
+Van de:
+
+- Dashboard ban dau van con vai thanh phan demo/test recommendation.
+- Admin dang nhap nen vao giao dien admin, khong nen thay dashboard user.
+- Chuc nang chon source de test recommendation chi nen danh cho admin, khong nen la workflow chinh cua user thuong.
+
+Da lam:
+
+- Dieu chinh flow login:
+  - `admin` va `root_admin` vao `/admin`.
+  - user thuong vao `/dashboard`.
+- Neu admin truy cap `/dashboard`, frontend redirect ve `/admin`.
+- Dua phan test he thong/recommendation thu nghiem vao admin overview.
+- Dashboard user duoc dinh huong thanh giao dien dung that, khong phai demo workspace.
+
+File lien quan:
+
+- `frontend/src/lib/auth.tsx`
+- `frontend/src/app/auth/login/page.tsx`
+- `frontend/src/app/dashboard/page.tsx`
+- `frontend/src/app/admin/page.tsx`
+
+Ly do:
+
+- Admin va user co muc tieu khac nhau.
+- Admin can test health, queue, PGPR, audit, governance.
+- User thuong can xem goi y, entity, project, profile, khong nen thay cong cu kiem thu noi bo.
+
+### 55.3 Admin UI qua tai, can chia taskbar/tabs
+
+Van de:
+
+- Trang admin chua qua nhieu phan: diagnostics, review queue, entity review, embedding worker, audit log, admin users.
+- Neu load tat ca cung luc thi UI nang, kho doc va co the goi qua nhieu API.
+
+Da lam:
+
+- Chia admin page thanh cac tab/taskbar:
+  - `Tong quan & Diagnostics`
+  - `Data Quality & Orphans`
+  - `Luoi thuc the`
+  - `Embedding Workers`
+  - `Security & Audit Logs`
+- Lazy-load data theo tab dang active.
+- Gioi han hien thi tung phan de tranh load qua nhieu du lieu mot luc.
+
+File lien quan:
+
+- `frontend/src/app/admin/page.tsx`
+
+Ly do:
+
+- Admin UI can ro rang theo tac vu quan tri.
+- Giam request khong can thiet.
+- Tranh trang admin bi cham khi entity/audit/job tang len.
+
+### 55.4 Loi khong thay user `Dang Le Nin` trong admin review queue
+
+Van de:
+
+- Profile user hien thi ho so da vao KG o trang thai chua xac thuc.
+- Ben admin filter expert/synced_unverified lai khong thay user do de duyet.
+
+Nguyen nhan:
+
+- Backend admin entity list lay mot tap document bi gioi han truoc, sau do moi pagination/filter.
+- Khi so entity tang, entity can tim co the nam ngoai tap bi lay ban dau nen khong bao gio xuat hien tren cac page.
+
+Da lam:
+
+- Sua `list_entities_for_admin()` de tinh `total` va paginate dung tren toan bo tap entity.
+- API `/api/v1/admin/entities` tra them:
+  - `total`
+  - `page`
+  - `limit`
+- Frontend admin dung pagination theo page, moi page 6 rows.
+- Them search/filter de tim entity theo ten/id.
+- Test API voi expert `synced_unverified`, xac nhan page cuoi co `Dang Le Nin`.
+
+File lien quan:
+
+- `backend/repositories/auth_repo.py`
+- `backend/api/v1/endpoints/admin.py`
+- `frontend/src/lib/api.ts`
+- `frontend/src/app/admin/page.tsx`
+
+Ly do:
+
+- Admin review queue phai duyet duoc toan bo entity, khong duoc mat entity do pagination sai.
+- Pagination dung giup he thong scale tot hon khi co nhieu expert/project/funder/enterprise.
+
+### 55.5 Sua hien thi pagination admin theo page
+
+Van de:
+
+- UI cu cho chon rows/limit lam nguoi dung kho hinh dung.
+- User yeu cau hien theo `page 1`, `page 2`, `page 3`, moi page khoang 6 rows.
+
+Da lam:
+
+- Co dinh `ENTITY_ROWS_PER_PAGE = 6`.
+- Them nut:
+  - Prev
+  - Next
+  - tung so page
+- Bo selector rows/limit tren UI.
+
+File lien quan:
+
+- `frontend/src/app/admin/page.tsx`
+
+Ly do:
+
+- Giao dien admin de doc hon.
+- Moi page ngan, khong day qua nhieu entity cung luc.
+
+### 55.6 Sua workflow Merge entity
+
+Van de:
+
+- Merge entity bat admin tu nhap target ID thu cong.
+- Trong khi he thong da co duplicate candidates, nen admin khong nen phai doan entity nao can merge.
+- UI cu tron ten target va nut merge, gay kho hieu.
+
+Da lam:
+
+- Backend tinh duplicate candidates neu entity chua co san candidates.
+- Frontend detail admin hien danh sach candidate co san.
+- Candidate dau tien duoc auto-select lam merge target.
+- Tach khoi hien thi:
+  - thong tin target dang chon
+  - nut `Merge entity`
+- Chi hien input target thu cong khi khong co candidate hoac admin chu dong mo che do nhap tay.
+
+File lien quan:
+
+- `backend/repositories/auth_repo.py`
+- `backend/api/v1/endpoints/admin.py`
+- `frontend/src/app/admin/entities/[type]/[id]/page.tsx`
+
+Ly do:
+
+- Merge la action nguy hiem, nen UI phai goi y target ro rang.
+- Giam kha nang admin nhap sai ID.
+- Van giu duong thu cong cho case dac biet, nhung khong dat lam mac dinh.
+
+### 55.7 Loi admin navbar bam xong phai reload moi doi tab
+
+Van de:
+
+- Khi dang o `/admin`, bam `Review Queue`, `Admin Users`, `Audit Log` tren navbar chi doi URL hash.
+- Tab hien thi trong trang admin khong doi ngay, phai reload trang moi nhan.
+
+Nguyen nhan:
+
+- Admin page giu tab hien tai bang React state `activeTab`.
+- Link dang la cung pathname `/admin#...`, nen Next App Router khong luon remount lai page.
+- URL hash doi nhung state trong component khong duoc cap nhat du tin cay trong truong hop click cung route.
+
+Da lam:
+
+- Navbar khi click admin hash link se:
+  - `preventDefault()`
+  - cap nhat URL bang `window.history.replaceState`
+  - phat custom event `admin-tab-change`
+- Admin page lang nghe:
+  - `hashchange`
+  - `admin-tab-change`
+- Khi nhan event, admin page goi `tabFromHash()` va cap nhat `activeTab` ngay.
+
+File lien quan:
+
+- `frontend/src/components/navigation/navbar.tsx`
+- `frontend/src/app/admin/page.tsx`
+
+Ly do:
+
+- Day la tuong tac client-side noi bo, nen dung event noi bo nhe hon viec ep reload page.
+- Giu URL hash van co y nghia bookmark/deep-link.
+- Giai quyet dung van de state UI ma khong lam thay doi routing lon.
+
+Validation:
+
+```powershell
+cd frontend
+npm run typecheck
+```
+
+Ket qua:
+
+- TypeScript pass.
+
+---
+
+## 60. Thiet ke lai dashboard user cho dep va dung vai tro san pham - 2026-06-03
+
+Van de:
+
+- Dashboard user sau khi an `System Health` van con cam giac demo.
+- Hero cu la mot khoi gradient lon, thieu ngu canh truc quan ve Knowledge Graph.
+- Cac entity cards ben duoi con phang, it phan cap thi giac.
+
+Da lam:
+
+- Doi nen dashboard sang nen sang co chuyen sac nhe.
+- Thay hero gradient lon bang card san pham nen trang, bo cuc 2 cot:
+  - Ben trai: tag PGPR / Knowledge Graph / Explainable AI, title, mo ta va thong tin nhanh.
+  - Ben phai: panel minh hoa reasoning map dang node-edge cua Knowledge Graph.
+- Them thong tin tom tat ngay trong hero:
+  - Source dang dung
+  - Mode recommendation
+  - Tong so ket qua
+- Sua title hero thanh:
+
+```text
+Goi y hop tac R&D dua tren Knowledge Graph
+```
+
+- Sua mo ta de noi ro he thong ket hop PGPR, embedding va XAI.
+- Nang cap quick entity cards:
+  - Card bo tron lon hon.
+  - Icon box ro hon.
+  - Hover co chuyen dong nhe.
+  - Them arrow de the hien co the bam vao duyet entity.
+  - Sua text thanh `Duyet du lieu va goi y cheo`.
+
+File lien quan:
+
+- `frontend/src/app/dashboard/page.tsx`
+
+Ly do:
+
+- Dashboard user can giong giao dien san pham that, khong phai man hinh debug.
+- System Health da duoc dua ve admin, nen dashboard can tap trung vao recommendation workflow.
+- Minh hoa node-edge giup nguoi dung hieu he thong dang dua tren Knowledge Graph.
+- Cac quick cards ro hon giup user biet co the vao Projects/Experts/Funders/Enterprises de duyet va goi y cheo.
+
+Validation:
+
+```powershell
+cd "D:\Documents\Đồ án\frontend"
+npm run typecheck
+```
+
+Ket qua:
+
+- TypeScript pass.
+
+### 55.8 Trang thai sau cac sua doi
+
+Da lam duoc:
+
+- Admin route dieu huong dung theo role.
+- Admin page chia tab ro rang, giam load qua nhieu.
+- Entity review pagination dung va tim duoc entity can duyet.
+- Merge entity co target candidate ro hon.
+- Navbar admin doi tab ngay, khong can reload.
+
+Con can theo doi:
+
+- Neu dev server Next dang chay trong luc build, co the can restart dev server de tranh loi `.next` cu.
+- Can tiep tuc test UI admin bang thao tac that:
+  - vao `/admin#review-queue`
+  - bam `Admin Users`
+  - bam `Audit Log`
+  - quay lai `Review Queue`
+  - mo detail entity co duplicate candidates va merge dry-review.
+
+---
+
+## 56. Kiem tra loi frontend start khong duoc - 2026-06-02
+
+Van de nguoi dung gap:
+
+- Khi chay frontend bang `npm run dev`, terminal bao frontend start khong duoc.
+
+Ket qua kiem tra:
+
+- Port `9002` da co mot process `node` dang chay.
+- `curl http://127.0.0.1:9002/admin` tra ve `HTTP/1.1 200 OK`.
+- File `frontend/dev-server.log` van co request `/admin 200`.
+- Khi chay lai `npm run dev`, Next.js bao:
+
+```text
+Error: listen EADDRINUSE: address already in use :::9002
+```
+
+Nguyen nhan:
+
+- Frontend khong bi chet.
+- Dev server Next.js da dang chay san o port `9002`.
+- Loi xay ra vi start them mot server moi tren cung port `9002`, nen he dieu hanh chan port va Next.js tra `EADDRINUSE`.
+
+Cach fix nhanh:
+
+1. Neu frontend dang chay tot:
+
+```powershell
+# Khong can chay npm run dev them lan nua
+curl.exe -I http://127.0.0.1:9002/admin
+```
+
+2. Neu muon restart frontend sach:
+
+```powershell
+cd "D:\Documents\Đồ án\frontend"
+
+$pids = (Get-NetTCPConnection -LocalPort 9002 -ErrorAction SilentlyContinue).OwningProcess | Select-Object -Unique
+$pids | ForEach-Object { Stop-Process -Id $_ -Force }
+
+Remove-Item ".next" -Recurse -Force -ErrorAction SilentlyContinue
+npm run dev
+```
+
+3. Neu muon chay them mot frontend khac de test:
+
+```powershell
+cd "D:\Documents\Đồ án\frontend"
+npm run dev -- -p 9003
+```
+
+Ly do ghi cach fix nay:
+
+- `EADDRINUSE` khong phai loi code, ma la loi trung port/process.
+- Can kiem tra port truoc khi ket luan frontend hong.
+- Xoa `.next` chi can lam khi Next dev bi loi cache/build artifact; neu chi bi trung port thi chi can dung process cu hoac dung port khac.
+
+Validation da chay:
+
+```powershell
+curl.exe -sS -I http://127.0.0.1:9002/admin
+npm run dev
+```
+
+Ket qua:
+
+- `/admin` tra `200 OK`, frontend hien dang song.
+- `npm run dev` lan hai fail voi `EADDRINUSE`, xac nhan nguyen nhan la port 9002 dang duoc su dung.
+
+---
+
+## 57. Sua loi backend khong doc dung Mongo credential khi chay local - 2026-06-03
+
+Van de gap:
+
+- Khi start backend local bang `uvicorn main:app --reload`, log hien:
+
+```text
+WARNING:backend:Could not ensure root admin account: Command find requires authentication
+```
+
+- Mot so request API co the nem exception ASGI vi repository truy van MongoDB nhung khong co authentication.
+
+Nguyen nhan:
+
+- MongoDB Docker dang bat authentication.
+- File `.env` co credential dung dang nam o thu muc root project: `D:\Documents\Đồ án\.env`.
+- Khi chay backend tu `D:\Documents\Đồ án\backend`, mot so luong code/repository co the khong doc duoc `.env` root on dinh.
+- Khi khong doc duoc `MONGO_URI`, code fallback ve:
+
+```text
+mongodb://localhost:27017
+```
+
+- URI fallback nay khong co username/password, nen MongoDB tra:
+
+```text
+Command find requires authentication
+```
+
+### 57.1 Tao `backend/.env`
+
+Da lam:
+
+- Copy noi dung `.env` root sang:
+
+```text
+D:\Documents\Đồ án\backend\.env
+```
+
+Ly do:
+
+- Backend local thuong duoc chay truc tiep tu thu muc `backend`.
+- Co file `backend/.env` giup local `uvicorn`, script backend va worker doc env ngay tai working directory backend.
+- Cach nay ro rang hon viec phu thuoc vao auto-discovery cua `python-dotenv`.
+
+### 57.2 Khong xoa `.env` root
+
+Da kiem tra:
+
+- `docker-compose.production.yml` van dung `.env` root qua:
+
+```yaml
+env_file:
+  - .env
+```
+
+- Root `.env` cung duoc compose dung de noi bien:
+  - `MONGO_USERNAME`
+  - `MONGO_PASSWORD`
+  - `NEXT_PUBLIC_API_BASE_URL`
+  - `BACKEND_PORT`
+  - `FRONTEND_PORT`
+
+Ket luan:
+
+- Khong xoa `D:\Documents\Đồ án\.env`.
+- Root `.env` tiep tuc dung cho Docker Compose/production-like run.
+- `backend/.env` dung cho backend local run.
+
+### 57.3 Lam env loader on dinh hon cho backend
+
+Da tao/cap nhat:
+
+- `backend/core/env.py`
+
+Chuc nang:
+
+- Load `.env` root neu co.
+- Load `backend/.env` sau va uu tien `backend/.env` khi chay local.
+- Tu parse env file bang `Path.read_text(encoding="utf-8-sig")`.
+
+Ly do:
+
+- Tren Windows voi duong dan co tieng Viet `D:\Documents\Đồ án\...`, `python-dotenv`/snippet test co luc khong doc duoc path on dinh.
+- Parser don gian giup backend doc cac bien `KEY=value` can thiet ma khong phu thuoc vao auto-discovery.
+- `backend/.env` co quyen override root `.env` de local backend co the cau hinh rieng neu can.
+
+File lien quan:
+
+- `backend/core/env.py`
+- `backend/main.py`
+- `backend/repositories/auth_repo.py`
+- `backend/repositories/mongodb_repo.py`
+- `backend/repositories/neo4j_repo.py`
+- `backend/repositories/pgpr_graph_repo.py`
+- `backend/pgpr/pgpr_recommendation.py`
+- `backend/pgpr/pgpr_env.py`
+- `backend/pgpr/pgpr_kg.py`
+- `backend/pgpr/pgpr_train.py`
+
+### 57.4 Validation sau fix
+
+Da test Mongo repository:
+
+```powershell
+cd "D:\Documents\Đồ án\backend"
+$env:PYTHONIOENCODING = "utf-8"
+@'
+from repositories.auth_repo import AuthRepository
+import os
+print(os.getenv("MONGO_URI"))
+repo = AuthRepository()
+print(repo.users.count_documents({}))
+'@ | python -
+```
+
+Ket qua:
+
+- `MONGO_URI` duoc doc dung tu env.
+- `users_count = 44`.
+- Khong con loi `requires authentication`.
+
+Da chay compile:
+
+```powershell
+python scripts\compile_project.py
+```
+
+Ket qua:
+
+- `compile passed: 100 file(s)`
+
+Da restart backend local:
+
+```powershell
+uvicorn main:app --reload
+```
+
+Da test health:
+
+```powershell
+curl http://127.0.0.1:8000/api/v1/health
+```
+
+Ket qua:
+
+```json
+{
+  "status": "ok",
+  "services": {
+    "mongodb": "connected",
+    "neo4j": "connected",
+    "redis": "optional",
+    "rabbitmq": "connected",
+    "pgpr": "ready"
+  }
+}
+```
+
+Trang thai sau fix:
+
+- Backend local da doc duoc Mongo credential.
+- Startup khong con warning root admin authentication.
+- Health API OK.
+- Root `.env` giu lai vi Docker Compose van dung.
+- `backend/.env` da co de chay backend local on dinh.
+
+---
+
+## 58. Don gon file `.env` theo tung ngu canh chay - 2026-06-03
+
+Van de:
+
+- Root `.env` va `backend/.env` ban dau giong nhau hoan toan.
+- File root co nhieu URI local nhu `MONGO_URI`, `NEO4J_URI`, `REDIS_URL`, `RABBITMQ_URL`, `OLLAMA_URL`.
+- Trong Docker Compose production, cac URI nay khong can thiet vi compose tu dung URI container -> host bang `host.docker.internal`.
+- Neu giu ca URI local lan bien thanh phan, file `.env` de roi va de nham lan giua local backend voi Docker Compose.
+
+### 58.1 Root `.env` dung cho Docker Compose
+
+Da lam:
+
+- Don root `.env` de chi giu cac bien Compose/app can:
+  - Mongo credential thanh phan: `MONGO_USERNAME`, `MONGO_PASSWORD`, `MONGO_DB_NAME`
+  - Neo4j credential: `NEO4J_USER`, `NEO4J_PASSWORD`
+  - RabbitMQ user/password va queue metadata
+  - URL frontend/API public cho browser
+  - auth/root admin secret
+  - embedding config
+- Xoa khoi root `.env` cac URI local khong can trong Compose:
+  - `MONGO_URI`
+  - `NEO4J_URI`
+  - `REDIS_URL`
+  - `RABBITMQ_URL`
+  - `OLLAMA_URL`
+
+Ly do:
+
+- `docker-compose.production.yml` tu tao:
+  - `MONGO_URI` tu `MONGO_USERNAME`, `MONGO_PASSWORD`, `MONGO_DB_NAME`
+  - `NEO4J_URI` tu `host.docker.internal`
+  - `REDIS_URL`, `RABBITMQ_URL`, `OLLAMA_URL` tu infra host
+- Root `.env` nen la file orchestration/config cho Docker Compose, khong nen tron voi local backend runtime.
+
+### 58.2 `backend/.env` dung cho backend local
+
+Da lam:
+
+- Don `backend/.env` de giu cac URI local backend can khi chay:
+  - `MONGO_URI`
+  - `NEO4J_URI`
+  - `REDIS_URL`
+  - `RABBITMQ_URL`
+  - `OLLAMA_URL`
+- Xoa khoi `backend/.env` cac bien chi can cho Compose/frontend build:
+  - `MONGO_USERNAME`
+  - `MONGO_PASSWORD`
+  - `NEXT_PUBLIC_API_BASE_URL`
+  - `BACKEND_PORT`
+  - `FRONTEND_PORT`
+
+Ly do:
+
+- Khi chay `uvicorn main:app --reload` trong thu muc `backend`, backend can URI local truc tiep.
+- Backend local khong can bien frontend build hay port publish cua Docker Compose.
+
+### 58.3 Validation sau khi don env
+
+Da test backend local doc Mongo:
+
+```powershell
+cd "D:\Documents\Đồ án\backend"
+$env:PYTHONIOENCODING = "utf-8"
+@'
+from repositories.auth_repo import AuthRepository
+import os
+print("MONGO_URI=", os.getenv("MONGO_URI"))
+repo = AuthRepository()
+print("users_count=", repo.users.count_documents({}))
+'@ | python -
+```
+
+Ket qua:
+
+- `MONGO_URI` doc dung tu `backend/.env`.
+- `users_count = 44`.
+
+Da chay compile:
+
+```powershell
+python scripts\compile_project.py
+```
+
+Ket qua:
+
+- `compile passed: 100 file(s)`
+
+Da kiem tra Docker Compose config:
+
+```powershell
+cd "D:\Documents\Đồ án"
+docker compose -f docker-compose.production.yml config --quiet
+```
+
+Ket qua:
+
+- Compose config hop le, khong thieu bien bat buoc.
+
+Trang thai sau don:
+
+- Root `.env`: gon cho Docker Compose/production-like run.
+- `backend/.env`: gon cho backend local run.
+- Khong xoa root `.env` vi compose van can file nay.
+
+---
+
+## 59. An System Health khoi dashboard user va dua ve admin diagnostics - 2026-06-03
+
+Van de:
+
+- Dashboard nguoi dung van hien bang `System Health`.
+- Bang nay phu hop voi admin/diagnostics hon la nguoi dung cuoi.
+- User dashboard nen tap trung vao recommendation ca nhan, entity va project, khong hien thong tin ha tang nhu MongoDB, Neo4j, RabbitMQ, PGPR.
+
+Da lam:
+
+- Xoa state va request health khoi dashboard user:
+  - bo `HealthResponse`
+  - bo `health`, `healthError`
+  - bo `api.health()` trong `useEffect`
+  - bo `healthServices`
+- Xoa card `System Health` khoi hero dashboard.
+- Cho hero recommendation tren dashboard chiem layout rong hon.
+- Giu health/status trong admin overview.
+- Doi ten panel admin thanh:
+
+```text
+System Health & Recommendation Test
+```
+
+- Chinh mo ta admin panel ro hon:
+  - theo doi backend/MongoDB/Neo4j/RabbitMQ
+  - chay thu PGPR recommendation voi source/target thu cong
+- Lam cac card health trong admin gon va tach bach hon bang nen trang/shadow nhe.
+
+File lien quan:
+
+- `frontend/src/app/dashboard/page.tsx`
+- `frontend/src/app/admin/page.tsx`
+
+Ly do:
+
+- Tach dung vai tro UI:
+  - User: dung recommendation va quan ly ho so/project.
+  - Admin: xem diagnostics, health, queue, audit va test he thong.
+- Giam request `/api/v1/health` khong can thiet tu dashboard user.
+- Tranh lo thong tin ha tang he thong cho nguoi dung thuong.
+
+Validation:
+
+```powershell
+cd "D:\Documents\Đồ án\frontend"
+npm run typecheck
+```
+
+Ket qua:
+
+- TypeScript pass.
+## 2026-06-03 14:18 - Mo rong form tao project theo seed_data.txt
+
+### Van de
+
+- Trang `Create Project` truoc do chi co form rut gon: title, summary, description, field, status, budget, TRL, location, keywords.
+- Trong khi du lieu mau tai `add_data/seed_data.txt` cua collection `projects` co schema day du hon nhieu: `basic_info`, `requirements_and_timeline`, `rd_profile`, `relations`, `follow_up_opportunities`, `governance`.
+- Neu nguoi dung chi nhap duoc form rut gon thi project moi tao thieu topic/skill/TRL/relations/dataset/funder/enterprise context, lam KG sync, embedding cold-start, PGPR path va XAI kem chat luong.
+
+### Da lam
+
+- Thay `frontend/src/app/projects/create/page.tsx` bang form tao project moi theo schema dong.
+- Bo sung cac section dung gan voi schema trong `seed_data.txt`:
+  - `Basic info`
+  - `Requirements and timeline`
+  - `R&D profile`
+  - `Relations`
+  - `Follow-up opportunities`
+  - `Governance`
+- Them cac field array/object co nut `Them muc`:
+  - required skills
+  - deliverables
+  - expert roles needed
+  - outputs
+  - required dataset ids
+  - TRL progression
+  - participants
+  - enterprise partners
+  - funders
+  - target industries
+  - related projects
+- Them option/select cho field can chuan hoa:
+  - project status
+  - proficiency level
+  - output type
+  - privacy level
+  - consent status
+  - currency/budget type
+- Them location theo `country-state-city` de sinh object location gom `country_code`, `country_name`, `region`, `city`, `coordinates`.
+- Them chon `research_topics` theo taxonomy co san va tu dong suy ra `research_directions`.
+- Them `custom_research_topics` de luu topic khac voi `parent_direction = Custom`, phuc vu admin mapping taxonomy sau.
+- Khi submit, frontend map payload vao dung cac khoi backend da ho tro:
+  - `basic_info`
+  - `requirements_and_timeline`
+  - `rd_profile`
+  - `relations`
+  - `follow_up_opportunities`
+  - `governance`
+
+### Ly do lam nhu vay
+
+- Giu backend contract hien co, khong sua API khi backend da nhan cac object schema mo rong.
+- Cho user nhap du lieu giau ngu canh hon de recommendation co du topic, skill, TRL, dataset, participant, funder va industry evidence.
+- Giam tinh trang project moi tao bi cold-start/no-signal vi thieu feature cho embedding va PGPR.
+- Giu cac truong khong bat buoc de form van dung duoc cho user thuong, nhung admin/he thong van co du schema neu can nhap sau.
+
+### Kiem tra
+
+- `npm run typecheck`: pass.
+- `npm run build`: pass.
+- `npm run lint`: chua chay duoc vi project chua cau hinh ESLint, Next.js dang hien prompt tuong tac cau hinh lint.
+## 2026-06-03 - Them nut Remove Project cho chu project
+
+### Van de
+
+- Trang `My Projects` chua co thao tac xoa project do user tao.
+- Neu chi an nut tren frontend thi khong du an toan, vi user co the goi API truc tiep de xoa project cua nguoi khac.
+- Project da sync vao Knowledge Graph neu xoa vat ly ngay co the lam gay audit, graph path va cac job embedding/retention ve sau.
+
+### Da lam
+
+- Them backend endpoint:
+  - `DELETE /api/v1/users/me/projects/{project_id}`
+- Them service:
+  - `AuthService.delete_project(user_id, project_id)`
+- Them repository:
+  - `find_user_project(user_id, project_id)`
+  - `soft_delete_user_project(user_id, project_id)`
+- Cap nhat `list_user_projects` va `count_user_projects` de bo qua project da co `deleted_at`.
+- Khi xoa project:
+  - chi tim project voi `owner_id = current_user.id`
+  - set `deleted_at`, `deleted_by`
+  - set `active=false`
+  - set `visibility=hidden`
+  - set `participation_scope=disabled`
+  - set `recommendable_as_target=false`
+  - set `allow_as_intermediate_node=false`
+  - set `trust_weight=0`
+  - set status project thanh `deleted`
+- Service co gang goi `ProvisionalKGSyncService.disable_entity("project", project_id)` de vo hieu hoa node Neo4j neu da sync.
+- Them frontend API:
+  - `api.deleteMyProject(projectId)`
+- Them nut `Remove` trong `frontend/src/app/projects/my/page.tsx`.
+- Sau khi xoa thanh cong, UI remove project khoi state hien tai de khong can reload trang.
+
+### Ly do lam nhu vay
+
+- Rule quyen duoc enforce o backend bang `owner_id`, nen user khong the xoa project khong phai cua minh.
+- Dung soft-delete thay vi physical delete de giu audit/debug va tranh lam hong KG/embedding pipeline dot ngot.
+- Node KG neu ton tai se bi disable khoi recommendation, phu hop voi kien truc `visibility/participation_scope/recommendable_as_target`.
+
+### Kiem tra
+
+- `python scripts\compile_project.py`: pass.
+- `npm run typecheck`: pass.
+- `npm run build`: pass.
+## 2026-06-03 - Xu ly loi frontend mat CSS / giao dien HTML tho
+
+### Hien tuong
+
+- Giao dien `localhost:9002/projects/my` hien nhu HTML mac dinh, mat toan bo style Tailwind/ShadCN.
+- Navbar, button, layout khong con styling.
+
+### Nguyen nhan
+
+- Next.js dev server dang chay nhung thu muc generated `.next` bi lech chunk sau khi chay `npm run build` trong luc dev server van dang song.
+- Log frontend bao loi:
+  - `Cannot find module './vendor-chunks/tailwind-merge.js'`
+- Khi chunk trong `.next` bi lech, browser co the khong load dung CSS/static bundle, dan den trang roi ve HTML tho.
+
+### Da lam
+
+- Tat cac process Node cua frontend dev server tren port `9002`.
+- Xoa thu muc generated `frontend/.next`.
+- Start lai dev server bang `npm.cmd run dev`.
+- Kiem tra lai:
+  - `http://localhost:9002/projects/my` tra HTML thanh cong.
+  - CSS asset `/_next/static/css/app/layout.css` tra `200`.
+  - `dev-server.err.log` khong con loi module missing.
+
+### Ly do lam nhu vay
+
+- `.next` la cache/artifact sinh tu Next.js, khong phai source code, nen xoa de build lai sach la cach dung khi chunk bi hong.
+- Tranh sua UI/source khi nguyen nhan that su nam o artifact build/dev cache.
+
+### Luu y van hanh
+
+- Khong nen chay `npm run build` khi `npm run dev` dang chay trong cung workspace frontend.
+- Neu can build verify, nen dung mot trong hai cach:
+  - dung dev server truoc, chay build, roi xoa `.next` va start dev lai;
+  - hoac chay build trong moi truong/container rieng.

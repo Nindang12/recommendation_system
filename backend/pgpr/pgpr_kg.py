@@ -12,9 +12,9 @@ from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 
 from neo4j import GraphDatabase
-from dotenv import load_dotenv
+from core.env import load_project_env
 
-load_dotenv()
+load_project_env()
 logger = logging.getLogger(__name__)
 
 # Neo4j

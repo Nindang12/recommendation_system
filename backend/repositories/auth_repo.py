@@ -5,14 +5,14 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
-from dotenv import find_dotenv, load_dotenv
 from pymongo import ASCENDING, MongoClient
 from pymongo.errors import DuplicateKeyError
 
+from core.env import load_project_env
 from models.research_taxonomy import RESEARCH_TOPIC_LABEL_MAP, research_direction_label, research_topic_direction
 from services.embedding_metadata_service import EmbeddingMetadataService
 
-load_dotenv(find_dotenv())
+load_project_env()
 
 
 class AuthRepository:
@@ -181,6 +181,62 @@ class AuthRepository:
         if collection is None:
             return None
         return collection.find_one({self.entity_id_field(entity_type): entity_id})
+
+    def find_duplicate_candidates_for_entity(
+        self,
+        entity_type: str,
+        entity: Dict[str, Any],
+        limit: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """Find same-type entities that look like merge targets for an admin detail page."""
+        collection = self.get_entity_collection(entity_type)
+        if collection is None or not entity:
+            return []
+
+        id_field = self.entity_id_field(entity_type)
+        source_id = str(entity.get(id_field) or entity.get("_id") or "")
+        source_name = self._display_name(entity).strip()
+        if not source_name:
+            return []
+
+        normalized_source_name = source_name.casefold()
+        candidates: List[Dict[str, Any]] = []
+        for doc in collection.find({}).sort("updated_at", -1):
+            target_id = str(doc.get(id_field) or doc.get("_id") or "")
+            if not target_id or target_id == source_id:
+                continue
+            target_name = self._display_name(doc).strip()
+            if not target_name:
+                continue
+            normalized_target_name = target_name.casefold()
+            if normalized_target_name != normalized_source_name:
+                continue
+            candidates.append(
+                {
+                    "id": target_id,
+                    "entity_id": target_id,
+                    "type": entity_type,
+                    "name": target_name,
+                    "kg_sync_status": doc.get("kg_sync_status"),
+                    "entity_verification_status": doc.get("entity_verification_status"),
+                    "visibility": doc.get("visibility"),
+                    "participation_scope": doc.get("participation_scope"),
+                    "trust_weight": doc.get("trust_weight"),
+                    "match_strength": "same_name",
+                    "similarity": 1.0,
+                    "reason": "Same normalized display name/title",
+                }
+            )
+            if len(candidates) >= limit:
+                break
+        candidates.sort(
+            key=lambda item: (
+                0 if item.get("entity_verification_status") == "verified" else 1,
+                0 if item.get("kg_sync_status") == "synced_verified" else 1,
+                str(item.get("name") or ""),
+            )
+        )
+        return candidates
 
     def find_strong_entity_match(self, role: str, user: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         collection = self.get_entity_collection(role)
@@ -701,6 +757,15 @@ class AuthRepository:
         now = datetime.now(timezone.utc)
         project_id = project.get("project_id") or f"user_prj_{ObjectId()}"
         keywords = list(project.get("keywords") or [])
+        basic_info = dict(project.get("basic_info") or {})
+        requirements = dict(project.get("requirements_and_timeline") or {})
+        rd_profile = dict(project.get("rd_profile") or {})
+        relations = dict(project.get("relations") or {})
+        follow_up = dict(project.get("follow_up_opportunities") or {})
+        governance = dict(project.get("governance") or {})
+
+        if not keywords:
+            keywords = list(basic_info.get("keywords") or [])
         topics = [
             {
                 "id": item,
@@ -713,37 +778,66 @@ class AuthRepository:
             for item in keywords
             if item
         ]
+        if not topics:
+            topics = list(basic_info.get("research_topics") or [])
+
+        basic_location = dict(basic_info.get("location") or {})
+        fallback_location = project.get("location", "")
+        budget = dict(requirements.get("budget") or {})
+        if not budget:
+            budget = {
+                "amount": project.get("budget"),
+                "currency": "VND",
+                "budget_type": None,
+            }
+        timeline = dict(requirements.get("timeline") or {})
+        collaboration_needs = dict(requirements.get("collaboration_needs") or {})
         payload = {
             "project_id": str(project_id),
             "basic_info": {
-                "title": project.get("title", ""),
-                "description": project.get("description") or project.get("summary") or "",
-                "research_directions": [project.get("field")] if project.get("field") else [],
+                "title": basic_info.get("title") or project.get("title", ""),
+                "description": basic_info.get("description") or project.get("description") or project.get("summary") or "",
+                "research_directions": list(
+                    basic_info.get("research_directions")
+                    or ([project.get("field")] if project.get("field") else [])
+                ),
                 "research_topics": topics,
                 "keywords": keywords,
                 "location": {
-                    "country_code": "VN",
-                    "country_name": "Vietnam",
-                    "region": project.get("location", ""),
-                    "city": "",
-                    "coordinates": {},
+                    "country_code": basic_location.get("country_code") or "VN",
+                    "country_name": basic_location.get("country_name") or "Vietnam",
+                    "region": basic_location.get("region") or fallback_location,
+                    "city": basic_location.get("city") or "",
+                    "coordinates": dict(basic_location.get("coordinates") or {}),
                 },
+                "status": basic_info.get("status") or project.get("status", "draft"),
+                "update_date": basic_info.get("update_date"),
             },
             "requirements_and_timeline": {
-                "status": project.get("status", "draft"),
-                "required_skills": [],
-                "technology_readiness_level": project.get("trl"),
-                "budget": {
-                    "amount": project.get("budget"),
-                    "currency": "VND",
-                    "budget_type": None,
-                },
-                "timeline": {},
+                "status": requirements.get("status") or basic_info.get("status") or project.get("status", "draft"),
+                "required_skills": list(requirements.get("required_skills") or []),
+                "technology_readiness_level": requirements.get("technology_readiness_level") or project.get("trl"),
+                "budget": budget,
+                "deliverables": list(requirements.get("deliverables") or []),
+                "timeline": timeline,
+                "collaboration_needs": collaboration_needs,
             },
-            "rd_profile": {"required_dataset_ids": []},
-            "relations": {"participants": [], "enterprise_partners": [], "funders": []},
-            "follow_up_opportunities": {},
-            "governance": self._default_governance(now),
+            "rd_profile": {
+                "outputs": list(rd_profile.get("outputs") or []),
+                "required_dataset_ids": list(rd_profile.get("required_dataset_ids") or []),
+                "trl_progression": list(rd_profile.get("trl_progression") or []),
+                "technology_gap": dict(rd_profile.get("technology_gap") or {}),
+                "impact_and_sustainability": dict(rd_profile.get("impact_and_sustainability") or {}),
+            },
+            "relations": {
+                "participants": list(relations.get("participants") or []),
+                "enterprise_partners": list(relations.get("enterprise_partners") or []),
+                "funders": list(relations.get("funders") or []),
+                "target_industries": list(relations.get("target_industries") or []),
+                "related_projects": list(relations.get("related_projects") or []),
+            },
+            "follow_up_opportunities": follow_up,
+            "governance": governance or self._default_governance(now),
             "owner_id": user_id,
             "created_by": user_id,
             "owner_user_id": user_id,
@@ -776,7 +870,7 @@ class AuthRepository:
     def list_user_projects(self, user_id: str, limit: int = 50, page: int = 1) -> List[Dict[str, Any]]:
         skip = max(page - 1, 0) * limit
         cursor = (
-            self.projects.find({"owner_id": user_id})
+            self.projects.find({"owner_id": user_id, "deleted_at": {"$exists": False}})
             .sort("created_at", -1)
             .skip(skip)
             .limit(limit)
@@ -784,16 +878,55 @@ class AuthRepository:
         return list(cursor)
 
     def count_user_projects(self, user_id: str) -> int:
-        return int(self.projects.count_documents({"owner_id": user_id}))
+        return int(self.projects.count_documents({"owner_id": user_id, "deleted_at": {"$exists": False}}))
+
+    def find_user_project(self, user_id: str, project_id: str) -> Optional[Dict[str, Any]]:
+        return self.projects.find_one(
+            {
+                "owner_id": user_id,
+                "project_id": project_id,
+                "deleted_at": {"$exists": False},
+            }
+        )
+
+    def soft_delete_user_project(self, user_id: str, project_id: str) -> Optional[Dict[str, Any]]:
+        now = datetime.now(timezone.utc)
+        before = self.find_user_project(user_id, project_id)
+        if not before:
+            return None
+        update = {
+            "deleted_at": now,
+            "deleted_by": user_id,
+            "active": False,
+            "visibility": "hidden",
+            "participation_scope": "disabled",
+            "recommendable_as_target": False,
+            "allow_as_intermediate_node": False,
+            "trust_weight": 0,
+            "kg_sync_status": "disabled",
+            "entity_verification_status": before.get("entity_verification_status", "unverified"),
+            "updated_at": now,
+            "requirements_and_timeline.status": "deleted",
+            "basic_info.status": "deleted",
+        }
+        self.projects.update_one(
+            {"owner_id": user_id, "project_id": project_id, "deleted_at": {"$exists": False}},
+            {"$set": update},
+        )
+        deleted = self.projects.find_one({"owner_id": user_id, "project_id": project_id})
+        if deleted:
+            deleted["_delete_before"] = before
+        return deleted
 
     def list_entities_for_admin(
         self,
         entity_type: Optional[str] = None,
         kg_sync_status: Optional[str] = None,
         entity_verification_status: Optional[str] = None,
+        search: Optional[str] = None,
         limit: int = 50,
         page: int = 1,
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """List business entities for admin review screens."""
         types = [entity_type] if entity_type else ["expert", "enterprise", "funder", "project"]
         query: Dict[str, Any] = {}
@@ -801,17 +934,33 @@ class AuthRepository:
             query["kg_sync_status"] = kg_sync_status
         if entity_verification_status:
             query["entity_verification_status"] = entity_verification_status
+        search_term = str(search or "").strip().lower()
 
         skip = max(page - 1, 0) * limit
         rows: List[Dict[str, Any]] = []
-        per_type_limit = max(limit, 10)
 
         for role in types:
             collection = self.get_entity_collection(role)
             if collection is None:
                 continue
             id_field = self.entity_id_field(role)
-            for doc in collection.find(query).sort("updated_at", -1).limit(per_type_limit):
+            for doc in collection.find(query).sort("updated_at", -1):
+                if search_term:
+                    searchable_text = " ".join(
+                        str(value or "")
+                        for value in (
+                            doc.get(id_field),
+                            doc.get("_id"),
+                            doc.get("name"),
+                            doc.get("title"),
+                            self._get_nested(doc, "basic_info.name"),
+                            self._get_nested(doc, "basic_info.title"),
+                            self._display_email(doc),
+                            doc.get("user_id"),
+                        )
+                    ).lower()
+                    if search_term not in searchable_text:
+                        continue
                 rows.append(
                     {
                         "entity_type": role,
@@ -832,7 +981,8 @@ class AuthRepository:
                 )
 
         rows.sort(key=lambda item: str(item.get("updated_at") or ""), reverse=True)
-        return rows[skip : skip + limit]
+        total = len(rows)
+        return {"rows": rows[skip : skip + limit], "total": total}
 
     def list_admin_audit_logs(self, limit: int = 50, page: int = 1) -> List[Dict[str, Any]]:
         skip = max(page - 1, 0) * limit

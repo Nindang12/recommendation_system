@@ -16,7 +16,6 @@ for Explainable Recommendation"
 
 from typing import List, Dict, Any, Tuple, Optional, Set
 import os
-from dotenv import load_dotenv
 import logging
 import numpy as np
 from collections import defaultdict, deque
@@ -24,7 +23,9 @@ import random
 from functools import lru_cache
 import time
 
-load_dotenv()
+from core.env import load_project_env
+
+load_project_env()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

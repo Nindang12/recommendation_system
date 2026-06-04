@@ -125,13 +125,43 @@ class AuthService:
         except Exception:
             # Project creation should remain usable even when Neo4j is temporarily down.
             pass
-        return self._project_response(project)
+        return self._project_response(project, current_user_id=user_id)
 
     def list_my_projects(self, user_id: str, limit: int = 50, page: int = 1) -> Dict[str, Any]:
-        projects = self.repo.list_user_projects(user_id, limit=limit, page=page)
+        user = self.repo.find_user_by_id(user_id) or {}
+        linked_entity = user.get("linked_entity") or {}
+        owned_projects = self.repo.list_user_projects(user_id, limit=200, page=1)
+        for project in owned_projects:
+            project["_my_project_relation"] = "owner"
+
+        linked_projects: List[Dict[str, Any]] = []
+        if linked_entity.get("id") and linked_entity.get("type"):
+            linked_projects = self.repo.list_projects_related_to_entity(
+                str(linked_entity.get("type")),
+                str(linked_entity.get("id")),
+                limit=200,
+            )
+
+        projects_by_id: Dict[str, Dict[str, Any]] = {}
+        for project in linked_projects + owned_projects:
+            project_id = str(project.get("project_id") or project.get("_id"))
+            if not project_id:
+                continue
+            existing = projects_by_id.get(project_id)
+            if existing and existing.get("_my_project_relation") == "owner":
+                continue
+            projects_by_id[project_id] = project
+
+        merged_projects = list(projects_by_id.values())
+        merged_projects.sort(
+            key=lambda item: str(item.get("updated_at") or item.get("created_at") or ""),
+            reverse=True,
+        )
+        start = max(page - 1, 0) * limit
+        projects = merged_projects[start : start + limit]
         return {
-            "data": [self._project_response(project) for project in projects],
-            "count": self.repo.count_user_projects(user_id),
+            "data": [self._project_response(project, current_user_id=user_id) for project in projects],
+            "count": len(merged_projects),
         }
 
     def delete_project(self, user_id: str, project_id: str) -> Dict[str, Any]:
@@ -146,7 +176,7 @@ class AuthService:
         except Exception:
             # The user-facing delete should still hide the MongoDB project if Neo4j is down.
             pass
-        return self._project_response(project)
+        return self._project_response(project, current_user_id=user_id)
 
     def _auth_response(self, user: Dict[str, Any]) -> Dict[str, Any]:
         public = self._public_user(user)
@@ -483,7 +513,11 @@ class AuthService:
             "duplicate_candidates": duplicate_candidates,
         }
 
-    def _project_response(self, project: Dict[str, Any]) -> Dict[str, Any]:
+    def _project_response(self, project: Dict[str, Any], current_user_id: Optional[str] = None) -> Dict[str, Any]:
+        owner_id = project.get("owner_id")
+        can_delete = bool(current_user_id and owner_id == current_user_id and not project.get("deleted_at"))
+        relation = project.get("_my_project_relation") or ("owner" if can_delete else None)
+        embedding = self._embedding_metadata(project)
         return {
             "id": str(project.get("project_id") or project.get("_id")),
             "name": self._first_value(
@@ -510,8 +544,13 @@ class AuthService:
                 "budget": project.get("budget") or self._get_path(project, "requirements_and_timeline.budget.amount"),
                 "trl": project.get("trl")
                 or self._get_path(project, "requirements_and_timeline.technology_readiness_level"),
-                "owner_id": project.get("owner_id"),
+                "owner_id": owner_id,
                 "owner_entity_id": project.get("owner_entity_id"),
+                "can_delete": can_delete,
+                "my_project_relation": relation,
+                "linked_entity_role": project.get("_linked_entity_role"),
+                "linked_entity_status": project.get("_linked_entity_status"),
+                "linked_entity_period": project.get("_linked_entity_period"),
                 "entity_verification_status": project.get("entity_verification_status", st.ENTITY_UNVERIFIED),
                 "kg_sync_status": project.get("kg_sync_status", st.KG_NOT_SYNCED),
                 "visibility": project.get("visibility", st.VISIBILITY_LIMITED),
@@ -520,9 +559,30 @@ class AuthService:
                 "recommendable_as_target": bool(project.get("recommendable_as_target", False)),
                 "allow_as_intermediate_node": bool(project.get("allow_as_intermediate_node", False)),
                 "trust_weight": float(project.get("trust_weight", 0.5) or 0.5),
+                "embedding": embedding,
+                "embedding_status": embedding.get("status"),
                 "created_at": self._dt(project.get("created_at")),
                 "updated_at": self._dt(project.get("updated_at")),
             },
+        }
+
+    def _embedding_metadata(self, entity: Dict[str, Any]) -> Dict[str, Any]:
+        embedding = entity.get("embedding")
+        if not isinstance(embedding, dict):
+            status = entity.get("embedding_status")
+            return {"status": status} if status else {}
+        return {
+            "status": embedding.get("status"),
+            "model": embedding.get("model"),
+            "version": embedding.get("version"),
+            "dimension": embedding.get("dimension"),
+            "normalized": embedding.get("normalized"),
+            "signal": embedding.get("signal"),
+            "updated_at": self._dt(embedding.get("updated_at")),
+            "last_queued_at": self._dt(embedding.get("last_queued_at")),
+            "last_processed_at": self._dt(embedding.get("last_processed_at")),
+            "error": embedding.get("error"),
+            "error_type": embedding.get("error_type"),
         }
 
     def _sync_role_entity_if_needed(self, role: str, linked_entity: Dict[str, Any]) -> Optional[Dict[str, Any]]:

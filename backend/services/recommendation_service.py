@@ -91,7 +91,7 @@ class RecommendationService:
         source_label = self._to_policy_label(source_type)
         target_label = self._to_policy_label(target_type)
         cache_key = (
-            f"recommendations:v6:hybrid:{target_label.lower()}_for_{source_label.lower()}:"
+            f"recommendations:v8:structured-xai:{target_label.lower()}_for_{source_label.lower()}:"
             f"{source_id}:{limit}:{language}:{mode}:{current_user_id or ''}"
         )
 
@@ -112,7 +112,12 @@ class RecommendationService:
                 logger.warning(f"Mongo error: {e}")
                 project = None
             if project:
-                source_context["source_name"] = project.get("title") or source_id
+                source_context["source_name"] = (
+                    project.get("title")
+                    or (project.get("basic_info") or {}).get("title")
+                    or project.get("name")
+                    or source_id
+                )
 
         pgpr_pool_limit = max(limit * 3, 30)
         pgpr_candidates: List[Dict[str, Any]] = await self._run_pgpr_dispatch(
@@ -128,7 +133,7 @@ class RecommendationService:
             source_type=source_type,
             source_id=source_id,
             target_type=target_type,
-            limit=limit,
+            limit=max(limit * 3, 30),
             mode=mode,
             current_user_id=current_user_id,
             source_context=src_reco_ctx,
@@ -142,6 +147,13 @@ class RecommendationService:
             mode=mode,
             current_user_id=current_user_id,
         )
+        recommendations = await self._exclude_existing_relationships(
+            recommendations,
+            source_id=source_id,
+            source_type=source_type,
+            target_type=target_type,
+        )
+        recommendations = recommendations[:limit]
 
         # 4. Enrich with XAI explanations (plug existing XAI here)
         recommendations = await self._enrich_with_xai(
@@ -184,6 +196,119 @@ class RecommendationService:
         # 8. Return results
         return recommendations
 
+    async def _exclude_existing_relationships(
+        self,
+        recommendations: List[Dict[str, Any]],
+        *,
+        source_id: str,
+        source_type: str,
+        target_type: str,
+    ) -> List[Dict[str, Any]]:
+        """Keep recommendation results focused on new collaboration opportunities."""
+        source_type = source_type.strip().lower()
+        target_type = target_type.strip().lower()
+        try:
+            source = await self.mongo_repo.get_entity(source_type, source_id)
+        except Exception as exc:
+            logger.warning(
+                "Could not load source relation context for %s/%s: %s",
+                source_type,
+                source_id,
+                exc,
+            )
+            return recommendations
+
+        raw = (source or {}).get("raw") if isinstance(source, dict) else None
+        if not isinstance(raw, dict):
+            return recommendations
+
+        relation_paths = {
+            ("project", "expert"): [
+                ("relations.participants", "expert_id"),
+            ],
+            ("project", "enterprise"): [
+                ("relations.enterprise_partners", "enterprise_id"),
+            ],
+            ("project", "funder"): [
+                ("relations.funders", "funder_id"),
+            ],
+            ("project", "project"): [
+                ("relations.related_projects", "project_id"),
+            ],
+            ("expert", "project"): [
+                ("activities_and_outputs.projects_participation", "project_id"),
+                ("activities_and_outputs.grant_history", "linked_project_id"),
+            ],
+            ("expert", "expert"): [
+                ("activities_and_outputs.collaborators", "expert_id"),
+            ],
+            ("enterprise", "project"): [
+                ("relations.rd_projects", "project_id"),
+            ],
+            ("enterprise", "expert"): [
+                ("relations.worked_experts", "expert_id"),
+            ],
+            ("funder", "project"): [
+                ("funding_history.funded_projects", "project_id"),
+            ],
+        }
+        existing_ids: set[str] = set()
+        if source_type == target_type:
+            existing_ids.add(str(source_id))
+        for path, id_field in relation_paths.get((source_type, target_type), []):
+            existing_ids.update(self._relation_ids(raw, path, id_field))
+
+        if not existing_ids:
+            return recommendations
+
+        filtered: List[Dict[str, Any]] = []
+        removed: List[str] = []
+        for item in recommendations:
+            candidate_id = str(
+                item.get("id")
+                or item.get(f"{target_type}_id")
+                or item.get("expert_id")
+                or item.get("project_id")
+                or item.get("funder_id")
+                or item.get("enterprise_id")
+                or ""
+            )
+            if candidate_id and candidate_id in existing_ids:
+                removed.append(candidate_id)
+                continue
+            filtered.append(item)
+
+        if removed:
+            logger.info(
+                "Excluded existing relationships from %s/%s -> %s: %s",
+                source_type,
+                source_id,
+                target_type,
+                sorted(set(removed)),
+            )
+        return filtered
+
+    @staticmethod
+    def _relation_ids(raw: Dict[str, Any], path: str, id_field: str) -> set[str]:
+        value: Any = raw
+        for part in path.split("."):
+            if not isinstance(value, dict):
+                return set()
+            value = value.get(part)
+
+        values = value if isinstance(value, list) else [value]
+        ids: set[str] = set()
+        for item in values:
+            if isinstance(item, dict):
+                relation_id = item.get(id_field)
+            elif id_field in {"project_id", "expert_id", "enterprise_id", "funder_id"}:
+                relation_id = item
+            else:
+                relation_id = None
+            if relation_id not in (None, ""):
+                ids.add(str(relation_id))
+        return ids
+
     async def get_project_overview(
         self,
         project_id: str,
@@ -207,6 +332,12 @@ class RecommendationService:
             project = None
         if project:
             source["name"] = project.get("title") or project.get("name") or project_id
+            embedding = self._embedding_metadata(project)
+            if embedding:
+                source["metadata"] = {
+                    "embedding": embedding,
+                    "embedding_status": embedding.get("status"),
+                }
 
         async def _recommend_group(target_type: str) -> Any:
             try:
@@ -249,6 +380,25 @@ class RecommendationService:
             },
         }
 
+    def _embedding_metadata(self, entity: Dict[str, Any]) -> Dict[str, Any]:
+        embedding = entity.get("embedding")
+        if not isinstance(embedding, dict):
+            status = entity.get("embedding_status")
+            return {"status": status} if status else {}
+        return {
+            "status": embedding.get("status"),
+            "model": embedding.get("model"),
+            "version": embedding.get("version"),
+            "dimension": embedding.get("dimension"),
+            "normalized": embedding.get("normalized"),
+            "signal": embedding.get("signal"),
+            "updated_at": embedding.get("updated_at"),
+            "last_queued_at": embedding.get("last_queued_at"),
+            "last_processed_at": embedding.get("last_processed_at"),
+            "error": embedding.get("error"),
+            "error_type": embedding.get("error_type"),
+        }
+
     async def evaluate_target_entity(
         self,
         source_id: str,
@@ -278,6 +428,22 @@ class RecommendationService:
                 item["matched_requested_entity"] = True
                 item["matched_rank"] = rank
                 return [item]
+
+        relation_check = await self._exclude_existing_relationships(
+            [{"id": target_id}],
+            source_id=source_id,
+            source_type=source_type,
+            target_type=target_type,
+        )
+        if not relation_check:
+            logger.info(
+                "Skipped direct recommendation for existing relationship %s/%s -> %s/%s",
+                source_type,
+                source_id,
+                target_type,
+                target_id,
+            )
+            return []
 
         try:
             target_entity = await self.mongo_repo.get_entity(target_type, target_id)
@@ -434,7 +600,12 @@ class RecommendationService:
             )
             rec = dict(rec)
             if isinstance(explanation, dict) and "natural_language" in explanation:
-                text = explanation["natural_language"]
+                text = self._build_concise_xai_summary(
+                    rec,
+                    target_type=target_type,
+                    source_context=source_context,
+                    language=language,
+                )
                 text = self._append_hybrid_xai_notes(text, rec, source_context)
                 rec["explanation"] = {
                     "natural_language": text,
@@ -489,13 +660,13 @@ class RecommendationService:
         target_type: str,
         source_context: Optional[Dict[str, Any]] = None,
         language: str = "vi",
-        mode: str = "rule",
+        mode: str = "llm",
         force_refresh: bool = False,
     ) -> Dict[str, Any]:
         """
         Explain one recommendation. mode: rule | llm | auto (llm with rule fallback).
         """
-        mode = (mode or "rule").lower()
+        mode = (mode or "llm").lower()
         if mode not in ("rule", "llm", "auto"):
             raise ValueError(f"Unsupported explanation mode: {mode}")
 
@@ -533,6 +704,8 @@ class RecommendationService:
             explanation = await self._explain_llm(
                 recommendation, target_type, source_context, language
             )
+            explanation["summary_style"] = "xai_model_generated"
+            explanation["model_generated"] = True
             await self._save_explanation_cache(cache_key, explanation)
             explanation["_cache"] = {
                 "hit": False,
@@ -600,6 +773,7 @@ class RecommendationService:
 
         parts = [
             "explanation",
+            "v6_no_diversity_confidence",
             str(language or "vi").lower(),
             str(mode or "rule").lower(),
             source_type,
@@ -631,6 +805,14 @@ class RecommendationService:
             explanation["verification_badges"] = recommendation.get("verification_badges") or {}
             explanation["scoring_method"] = recommendation.get("scoring_method")
             explanation["fallback_reason"] = recommendation.get("fallback_reason")
+            explanation["hybrid_score_breakdown"] = recommendation.get("hybrid_score_breakdown") or {}
+            explanation["evidence_level"] = recommendation.get("evidence_level")
+            explanation["natural_language"] = self._build_concise_xai_summary(
+                recommendation,
+                target_type=target_type,
+                source_context=source_context,
+                language=language,
+            )
             if recommendation.get("uses_provisional_data"):
                 note = (
                     "Goi y nay co su dung du lieu chua xac thuc. "
@@ -640,19 +822,15 @@ class RecommendationService:
                 if isinstance(existing, str) and note not in existing:
                     explanation["natural_language"] = f"{existing}\n\n{note}"
             scoring_method = str(recommendation.get("scoring_method") or "")
-            if scoring_method in {"cypher_fallback", "hybrid_embedding", "hybrid_embedding_path"}:
+            if scoring_method in {"cypher_fallback", "hybrid_embedding"}:
                 if scoring_method == "cypher_fallback":
                     fallback_note = (
                         "Diem so va giai thich dua tren heuristic/Cypher tren do thi, "
                         "khong phai PGPR policy day du. Khong nen coi la ket qua chac chan."
                     )
-                elif scoring_method == "hybrid_embedding_path":
-                    fallback_note = (
-                        "Ket qua ket hop PGPR path va embedding similarity; uu tien ly do tren do thi."
-                    )
                 else:
                     fallback_note = (
-                        "Ket qua hybrid co embedding nhung path KG con han che."
+                        "Kết quả hybrid có sử dụng embedding nhưng bằng chứng đường đi còn hạn chế."
                     )
                 if recommendation.get("fallback_reason"):
                     fallback_note = f"{fallback_note}\n\n{recommendation['fallback_reason']}"
@@ -666,6 +844,173 @@ class RecommendationService:
                 if isinstance(existing, str) and note not in existing:
                     explanation["natural_language"] = f"{existing}\n\n{note}"
         return explanation
+
+    def _apply_concise_explanation_contract(
+        self,
+        explanation: Dict[str, Any],
+        *,
+        recommendation: Dict[str, Any],
+        target_type: str,
+        source_context: Optional[Dict[str, Any]],
+        language: str,
+    ) -> Dict[str, Any]:
+        """Keep model analysis for diagnostics while exposing one concise user-facing conclusion."""
+        result = dict(explanation or {})
+        generated_detail = result.get("natural_language")
+        if isinstance(generated_detail, str) and generated_detail.strip():
+            result["model_analysis_detail"] = generated_detail
+        result["natural_language"] = self._build_concise_xai_summary(
+            recommendation,
+            target_type=target_type,
+            source_context=source_context,
+            language=language,
+        )
+        result["summary_style"] = "concise_aggregated"
+        return result
+
+    @staticmethod
+    def _build_concise_xai_summary(
+        recommendation: Dict[str, Any],
+        *,
+        target_type: str,
+        source_context: Optional[Dict[str, Any]],
+        language: str,
+    ) -> str:
+        """Summarize all reasoning paths into a short conclusion; paths are rendered separately."""
+        if language != "vi":
+            return str(recommendation.get("xai_explanation") or recommendation.get("explanation") or "")
+
+        source_context = source_context or {}
+        source_name = str(source_context.get("source_name") or source_context.get("source_id") or "nguồn hiện tại")
+        target_name = str(
+            recommendation.get("name")
+            or recommendation.get("title")
+            or recommendation.get("id")
+            or "thực thể được đề xuất"
+        )
+        target_type = target_type.lower()
+        target_label = {
+            "expert": "chuyên gia",
+            "project": "dự án",
+            "funder": "quỹ tài trợ",
+            "enterprise": "doanh nghiệp",
+        }.get(target_type, "thực thể")
+
+        paths = recommendation.get("reasoning_paths") or []
+        source_id = str(source_context.get("source_id") or "")
+        target_id = str(
+            recommendation.get("id")
+            or recommendation.get(f"{target_type}_id")
+            or ""
+        )
+        categories: Dict[str, List[str]] = {
+            "domain": [],
+            "people": [],
+            "organizations": [],
+            "location": [],
+        }
+        for path in paths:
+            for entity in path.get("entities") or []:
+                if not isinstance(entity, dict):
+                    continue
+                entity_id = str(entity.get("id") or "")
+                name = str(entity.get("name") or entity_id)
+                entity_type = str(entity.get("type") or "").lower()
+                if not name or entity_id in {source_id, target_id} or name in {source_name, target_name}:
+                    continue
+                if entity_type in {"researchtopic", "researchdirection", "skill", "industry", "technology"}:
+                    bucket = "domain"
+                elif entity_type == "expert":
+                    bucket = "people"
+                elif entity_type in {"enterprise", "funder", "project"}:
+                    bucket = "organizations"
+                elif entity_type == "location":
+                    bucket = "location"
+                else:
+                    continue
+                if name not in categories[bucket]:
+                    categories[bucket].append(name)
+
+        evidence_parts: List[str] = []
+        if categories["domain"]:
+            evidence_parts.append("điểm giao về " + ", ".join(categories["domain"][:3]))
+        bridges = categories["people"][:2] + categories["organizations"][:2]
+        if bridges:
+            evidence_parts.append("mạng lưới kết nối qua " + ", ".join(bridges[:3]))
+        if categories["location"]:
+            evidence_parts.append("phạm vi hoạt động tại " + ", ".join(categories["location"][:1]))
+
+        if evidence_parts:
+            reason = "; ".join(evidence_parts)
+        elif recommendation.get("embedding_similarity"):
+            reason = "hồ sơ và đặc trưng nghiên cứu có độ tương đồng đáng kể"
+        else:
+            reason = "dữ liệu hồ sơ và mạng lưới hiện tại cho thấy mức độ liên quan"
+
+        score = float(recommendation.get("score", 0.0) or 0.0)
+        path_count = len(paths)
+        evidence_note = (
+            f"Kết luận này được tổng hợp từ {path_count} bằng chứng trên Knowledge Graph"
+            if path_count
+            else "Kết luận này hiện chủ yếu dựa trên dữ liệu hồ sơ và tín hiệu tương đồng"
+        )
+        return (
+            f"Hệ thống đề xuất {target_label} {target_name} cho {source_name} vì {reason}. "
+            f"{evidence_note}; điểm xếp hạng tổng hợp là {score:.1%}."
+        )
+
+    @staticmethod
+    def _prepend_score_explanation(
+        natural_language: str,
+        recommendation: Dict[str, Any],
+        *,
+        language: str,
+    ) -> str:
+        if language != "vi":
+            return natural_language
+
+        natural_language = natural_language.replace(
+            "Độ phù hợp tổng thể:",
+            "Điểm xếp hạng tổng hợp:",
+        )
+
+        method = str(recommendation.get("scoring_method") or "")
+        evidence = str(recommendation.get("evidence_level") or "")
+        pgpr_score = float(recommendation.get("pgpr_score", 0.0) or 0.0)
+        embedding_similarity = float(recommendation.get("embedding_similarity", 0.0) or 0.0)
+        topic_overlap = float(recommendation.get("topic_overlap", 0.0) or 0.0)
+        path_count = len(recommendation.get("reasoning_paths") or [])
+
+        signals: List[str] = []
+        if pgpr_score > 0:
+            signals.append(f"điểm PGPR policy {pgpr_score:.1%}")
+        if embedding_similarity > 0:
+            signals.append(f"độ tương đồng embedding {embedding_similarity:.1%}")
+        if topic_overlap > 0:
+            signals.append(f"mức trùng khớp topic/kỹ năng {topic_overlap:.1%}")
+        if path_count:
+            signals.append(f"{path_count} bằng chứng đường đi trên Knowledge Graph")
+
+        if not signals:
+            return natural_language
+
+        if method == "hybrid_embedding_path":
+            header = (
+                "Điểm phù hợp tổng thể là điểm hybrid được tổng hợp từ "
+                + ", ".join(signals)
+                + ". Trọng số ghi trên từng bằng chứng bên dưới chỉ thể hiện sức mạnh của riêng đường đi đó, "
+                "không phải toàn bộ điểm recommendation."
+            )
+        elif evidence == "path_supported":
+            header = (
+                "Điểm phù hợp được xếp hạng chủ yếu từ "
+                + ", ".join(signals)
+                + ". Điểm của từng bằng chứng bên dưới không phải điểm tổng."
+            )
+        else:
+            header = "Điểm phù hợp được tổng hợp từ " + ", ".join(signals) + "."
+
+        return f"{header}\n\n{natural_language}" if natural_language else header
 
     async def _explain_llm(
         self,

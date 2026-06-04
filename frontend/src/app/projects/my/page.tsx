@@ -27,6 +27,36 @@ function statusLabel(value: unknown) {
   return labels[key] || key || "Khong ro";
 }
 
+function relationLabel(value: unknown) {
+  const key = String(value || "");
+  const labels: Record<string, string> = {
+    owner: "Project cua ban",
+    owner_entity: "Ho so phu trach",
+    linked_entity_participation: "Lien quan ho so",
+  };
+  return labels[key] || "Lien quan ho so";
+}
+
+function embeddingBadge(value: unknown) {
+  const status = String(value || "unknown");
+  const labels: Record<string, string> = {
+    ready: "Embedding ready",
+    pending: "Embedding pending",
+    queued: "Embedding queued",
+    processing: "Embedding processing",
+    stale: "Embedding stale",
+    failed: "Embedding failed",
+    skipped: "Embedding skipped",
+  };
+  const className =
+    status === "ready"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : status === "failed" || status === "skipped"
+        ? "border-rose-200 bg-rose-50 text-rose-700"
+        : "border-amber-200 bg-amber-50 text-amber-700";
+  return { label: labels[status] || `Embedding ${status}`, className };
+}
+
 export default function MyProjectsPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
@@ -75,7 +105,9 @@ export default function MyProjectsPage() {
               <FolderKanban className="h-7 w-7" />
               My Projects
             </h1>
-            <p className="mt-2 text-muted-foreground">Danh sach project do ban tao trong he thong.</p>
+            <p className="mt-2 text-muted-foreground">
+              Project do ban tao va project lien quan den ho so expert/enterprise/funder dang lien ket.
+            </p>
           </div>
           <Link href="/projects/create">
             <Button>
@@ -112,6 +144,12 @@ export default function MyProjectsPage() {
                       <Badge variant="outline" className="rounded-md">
                         {statusLabel(project.metadata?.kg_sync_status ?? "not_synced")}
                       </Badge>
+                      <Badge variant="outline" className="rounded-md">
+                        {relationLabel(project.metadata?.my_project_relation)}
+                      </Badge>
+                      <Badge variant="outline" className={`rounded-md ${embeddingBadge(project.metadata?.embedding_status).className}`}>
+                        {embeddingBadge(project.metadata?.embedding_status).label}
+                      </Badge>
                     </div>
                     <span className="text-xs text-muted-foreground">{project.id}</span>
                   </div>
@@ -122,6 +160,15 @@ export default function MyProjectsPage() {
                   <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
                     <div>Verification: {statusLabel(project.metadata?.entity_verification_status ?? "unverified")}</div>
                     <div>Scope: {String(project.metadata?.participation_scope ?? "owner_only")}</div>
+                    {project.metadata?.linked_entity_role ? (
+                      <div>Vai tro lien ket: {String(project.metadata.linked_entity_role)}</div>
+                    ) : null}
+                    <div>
+                      Embedding: {embeddingBadge(project.metadata?.embedding_status).label}
+                      {project.metadata?.embedding && typeof project.metadata.embedding === "object"
+                        ? ` / signal ${String((project.metadata.embedding as Record<string, unknown>).signal ?? "unknown")}`
+                        : ""}
+                    </div>
                     <div>Trust: {Math.round(Number(project.metadata?.trust_weight ?? 0.5) * 100)}%</div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -135,19 +182,21 @@ export default function MyProjectsPage() {
                         Graph
                       </Button>
                     </Link>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={deletingId === project.id}
-                      onClick={() => handleDeleteProject(project)}
-                    >
-                      {deletingId === project.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="mr-2 h-4 w-4" />
-                      )}
-                      Remove
-                    </Button>
+                    {project.metadata?.can_delete ? (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={deletingId === project.id}
+                        onClick={() => handleDeleteProject(project)}
+                      >
+                        {deletingId === project.id ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="mr-2 h-4 w-4" />
+                        )}
+                        Remove
+                      </Button>
+                    ) : null}
                   </div>
                 </CardContent>
               </Card>

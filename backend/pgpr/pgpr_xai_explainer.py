@@ -15,6 +15,7 @@ import urllib.error
 import re
 import asyncio
 import aiohttp
+import logging
 
 from dotenv import load_dotenv
 
@@ -22,6 +23,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+logger = logging.getLogger(__name__)
 
 
 _ID_LIKE_RE = re.compile(r"^(EXP|PRJ|FUN|ENT)_\d+$", re.IGNORECASE)
@@ -495,12 +497,15 @@ class OllamaConfig:
 
 def _build_ollama_generate_payload(model: str, prompt: str) -> Dict[str, Any]:
     """Build a generate request that returns only the final answer for reasoning models."""
+    options = OllamaConfig.get_config(model)
+    options["num_ctx"] = int(os.getenv("OLLAMA_NUM_CTX", "2048"))
+    options["num_gpu"] = int(os.getenv("OLLAMA_NUM_GPU", "0"))
     return {
         "model": model,
         "prompt": prompt,
         "stream": False,
         "think": False,
-        "options": OllamaConfig.get_config(model),
+        "options": options,
     }
 
 
@@ -649,7 +654,10 @@ QUY TẮC BẮT BUỘC:
 3. Nếu gặp các từ khóa viết hoa dạng kỹ thuật (như FOCUSES_ON_SECTORS, PARTICIPATES_IN, HAS_EXPERTISE_IN), hãy tự động dịch sang tiếng Việt tự nhiên (ví dụ: "tập trung vào lĩnh vực", "tham gia", "có chuyên môn về").
 4. Chỉ dựa vào thông tin có sẵn, KHÔNG tự bịa thêm chi tiết.
 5. Tuyệt đối KHÔNG mở đầu bằng các từ như "Tôi...", "Chúng tôi...", "Dưới đây là giải thích...". Hãy đi thẳng vào nội dung phân tích.
-6. Cấu trúc lý tưởng: [Bối cảnh dự án/nguồn] + [Phân tích điểm chung/kết nối] + [Lợi ích mang lại]."""
+6. Cấu trúc lý tưởng: [Bối cảnh dự án/nguồn] + [Phân tích điểm chung/kết nối] + [Lợi ích mang lại].
+7. Chỉ trả về MỘT đoạn văn liền mạch. KHÔNG liệt kê, KHÔNG chia mục, KHÔNG đánh số và KHÔNG viết "Bằng chứng 1/2/3".
+8. Tổng hợp mọi kết nối thành 1–2 lý do chính dễ hiểu; không kể lại lần lượt từng chuỗi kết nối.
+9. Kết thúc bằng một câu chốt rõ giá trị hợp tác hoặc lý do nên xem xét đề xuất."""
 
     source_ref = _source_ref_vi(source_context)
 
@@ -760,7 +768,8 @@ def llm_explain_paths_ollama(
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return post_process_llm_response(_extract_ollama_response(data))
-    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError):
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError) as exc:
+        logger.exception("Synchronous Ollama XAI request failed: %s", exc)
         return None
 
 async def async_llm_explain_paths_ollama(
@@ -778,8 +787,16 @@ async def async_llm_explain_paths_ollama(
             if resp.status == 200:
                 data = await resp.json()
                 return post_process_llm_response(_extract_ollama_response(data))
+            error_body = (await resp.text())[:1000]
+            logger.error(
+                "Ollama XAI request failed: status=%s model=%s body=%s",
+                resp.status,
+                model,
+                error_body,
+            )
             return None
-    except Exception:
+    except Exception as exc:
+        logger.exception("Async Ollama XAI request failed for model %s: %s", model, exc)
         return None
 
 
@@ -938,8 +955,8 @@ class PGPRExplainer:
         """
         name = recommendation.get("name") or recommendation.get("title", "Unknown")
         score = recommendation.get("score", 0.0)
-        diversity = recommendation.get("path_diversity", 0)
         reasoning_paths = recommendation.get("reasoning_paths", [])
+        diversity = len(reasoning_paths)
 
         # Generate natural language explanation (LLM or template)
         nl_explanation: str
@@ -958,18 +975,9 @@ class PGPRExplainer:
                 timeout=120,
             )
             if llm_text:
-                nl_explanation = self._wrap_llm_explanation(
-                    llm_text, name, score, diversity, rec_type, source_context
-                )
+                nl_explanation = llm_text.strip()
             else:
-                nl_explanation = self._generate_natural_language(
-                    name=name,
-                    score=score,
-                    diversity=diversity,
-                    reasoning_paths=reasoning_paths,
-                    rec_type=rec_type,
-                    source_context=source_context,
-                )
+                raise RuntimeError("XAI model did not return an explanation")
         else:
             nl_explanation = self._generate_natural_language(
                 name=name,
@@ -987,7 +995,7 @@ class PGPRExplainer:
         visual = self._generate_path_visualization(reasoning_paths[:3])
         
         # Calculate confidence metrics
-        confidence = self._calculate_confidence(score, diversity, reasoning_paths)
+        confidence = self._calculate_confidence(score, reasoning_paths)
         
         return {
             "natural_language": nl_explanation,
@@ -1011,8 +1019,8 @@ class PGPRExplainer:
         """Async version of explain_recommendation using aiohttp."""
         name = recommendation.get("name") or recommendation.get("title", "Unknown")
         score = recommendation.get("score", 0.0)
-        diversity = recommendation.get("path_diversity", 0)
         reasoning_paths = recommendation.get("reasoning_paths", [])
+        diversity = len(reasoning_paths)
 
         nl_explanation: str
         if self.use_llm:
@@ -1031,15 +1039,9 @@ class PGPRExplainer:
                 timeout=120,
             )
             if llm_text:
-                nl_explanation = self._wrap_llm_explanation(
-                    llm_text, name, score, diversity, rec_type, source_context
-                )
+                nl_explanation = llm_text.strip()
             else:
-                nl_explanation = self._generate_natural_language(
-                    name=name, score=score, diversity=diversity,
-                    reasoning_paths=reasoning_paths, rec_type=rec_type,
-                    source_context=source_context
-                )
+                raise RuntimeError("XAI model did not return an explanation")
         else:
             nl_explanation = self._generate_natural_language(
                 name=name, score=score, diversity=diversity,
@@ -1049,7 +1051,7 @@ class PGPRExplainer:
         
         path_analysis = self._analyze_paths(reasoning_paths)
         visual = self._generate_path_visualization(reasoning_paths[:3])
-        confidence = self._calculate_confidence(score, diversity, reasoning_paths)
+        confidence = self._calculate_confidence(score, reasoning_paths)
         
         return {
             "natural_language": nl_explanation,
@@ -1199,12 +1201,84 @@ class PGPRExplainer:
         for i, path in enumerate(paths, 1):
             path_text = path.get("path", "") or path.get("explanation", "")
             score = path.get("score", 0.0)
-            label = "mạnh nhất" if i == 1 else f"độ tin cậy {score:.0%}"
-            narrative = self._narrate_path(path_text, rec_type, target_name)
+            score_label = f"{score:.1%}" if score >= 0.001 else "<0.1%"
+            label = "mạnh nhất" if i == 1 else f"trọng số path {score_label}"
+            narrative = self._narrate_structured_path(path, rec_type, target_name)
             explanations.append(
-                f"**Đường dẫn {i} ({label} – score {score:.2f})**\n{narrative}"
+                f"**Bằng chứng {i} ({label}; trọng số {score_label})**\n{narrative}"
             )
         return "\n\n".join(explanations)
+
+    def _narrate_structured_path(
+        self,
+        path: Dict[str, Any],
+        rec_type: str,
+        target_name: Optional[str] = None,
+    ) -> str:
+        """Explain a path using real entity names before falling back to relation text."""
+        entities = path.get("entities") or []
+        relations = path.get("relations") or []
+        if len(entities) >= 2 and relations:
+            relation_labels = {
+                "TARGETS": "hướng tới lĩnh vực",
+                "OPERATES_IN": "hoạt động trong lĩnh vực",
+                "FOCUSES_ON_SECTORS": "ưu tiên hỗ trợ lĩnh vực",
+                "LOCATED_IN": "cùng hiện diện tại",
+                "FOCUSES_ON": "tập trung vào",
+                "FOCUSES_ON_TOPIC": "tập trung vào chủ đề",
+                "HAS_SKILL": "có kỹ năng",
+                "REQUIRES_SKILL": "cần kỹ năng",
+                "REQUIRES_DATA": "cần dữ liệu",
+                "HAS_ACCESS_TO": "có quyền tiếp cận",
+                "PARTICIPATES_IN": "tham gia",
+                "PARTNERS_WITH": "hợp tác với",
+                "COLLABORATES_WITH": "cộng tác với",
+                "FUNDS": "tài trợ",
+                "SUPPORTS": "hỗ trợ",
+                "CREATES": "tạo ra",
+                "DEVELOPS": "phát triển",
+            }
+            segments: List[str] = []
+            usable = min(len(relations), len(entities) - 1)
+            for index in range(usable):
+                left = entities[index] if isinstance(entities[index], dict) else {}
+                right = entities[index + 1] if isinstance(entities[index + 1], dict) else {}
+                left_name = str(left.get("name") or left.get("id") or "thực thể")
+                right_name = str(right.get("name") or right.get("id") or "thực thể")
+                left_type = str(left.get("type") or "")
+                right_type = str(right.get("type") or "")
+                relation = str(relations[index] or "")
+                relation_upper = relation.upper()
+
+                # Paths may be traversed against the semantic direction of an edge.
+                # Phrase these common reverse traversals in the natural direction.
+                if relation_upper == "OPERATES_IN" and left_type == "Industry":
+                    segments.append(f"{right_name} hoạt động trong lĩnh vực {left_name}")
+                    continue
+                if relation_upper == "FOCUSES_ON_SECTORS" and left_type == "Industry":
+                    segments.append(f"{right_name} ưu tiên hỗ trợ lĩnh vực {left_name}")
+                    continue
+                if relation_upper == "LOCATED_IN" and left_type == "Location":
+                    segments.append(f"{right_name} cũng hiện diện tại {left_name}")
+                    continue
+
+                relation_text = relation_labels.get(
+                    relation_upper,
+                    relation.replace("_", " ").lower(),
+                )
+                segments.append(f"{left_name} {relation_text} {right_name}")
+
+            if segments:
+                conclusion = {
+                    "funder": "Chuỗi dữ liệu này cho thấy quỹ có định hướng hoặc phạm vi hoạt động liên quan tới dự án.",
+                    "expert": "Chuỗi dữ liệu này cho thấy chuyên môn và mạng lưới của chuyên gia có liên quan tới nhu cầu của nguồn.",
+                    "enterprise": "Chuỗi dữ liệu này cho thấy doanh nghiệp có lĩnh vực hoạt động hoặc mạng lưới hợp tác liên quan.",
+                    "project": "Chuỗi dữ liệu này cho thấy hai dự án có bối cảnh nghiên cứu hoặc mạng lưới liên quan.",
+                }.get(rec_type, "Chuỗi dữ liệu này là một bằng chứng liên quan.")
+                return ". ".join(segments) + f". {conclusion}"
+
+        path_text = path.get("path", "") or path.get("explanation", "")
+        return self._narrate_path(path_text, rec_type, target_name)
 
     def _parse_path_steps(self, path_text: str) -> List[tuple]:
         """
@@ -1615,22 +1689,18 @@ class PGPRExplainer:
     def _calculate_confidence(
         self,
         score: float,
-        diversity: int,
         reasoning_paths: List[Dict],
     ) -> Dict[str, Any]:
         """Calculate confidence metrics for the recommendation."""
         # Base confidence from score
         base_confidence = score
-        
-        # Boost from path diversity
-        diversity_boost = min(diversity / 10.0, 0.3)
-        
+
         # Boost from number of high-quality paths
         high_quality_paths = sum(1 for p in reasoning_paths if p.get("score", 0) > 0.5)
         quality_boost = min(high_quality_paths / 5.0, 0.2)
-        
+
         # Combined confidence
-        total_confidence = min(base_confidence + diversity_boost + quality_boost, 1.0)
+        total_confidence = min(base_confidence + quality_boost, 1.0)
         
         # Get confidence level
         for threshold, level in sorted(self.templates["confidence_levels"].items(), reverse=True):
@@ -1645,7 +1715,6 @@ class PGPRExplainer:
             "level": confidence_level,
             "components": {
                 "base_score": round(base_confidence, 3),
-                "diversity_boost": round(diversity_boost, 3),
                 "quality_boost": round(quality_boost, 3),
             },
             "interpretation": self._interpret_confidence(total_confidence),

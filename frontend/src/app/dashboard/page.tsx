@@ -132,6 +132,26 @@ function asString(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+function embeddingBadge(value: unknown) {
+  const status = String(value || "unknown");
+  const labels: Record<string, string> = {
+    ready: "Embedding ready",
+    pending: "Embedding pending",
+    queued: "Embedding queued",
+    processing: "Embedding processing",
+    stale: "Embedding stale",
+    failed: "Embedding failed",
+    skipped: "Embedding skipped",
+  };
+  const className =
+    status === "ready"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : status === "failed" || status === "skipped"
+        ? "border-rose-200 bg-rose-50 text-rose-700"
+        : "border-amber-200 bg-amber-50 text-amber-700";
+  return { label: labels[status] || `Embedding ${status}`, className, status };
+}
+
 function ConfidenceBlock({ confidence }: { confidence: Record<string, unknown> }) {
   const total = asNumber(confidence.total);
   const level = asString(confidence.level);
@@ -467,6 +487,8 @@ export default function DashboardPage() {
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
   const [explanationError, setExplanationError] = useState("");
   const [recommendationMode, setRecommendationMode] = useState<"public" | "personal">("public");
+  const [sourceEmbeddingStatus, setSourceEmbeddingStatus] = useState<Record<string, unknown> | null>(null);
+  const [isSourceEmbeddingLoading, setIsSourceEmbeddingLoading] = useState(false);
 
   useEffect(() => {
     if (user?.account_role === "admin" || user?.account_role === "root_admin") {
@@ -492,6 +514,29 @@ export default function DashboardPage() {
     () => Object.values(recommendationGroups).reduce((total, items) => total + (items?.length ?? 0), 0),
     [recommendationGroups],
   );
+
+  useEffect(() => {
+    if (!sourceEntity || !user) {
+      setSourceEmbeddingStatus(null);
+      return;
+    }
+    let cancelled = false;
+    setIsSourceEmbeddingLoading(true);
+    api
+      .entityEmbeddingStatus(sourceEntity.type, sourceEntity.id)
+      .then((response) => {
+        if (!cancelled) setSourceEmbeddingStatus(response.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setSourceEmbeddingStatus(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsSourceEmbeddingLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceEntity, user]);
 
   async function runMultiRecommendation() {
     if (!sourceEntity) {
@@ -550,7 +595,7 @@ export default function DashboardPage() {
       setExplanationError("Khong tim thay source entity cua tai khoan hien tai.");
       return;
     }
-    const mode = "auto";
+    const mode = "llm";
     const resolvedTargetType = item.type ?? activeTargetType;
 
     setExplanationError("");
@@ -804,6 +849,31 @@ export default function DashboardPage() {
                       <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                         <div className="font-semibold text-slate-400">KG Status</div>
                         <div className="mt-1 font-bold text-slate-700">{user?.linked_entity?.kg_sync_status ?? "unknown"}</div>
+                      </div>
+                      <div className="col-span-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+                        <div className="font-semibold text-slate-400">Embedding Status</div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          {isSourceEmbeddingLoading ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Dang kiem tra
+                            </span>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                                embeddingBadge(sourceEmbeddingStatus?.embedding_status).className
+                              }`}
+                            >
+                              {embeddingBadge(sourceEmbeddingStatus?.embedding_status).label}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+                          {sourceEmbeddingStatus?.embedding_status === "ready"
+                            ? "Embedding da san sang, he thong co the dung hybrid embedding khi goi y."
+                            : "Embedding chua san sang hoac chua co tin hieu, he thong se uu tien Cypher/PGPR fallback."}
+                        </p>
                       </div>
                     </div>
                     <p className="text-[10px] leading-relaxed text-slate-500 font-medium">

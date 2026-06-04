@@ -880,6 +880,112 @@ class AuthRepository:
     def count_user_projects(self, user_id: str) -> int:
         return int(self.projects.count_documents({"owner_id": user_id, "deleted_at": {"$exists": False}}))
 
+    def list_projects_related_to_entity(
+        self,
+        entity_type: str,
+        entity_id: str,
+        limit: int = 200,
+    ) -> List[Dict[str, Any]]:
+        """Return projects connected to an existing business entity, not only user-owned projects."""
+        entity_type = str(entity_type or "").lower()
+        entity_id = str(entity_id or "").strip()
+        if entity_type not in {"expert", "enterprise", "funder"} or not entity_id:
+            return []
+
+        entity = self.find_entity_by_id(entity_type, entity_id) or {}
+        referenced_projects = self._project_references_from_entity(entity_type, entity)
+        project_ids = list(referenced_projects.keys())
+
+        relation_queries: List[Dict[str, Any]] = [{"owner_entity_id": entity_id}]
+        if project_ids:
+            relation_queries.append({"project_id": {"$in": project_ids}})
+        if entity_type == "expert":
+            relation_queries.append({"relations.participants.expert_id": entity_id})
+        elif entity_type == "enterprise":
+            relation_queries.append({"relations.enterprise_partners.enterprise_id": entity_id})
+        elif entity_type == "funder":
+            relation_queries.append({"relations.funders.funder_id": entity_id})
+
+        cursor = (
+            self.projects.find({"deleted_at": {"$exists": False}, "$or": relation_queries})
+            .sort("updated_at", -1)
+            .limit(limit)
+        )
+        projects: List[Dict[str, Any]] = []
+        for project in cursor:
+            context = self._project_relation_context(entity_type, entity_id, project, referenced_projects)
+            project["_my_project_relation"] = context.get("relation")
+            project["_linked_entity_role"] = context.get("role")
+            project["_linked_entity_status"] = context.get("status")
+            project["_linked_entity_period"] = context.get("period") or context.get("duration")
+            projects.append(project)
+        return projects
+
+    def _project_references_from_entity(
+        self,
+        entity_type: str,
+        entity: Dict[str, Any],
+    ) -> Dict[str, Dict[str, Any]]:
+        references: Dict[str, Dict[str, Any]] = {}
+        paths = {
+            "expert": [
+                "activities_and_outputs.projects_participation",
+                "activities_and_outputs.grant_history",
+            ],
+            "enterprise": ["relations.rd_projects"],
+            "funder": ["funding_history.funded_projects"],
+        }.get(entity_type, [])
+
+        for path in paths:
+            items = self._get_nested(entity, path)
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                project_id = item.get("project_id") or item.get("linked_project_id")
+                if not project_id:
+                    continue
+                references[str(project_id)] = {
+                    "relation": "linked_entity_participation",
+                    "role": item.get("role") or item.get("type"),
+                    "status": item.get("status"),
+                    "period": item.get("period"),
+                    "duration": item.get("duration"),
+                }
+        return references
+
+    def _project_relation_context(
+        self,
+        entity_type: str,
+        entity_id: str,
+        project: Dict[str, Any],
+        referenced_projects: Dict[str, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        if str(project.get("owner_entity_id") or "") == entity_id:
+            return {"relation": "owner_entity"}
+
+        relation_paths = {
+            "expert": ("relations.participants", "expert_id"),
+            "enterprise": ("relations.enterprise_partners", "enterprise_id"),
+            "funder": ("relations.funders", "funder_id"),
+        }
+        path_and_id = relation_paths.get(entity_type)
+        if path_and_id:
+            path, id_key = path_and_id
+            for item in self._get_nested(project, path) or []:
+                if isinstance(item, dict) and str(item.get(id_key) or "") == entity_id:
+                    return {
+                        "relation": "linked_entity_participation",
+                        "role": item.get("role") or item.get("type"),
+                        "status": item.get("status"),
+                        "period": item.get("period") or item.get("grant_period"),
+                        "duration": item.get("duration"),
+                    }
+
+        project_id = str(project.get("project_id") or "")
+        return referenced_projects.get(project_id) or {"relation": "linked_entity_participation"}
+
     def find_user_project(self, user_id: str, project_id: str) -> Optional[Dict[str, Any]]:
         return self.projects.find_one(
             {

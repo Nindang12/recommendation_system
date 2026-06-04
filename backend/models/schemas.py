@@ -133,7 +133,7 @@ class ExplainRecommendationRequest(BaseModel):
     source_context: Optional[Dict[str, Any]] = Field(None, description="Context about the source node")
     language: str = Field("vi", description="Language for natural-language explanations")
     mode: Literal["rule", "llm", "auto"] = Field(
-        "rule",
+        "llm",
         description="rule=fast template; llm=Ollama; auto=try llm then fallback rule",
     )
     force_refresh: bool = Field(

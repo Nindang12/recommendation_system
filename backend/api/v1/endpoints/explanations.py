@@ -29,6 +29,9 @@ async def create_explanation(
             force_refresh=request.force_refresh,
         )
         return ExplanationResponse(status="success", data=explanation)
+    except RuntimeError as exc:
+        logger.exception("XAI model unavailable")
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001
         logger.exception("create_explanation failed")
         raise HTTPException(status_code=500, detail="Internal error") from exc

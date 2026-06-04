@@ -9919,3 +9919,418 @@ Ket qua:
 - Neu can build verify, nen dung mot trong hai cach:
   - dung dev server truoc, chay build, roi xoa `.next` va start dev lai;
   - hoac chay build trong moi truong/container rieng.
+
+## 2026-06-04 - Sua My Projects cho user matched existing entity
+
+### Van de
+
+- Khi user dang ky trung/match manh voi entity co san, vi du `Nguyen Van A` duoc link vao expert `exp_001`, he thong thong bao da lien ket dung.
+- Tuy nhien trang `My Projects` chi lay project theo `owner_id = user_id`.
+- Cac project seed/data co san ma expert do tham gia khong co `owner_id` bang account moi, nen user khong thay project nao du expert entity co quan he voi nhieu project.
+
+### Da lam
+
+- Them repository method:
+  - `list_projects_related_to_entity(entity_type, entity_id, limit=200)`
+- Method moi lay project lien quan tu ca hai huong:
+  - Tu document entity:
+    - expert: `activities_and_outputs.projects_participation`, `grant_history.linked_project_id`
+    - enterprise: `relations.rd_projects`
+    - funder: `funding_history.funded_projects`
+  - Tu document project:
+    - `relations.participants.expert_id`
+    - `relations.enterprise_partners.enterprise_id`
+    - `relations.funders.funder_id`
+    - `owner_entity_id`
+- Cap nhat `AuthService.list_my_projects` de merge:
+  - project do account tao (`owner`)
+  - project lien quan den linked entity (`linked_entity_participation`)
+- Them metadata tra ve frontend:
+  - `can_delete`
+  - `my_project_relation`
+  - `linked_entity_role`
+  - `linked_entity_status`
+  - `linked_entity_period`
+- Cap nhat frontend `frontend/src/app/projects/my/page.tsx`:
+  - hien badge project cua ban / lien quan ho so
+  - hien vai tro lien ket neu co
+  - chi hien nut `Remove` khi `metadata.can_delete = true`
+
+### Ly do lam nhu vay
+
+- `My Projects` voi user matched existing khong nen chi co nghia la "project do account tao", ma phai la "project cua ho so dang lien ket".
+- Project co san trong KG/MongoDB la du lieu he thong; user matched vao expert do duoc xem/khai thac recommendation, nhung khong duoc xoa cac project seed/verified.
+- Tach `can_delete` o backend giup frontend khong phai tu suy luan quyen va tranh hien sai nut xoa.
+
+### Kiem tra
+
+- `python scripts\compile_project.py`: pass.
+- `npm run typecheck`: pass.
+- Kiem tra MongoDB thuc te:
+  - user `nguyenvana@university.edu.vn` link vao `exp_001`
+  - `list_my_projects` tra `prj_001`
+  - metadata: `my_project_relation=linked_entity_participation`, `linked_entity_role=PI`, `can_delete=False`
+
+## 2026-06-04 - Them nut Giai thich chi tiet XAI cho Project Overview
+
+### Van de
+
+- Tu trang `My Projects`, user bam `Overview` de xem cac nhom goi y cho project.
+- Trang `projects/[id]/overview` da hien 4 nhom recommendation, nhung moi item chi link sang entity detail.
+- Thieu nut `Giai thich chi tiet`, nen user khong kich hoat duoc API `/api/v1/explanations` de XAI giai thich tung de xuat.
+
+### Da lam
+
+- Cap nhat `frontend/src/app/projects/[id]/overview/page.tsx`.
+- Tach card recommendation thanh:
+  - nut `Xem entity`
+  - nut `Giai thich chi tiet`
+- Khi bam `Giai thich chi tiet`:
+  - goi `api.explain(item, source, targetType, "auto")`
+  - source la project hien tai trong overview
+  - target type la nhom dang hien thi: expert/funder/enterprise/project
+- Them frontend cache theo key `{targetType}:{item.id}` de bam lai cung de xuat khong request lai API.
+- Hien noi dung XAI ngay ben duoi item recommendation.
+
+### Ly do lam nhu vay
+
+- Project Overview la luong giong dashboard nhung theo ngu canh mot project cu the, nen moi recommendation van can XAI rieng.
+- Khong boc toan bo recommendation card bang `Link` nua vi card can co nhieu action rieng.
+- Cache frontend giup tranh goi lai explanation khi user bam lai cung de xuat.
+
+### Kiem tra
+
+- `npm run typecheck`: pass.
+- `python scripts\compile_project.py`: pass.
+
+## 2026-06-04 - Bat buoc giai thich chi tiet su dung XAI model
+
+### Van de
+
+- Luong `Giai thich chi tiet` van goi `mode=auto`, nen khi Ollama loi he thong am tham fallback ve rule/template.
+- `RecommendationService` ghi de cau tra loi that cua model bang mot cau tom tat deterministic do code tao.
+- `PGPRExplainer` boc cau tra loi model trong template va co the fallback thanh giai thich tung path, lam noi dung dai va kho hieu.
+- Model Ollama dang cau hinh `llama3` bi crash voi loi `llama runner process has terminated with exit code 2`.
+
+### Da lam
+
+- Cap nhat Dashboard va Project Overview goi explanation bang `mode=llm`.
+- Doi default cua `api.explain()` sang `llm`.
+- Doi default request schema va `RecommendationService.explain_recommendation()` sang `llm`.
+- Bo viec `RecommendationService` ghi de output cua model bang concise summary deterministic.
+- Danh dau response chi tiet bang:
+  - `model_generated=true`
+  - `summary_style=xai_model_generated`
+- Doi explanation cache version sang `v5_xai_model` de khong tai lai explanation cu.
+- Cap nhat prompt XAI:
+  - chi tra mot doan van lien mach;
+  - khong liet ke/chia muc/danh so;
+  - khong viet `Bang chung 1/2/3`;
+  - tong hop cac ket noi thanh ly do chinh va cau ket luan de hieu.
+- Dung truc tiep noi dung model tra ve, khong boc them template.
+- Khi `mode=llm` ma model khong tra loi, backend bao loi thay vi am tham tao explanation rule-based.
+- Doi model Ollama dang hoat dong sang `llama3.2:3b` vi `llama3` dang crash tren may hien tai.
+- Restart backend sach, loai cac uvicorn reload process cu chay song song.
+- Frontend khong start duoc do o `C:` het dung luong (`ENOSPC`); chuyen `TEMP`, `TMP` va npm cache cua tien trinh dev sang `D:\Documents\Do an` runtime directories va start lai port `9002`.
+
+### Ly do lam nhu vay
+
+- Nut `Giai thich chi tiet` phai thuc su kich hoat XAI model; rule/template chi phu hop cho preview nhanh.
+- Khong fallback am tham giup nhan biet dung khi model XAI bi loi, tranh lam user tuong cau template la ket qua cua model.
+- Mot doan tong hop tu model de doc va huu ich hon viec ke lai tung reasoning path.
+- Tang cache version de frontend/backend khong hien lai noi dung cu da luu.
+
+### Kiem tra
+
+- `python scripts/compile_project.py`: pass, 100 files.
+- Frontend `tsc --noEmit`: pass.
+- Health API `GET /api/v1/health`: status `ok`.
+- Goi that `POST /api/v1/explanations` voi `mode=llm`:
+  - `model_generated=true`;
+  - `summary_style=xai_model_generated`;
+  - cache key co `v5_xai_model`;
+  - khong con `Bang chung 1`, `Duong dan 1` hoac `Path 1`.
+- Frontend `GET http://127.0.0.1:9002/dashboard`: HTTP 200 sau khi chuyen runtime temp/cache sang o `D:`.
+
+## 2026-06-04 - Loai quan he da ton tai khoi recommendation co hoi hop tac moi
+
+### Van de
+
+- Project overview cua `prj_001` de xuat `exp_001 - PGS.TS. Nguyen Van A` o hang dau.
+- Du lieu goc ghi ro `exp_001` da la participant cua `prj_001` voi vai tro `PI`.
+- PGPR/hybrid ranking tinh dung do lien quan rat cao, nhung pipeline recommendation chua phan biet:
+  - entity phu hop de hop tac moi;
+  - entity da co quan he truc tiep voi source.
+- Cache recommendation cu cung co the tiep tuc tra lai ket qua khong con phu hop voi rule moi.
+
+### Da lam
+
+- Cap nhat `backend/services/recommendation_service.py`:
+  - them `_exclude_existing_relationships()` de loai candidate da co quan he voi source;
+  - them `_relation_ids()` de doc ID tu cac array/object relation trong schema MongoDB;
+  - project -> expert loai `relations.participants`;
+  - project -> enterprise loai `relations.enterprise_partners`;
+  - project -> funder loai `relations.funders`;
+  - project -> project loai chinh source va `relations.related_projects`;
+  - bo sung rule nguoc cho expert/enterprise/funder -> project va mot so quan he hop tac da ton tai;
+  - hybrid candidate lay du pool truoc, sau khi filter moi cat theo `limit`, tranh ket qua bi thieu;
+  - endpoint evaluate mot target rieng cung tra rong neu target da co quan he voi source;
+  - tang cache key tu `v6` len `v7:exclude-existing` de khong dung lai cache sai theo rule cu.
+
+### Ly do lam nhu vay
+
+- Recommendation cua he thong huong den co hoi hop tac moi, khong nen de xuat lai PI, participant, funder hoac enterprise partner da thuoc project.
+- Quan he da ton tai van duoc xem trong entity detail/graph, con recommendation danh rieng cho candidate moi.
+- Dat rule tai `RecommendationService` giup API policy, project overview va recommend target rieng dung chung mot logic, thay vi chi an ket qua tren frontend.
+
+### Kiem tra
+
+- `python scripts\compile_project.py`: pass, 100 files.
+- Unit runtime:
+  - doc duoc `prj_001.relations.participants = ['exp_001']`;
+  - filter loai `exp_001`, giu `exp_002`.
+- `POST /api/v1/recommendations/policy`, `prj_001 -> expert`:
+  - khong con `exp_001`;
+  - tra cac candidate moi nhu `exp_002`, `exp_003`, `exp_004`.
+- `POST /api/v1/recommendations/projects/prj_001/overview`:
+  - experts khong con `exp_001`;
+  - funders khong con `fnd_001`;
+  - enterprises khong con `ent_001`;
+  - similar projects khong chua chinh `prj_001`.
+- `POST /api/v1/recommendations/entity`, `prj_001 -> exp_001`:
+  - tra `count = 0`, khong danh gia lai participant da ton tai.
+
+## 2026-06-04 - Sua XAI giai thich chung chung va lam ro diem hybrid
+
+### Van de
+
+- XAI hien `Co moi lien he voi du an` du reasoning path da co day du entity name.
+- XAI cu chi doc chuoi relation nhu `TARGETS -> OPERATES_IN -> FOCUSES_ON_SECTORS`,
+  bo qua `entities` va `entity_names`, nen khong the noi ro moi lien ket.
+- Diem recommendation tong hop (vi du 67.7%) va diem rieng cua path (vi du 0.09)
+  bi hien canh nhau ma khong giai thich khac biet, de user hieu nham.
+- `path_diversity` noi bo co the lon hon so path that su tra ve UI, tao cau nhu
+  "tim thay 92 cach" trong khi response chi co 2 reasoning paths.
+
+### Da lam
+
+- Cap nhat `backend/pgpr/pgpr_xai_explainer.py`:
+  - them `_narrate_structured_path()` de dien giai bang ten entity that;
+  - dich cac relation pho bien sang cau tieng Viet tu nhien;
+  - xu ly chieu traversal nguoc cua `OPERATES_IN`, `FOCUSES_ON_SECTORS`, `LOCATED_IN`;
+  - doi `Duong dan` thanh `Bang chung`;
+  - hien trong so path theo phan tram, gia tri rat nho hien `<0.1%`;
+  - so cach ket noi hien theo dung so reasoning path duoc tra ve.
+- Cap nhat `backend/services/recommendation_service.py`:
+  - them doan giai thich diem hybrid gom PGPR policy, embedding, topic va so path;
+  - ap dung giai thich diem hybrid cho ca XAI preview trong recommendation va modal giai thich chi tiet;
+  - noi ro trong so tung path khong phai diem recommendation tong;
+  - doi wording `Do phu hop tong the` thanh `Diem xep hang tong hop`;
+  - source project doc dung `basic_info.title`;
+  - tang explanation cache key len `v2_structured_hybrid`;
+  - tang recommendation cache key len `v8:structured-xai`;
+  - sua ghi chu hybrid thanh tieng Viet co dau.
+
+### Ly do lam nhu vay
+
+- XAI phai giai thich duoc bang chung cu the, khong chi lap lai mot cau fallback.
+- Diem hybrid la diem xep hang tong hop, khong phai xac suat va khong bang diem cua
+  mot reasoning path rieng le.
+- Doi cache version de user nhan giai thich moi ngay, khong bi cache cu che mat.
+
+### Kiem tra
+
+- `python scripts\compile_project.py`: pass, 100 files.
+- Structured path test:
+  - project huong toi Healthcare Technology;
+  - TechMed Solutions VN hoat dong trong Healthcare Technology va IT;
+  - NATIF uu tien ho tro IT.
+- XAI runtime cho `prj_001 -> NATIF`:
+  - hien dung 2 bang chung;
+  - hien trong so 8.9% va 0.1%;
+  - giai thich ro diem tong hop den tu PGPR policy, embedding va KG paths;
+  - khong con cau fallback `Co moi lien he voi du an`.
+
+## 2026-06-04 - Dua mo ta XAI ve dang ket luan tong hop ngan gon
+
+### Van de
+
+- Phan `Mo ta giai thich tu nhien` dang liet ke va dien giai tung reasoning path.
+- Modal da co rieng phan ban do reasoning paths, nen viec lap lai tung path trong
+  mo ta tu nhien lam noi dung dai, kho doc va lan vai tro cua XAI summary.
+- Mot so relation chua dich het lam cau bi tron tieng Viet va tieng Anh.
+
+### Da lam
+
+- Cap nhat `RecommendationService`:
+  - them `_build_concise_xai_summary()` de gom tat ca path thanh mot ket luan ngan;
+  - tong hop cac diem giao ve topic/skill/industry;
+  - tong hop cac entity cau noi nhu expert, enterprise, funder, project;
+  - tong hop location neu co;
+  - hien so bang chung va diem xep hang tong hop trong cung ket luan;
+  - ap dung cho ca XAI preview va modal giai thich chi tiet;
+  - bo cau ghi chu ky thuat cho `hybrid_embedding_path` khoi mo ta tu nhien;
+  - tang explanation cache key len `v3_concise_summary`.
+- Reasoning path chi tiet van duoc giu trong phan graph/path rieng cua modal.
+
+### Ly do lam nhu vay
+
+- XAI summary nen tra loi nhanh: de xuat ai/cai gi, cho source nao, va vi sao.
+- Chi tiet tung path nen de o phan bang chung truc quan, tranh lap noi dung va tranh
+  bat user doc cac quan he ky thuat.
+
+### Kiem tra
+
+- `python scripts\compile_project.py`: pass, 100 files.
+- XAI `exp_001 -> AgriVision` tra ket luan ngan:
+  - diem giao Computer Vision, Medical Imaging;
+  - mang luoi ket noi qua TechMed Solutions VN;
+  - tong hop tu 3 bang chung KG;
+  - khong liet ke lai tung path trong mo ta tu nhien.
+
+## 2026-06-04 - Dong bo XAI auto/LLM va vo hieu hoa frontend cache cu
+
+### Nguyen nhan van con hien giai thich dai
+
+- Backend `rule` da tra summary ngan, nhung Dashboard va Project Overview goi
+  explanations bang `mode=auto`.
+- `auto` thu Ollama/LLM truoc; nhanh LLM van tra template cu dien giai tung path.
+- Project Overview con cache explanation trong React state bang key
+  `{target_type}:{entity_id}`. Next.js HMR co the giu state cu ngay ca khi backend
+  va source code da thay doi.
+
+### Da lam
+
+- Cap nhat `RecommendationService`:
+  - them `_apply_concise_explanation_contract()`;
+  - moi mode `rule`, `auto`, `llm` deu expose `natural_language` dang ket luan ngan;
+  - ket qua phan tich dai cua model duoc giu rieng trong `model_analysis_detail`,
+    khong hien trong mo ta chinh;
+  - them `summary_style=concise_aggregated`;
+  - tang explanation cache key len `v4_concise_all_modes`.
+- Cap nhat `frontend/src/app/projects/[id]/overview/page.tsx`:
+  - version hoa React explanation cache bang `v4-concise`;
+  - cache cu khong con chan request XAI moi.
+- Restart frontend dev server tren port `9002` de xoa HMR state cu.
+
+### Kiem tra
+
+- API `/api/v1/explanations`, `mode=auto`, `force_refresh=true`:
+  - `natural_language` tra mot doan ket luan ngan;
+  - `summary_style=concise_aggregated`;
+  - van giu `model_analysis_detail` cho debug;
+  - cache key moi la `explanation:v4_concise_all_modes:...`.
+- Frontend `tsc --noEmit`: pass.
+- Backend compile: pass, 100 files.
+- Frontend port `9002` da listen lai.
+
+## 2026-06-04 - Dong bo giao dien XAI Project Overview voi Dashboard
+
+### Van de
+
+- Nut `Giai thich chi tiet` trong Project Overview da goi duoc API XAI, nhung chi hien mot doan text ngay trong recommendation card.
+- Giao dien nay khong day du nhu Dashboard va khong hien confidence, reasoning paths, cache status hay nut tao lai.
+
+### Da lam
+
+- Cap nhat `frontend/src/app/projects/[id]/overview/page.tsx`.
+- Bo phan hien explanation text truc tiep ben duoi recommendation card.
+- Khi bam `Giai thich chi tiet`, mo modal XAI day du gom:
+  - entity duoc de xuat va score
+  - scoring method, evidence level, embedding status, cold-start
+  - trang thai XAI/cache
+  - nut `Tao lai giai thich`
+  - mo ta giai thich tu nhien
+  - confidence va cac thanh phan diem
+  - reasoning paths
+  - canh bao neu chua co reasoning path va dang dung embedding/Cypher fallback
+- Doi frontend explanation cache tu chi luu chuoi sang luu toan bo response XAI de modal co du du lieu.
+
+### Ly do lam nhu vay
+
+- Cung mot thao tac `Giai thich chi tiet` nen co trai nghiem va muc thong tin nhat quan giua Dashboard va Project Overview.
+- Modal giup recommendation card gon, trong khi van cho phep user xem sau cac evidence khi can.
+- Luu toan bo response XAI cho phep hien confidence/cache/path ma khong can goi lai API.
+
+### Kiem tra
+
+- `python scripts\compile_project.py`: pass.
+- `node_modules/.bin/tsc --noEmit`: pass.
+- `npm run typecheck` khong chay duoc vi may bao `ENOSPC: no space left on device`; day la loi dung luong dia, khong phai loi TypeScript.
+
+## 2026-06-04 - Hoan thien modal XAI Project Overview va xu ly frontend cache cu
+
+### Van de
+
+- Modal XAI trong Project Overview van khac giao dien Dashboard:
+  - reasoning paths hien JSON
+  - chua co so do node-edge Source/Evidence/Target nhu giao dien XAI chuan
+- Trinh duyet van co the hien giao dien cu du source da sua.
+- Kiem tra he thong phat hien o C con `0 byte`, khien Next.js khong ghi duoc cache/chunk HMR moi.
+
+### Da lam
+
+- Thay reasoning path JSON trong `frontend/src/app/projects/[id]/overview/page.tsx` bang so do SVG:
+  - node Source, Evidence, Target
+  - relation label tren edge
+  - mui ten co huong
+  - score va length
+  - tooltip ten node day du khi hover
+  - horizontal scrollbar neu path dai
+- Cap nhat modal style rong, scroll doc, border/shadow va layout gan voi modal Dashboard trong anh mau.
+- Don npm cache de giai phong dung luong C an toan.
+- Tat frontend process cu tren port `9002`.
+- Xoa artifact sinh tu Next.js `frontend/.next`.
+- Start lai frontend dev server sach.
+
+### Ly do lam nhu vay
+
+- Giao dien XAI can hien graph reasoning truc quan, khong nen bat user doc JSON path.
+- Khi o C het dung luong, Next.js HMR/cache co the khong ghi source moi va browser tiep tuc nhan giao dien cu.
+- `.next` la artifact generated, xoa va start lai la cach an toan de nap dung bundle moi.
+
+### Kiem tra
+
+- `node_modules/.bin/tsc --noEmit`: pass.
+- Frontend port `9002` da listen lai.
+- `GET http://127.0.0.1:9002/projects/prj_001/overview`: HTTP 200.
+
+## 2026-06-04 - Hien thi embedding status tren UI nguoi dung
+
+### Van de
+
+- User can biet khi nao embedding da san sang de he thong dung hybrid embedding, va khi nao he thong dang phai uu tien Cypher/PGPR fallback.
+- Truoc do trang user khong hien ro trang thai `embedding.status`, nen kho phan biet ket qua dang o cold-start/fallback hay hybrid ready.
+
+### Da lam
+
+- Cap nhat `AuthService._project_response` de tra metadata embedding nhe cho project:
+  - `metadata.embedding_status`
+  - `metadata.embedding.status/model/version/dimension/normalized/signal/...`
+  - khong tra vector embedding.
+- Cap nhat `RecommendationService.get_project_overview` de source project trong overview co:
+  - `source.metadata.embedding_status`
+  - `source.metadata.embedding`
+- Cap nhat `frontend/src/app/projects/my/page.tsx`:
+  - hien badge `Embedding ready/pending/queued/processing/stale/failed/skipped`
+  - hien signal embedding trong thong tin project.
+- Cap nhat `frontend/src/app/projects/[id]/overview/page.tsx`:
+  - hien badge embedding cua source project.
+  - neu ready thi thong bao hybrid embedding co the duoc su dung.
+  - neu chua ready thi thong bao he thong se uu tien Cypher/PGPR fallback.
+- Cap nhat `frontend/src/app/dashboard/page.tsx`:
+  - goi `GET /api/v1/entities/{type}/{id}/embedding-status` cho source dang dung.
+  - hien o `Embedding Status` trong Source Profile.
+
+### Ly do lam nhu vay
+
+- Trang thai embedding la tin hieu van hanh quan trong cua cold-start pipeline.
+- Hien truc tiep tren UI giup phan biet:
+  - `ready`: co the dung embedding/hybrid rerank.
+  - `pending/queued/processing/stale/failed`: chua san sang, nen ket qua co the dua nhieu vao Cypher/PGPR fallback.
+- Khong expose vector de tranh response nang va tranh lo du lieu model khong can thiet cho UI.
+
+### Kiem tra
+
+- `npm run typecheck`: pass.
+- `python scripts\compile_project.py`: pass.

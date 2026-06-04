@@ -241,9 +241,9 @@ Module XAI nằm ở `pgpr_xai_explainer.py` và tích hợp trong `pgpr_xai_int
 
 4. **Confidence** – `_calculate_confidence`
    - base_confidence = score đề xuất.
-   - diversity_boost = min(path_diversity/10, 0.3).
    - quality_boost = min(số path có score > 0.5 / 5, 0.2).
-   - total_confidence = min(base + diversity_boost + quality_boost, 1.0).
+   - total_confidence = min(base + quality_boost, 1.0).
+   - Path diversity chỉ được giữ làm thông tin giải thích, không cộng trực tiếp vào confidence.
    - Gán level (Rất cao/Cao/Trung bình/Thấp) và interpretation (câu mô tả bằng tiếng Việt hoặc tiếng Anh).
 
 Kết quả trả về: natural_language, path_analysis, visualization, confidence, metadata.

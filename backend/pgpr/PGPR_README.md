@@ -124,3 +124,27 @@ python run_pgpr.py --all && python run_pgpr.py --step 3 --project_id PRJ_0001
 3. **Inference:** Từ project, policy chọn từng bước (relation, next_entity) đến Expert → rank + explanation path.
 
 Tham chiếu: *Reinforcement Knowledge Graph Reasoning for Explainable Recommendation* (SIGIR 2019).
+
+---
+
+## Project-Project policy
+
+He thong ho tro train rieng policy cho luong goi y du an tuong tu:
+
+```bash
+python pgpr_train.py --task Project_Project --data_dir pgpr_data --n_epoch 50
+```
+
+Hoac qua runner:
+
+```bash
+python run_pgpr.py --step 2 --task Project_Project --data_dir pgpr_data --n_epoch 50
+```
+
+Positive pairs cua task nay duoc lay tu cac du an co it nhat mot tin hieu chung:
+
+- Cung `ResearchTopic` qua `FOCUSES_ON_TOPIC`.
+- Cung `ResearchDirection` qua `FOCUSES_ON`.
+- Cung `Funder` qua quan he `FUNDS`.
+
+File policy sau khi train: `pgpr_data/policy_Project_Project.pt`. Khi chay `--task all`, task nay cung duoc train cung cac policy khac.

@@ -9,7 +9,15 @@ import os
 import argparse
 import logging
 import random
+import sys
+from pathlib import Path
 from typing import List, Tuple, Dict
+
+PGPR_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = PGPR_DIR.parent
+for path in (str(BACKEND_DIR), str(PGPR_DIR)):
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 import torch
 from neo4j import GraphDatabase
@@ -26,6 +34,14 @@ logger = logging.getLogger(__name__)
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+
+
+def _configure_stdout() -> None:
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 
 GROUND_TRUTH_RULES: Dict[str, str] = {
@@ -47,7 +63,27 @@ GROUND_TRUTH_RULES: Dict[str, str] = {
 
     # Thêm nếu cần:
     "Expert_Expert": "(s:Expert)-[:HAS_EXPERTISE_IN]->(:ResearchField)<-[:HAS_EXPERTISE_IN]-(t:Expert)",
+
+    # 5. Project - Project
+    # Custom query below because "similar project" is defined by multiple signals:
+    # shared ResearchTopic, shared ResearchDirection, or shared Funder.
+    "Project_Project": "",
 }
+
+
+PROJECT_PROJECT_SIMILARITY_PREDICATE = """
+(
+    EXISTS {
+        MATCH (s)-[:FOCUSES_ON_TOPIC]->(:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(t)
+    }
+    OR EXISTS {
+        MATCH (s)-[:FOCUSES_ON]->(:ResearchDirection)<-[:FOCUSES_ON]-(t)
+    }
+    OR EXISTS {
+        MATCH (s)<-[:FUNDS]-(:Funder)-[:FUNDS]->(t)
+    }
+)
+"""
 
 
 def _id_prop_for_label(label: str) -> str:
@@ -67,11 +103,43 @@ def collect_dynamic_pairs(
         return []
 
     source_type, target_type = task_name.split("_", 1)
-    rule_pattern = GROUND_TRUTH_RULES[task_name]
     s_id_prop = _id_prop_for_label(source_type)
     t_id_prop = _id_prop_for_label(target_type)
 
-    if is_positive:
+    if task_name == "Project_Project":
+        similarity_predicate = PROJECT_PROJECT_SIMILARITY_PREDICATE
+        if is_positive:
+            query = f"""
+            MATCH (s:Project)
+            WHERE s.{s_id_prop} IS NOT NULL
+            WITH s ORDER BY rand() LIMIT 2000
+
+            MATCH (t:Project)
+            WHERE t.{t_id_prop} IS NOT NULL
+              AND s <> t
+              AND {similarity_predicate}
+
+            WITH DISTINCT s, t ORDER BY rand()
+            RETURN s.{s_id_prop} AS s_id, t.{t_id_prop} AS t_id
+            LIMIT $limit
+            """
+        else:
+            query = f"""
+            MATCH (s:Project)
+            WHERE s.{s_id_prop} IS NOT NULL
+            WITH s ORDER BY rand() LIMIT 2000
+
+            MATCH (t:Project)
+            WHERE t.{t_id_prop} IS NOT NULL
+              AND s <> t
+              AND NOT {similarity_predicate}
+
+            WITH DISTINCT s, t ORDER BY rand()
+            RETURN s.{s_id_prop} AS s_id, t.{t_id_prop} AS t_id
+            LIMIT $limit
+            """
+    elif is_positive:
+        rule_pattern = GROUND_TRUTH_RULES[task_name]
         query = f"""
         MATCH {rule_pattern}
         WHERE s.{s_id_prop} IS NOT NULL AND t.{t_id_prop} IS NOT NULL
@@ -80,6 +148,7 @@ def collect_dynamic_pairs(
         LIMIT $limit
         """
     else:
+        rule_pattern = GROUND_TRUTH_RULES[task_name]
         query = f"""
         MATCH (s:{source_type})
         WHERE s.{s_id_prop} IS NOT NULL
@@ -273,6 +342,7 @@ def train_pgpr(
 
 
 if __name__ == "__main__":
+    _configure_stdout()
     parser = argparse.ArgumentParser(description="Train PGPR policy (REINFORCE)")
     parser.add_argument("--task", default="Project_Expert", help=f"Training task name. Available: {', '.join(sorted(GROUND_TRUTH_RULES))}")
     parser.add_argument("--data_dir", default="pgpr_data", help="KG data directory")

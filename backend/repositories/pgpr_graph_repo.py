@@ -444,15 +444,16 @@ class PGPRGraphRepository:
         rows = self.run_read(
             f"""
             MATCH (n:{label} {{{id_prop}: $entity_id}})
-            RETURN n.trust_weight AS trust_weight,
-                   n.entity_verification_status AS entity_verification_status,
-                   n.kg_sync_status AS kg_sync_status,
-                   n.visibility AS visibility,
-                   n.participation_scope AS participation_scope,
-                   n.allow_as_source AS allow_as_source,
-                   n.recommendable_as_target AS recommendable_as_target,
-                   n.allow_as_intermediate_node AS allow_as_intermediate_node,
-                   coalesce(n.user_id, n.owner_user_id, "") AS owner_user_id
+            WITH properties(n) AS props
+            RETURN props.trust_weight AS trust_weight,
+                   props.entity_verification_status AS entity_verification_status,
+                   props.kg_sync_status AS kg_sync_status,
+                   props.visibility AS visibility,
+                   props.participation_scope AS participation_scope,
+                   props.allow_as_source AS allow_as_source,
+                   props.recommendable_as_target AS recommendable_as_target,
+                   props.allow_as_intermediate_node AS allow_as_intermediate_node,
+                   coalesce(props.user_id, props.owner_user_id, "") AS owner_user_id
             LIMIT 1
             """,
             entity_id=entity_id,
@@ -482,6 +483,8 @@ class PGPRGraphRepository:
             "Expert_Expert": "MATCH (s:Expert {expert_id: $sid})-[:PARTICIPATES_IN]->(:Project)<-[:PARTICIPATES_IN]-(t:Expert) RETURN t.expert_id AS tid",
         }
         task_name = f"{source_type}_{target_type}"
+        if task_name == "Project_Project":
+            return [source_id]
         if task_name not in queries:
             return []
         rows = self.run_read(queries[task_name], sid=source_id)
@@ -707,6 +710,7 @@ class PGPRGraphRepository:
             MATCH (e)-[:HAS_EXPERIENCE_IN]->(t:ResearchTopic)<-[:FOCUSES_ON_TOPIC]-(p:Project)
             WHERE p.status IN $status_filter AND NOT (e)-[:PARTICIPATES_IN]->(p)
             OPTIONAL MATCH (p)-[:LOCATED_IN]->(l:Location)
+            WITH p, l, t, properties(t) AS topic_props
             RETURN DISTINCT p.project_id as project_id,
                    p.title as title,
                    p.status as status,
@@ -717,7 +721,7 @@ class PGPRGraphRepository:
                    "Expert" as source_type,
                    "Project" as target_type,
                    t.topic_id as evidence_id,
-                   coalesce(t.name, t.label, t.topic_id) as evidence_name,
+                   coalesce(topic_props.name, topic_props.label, t.topic_id) as evidence_name,
                    "ResearchTopic" as evidence_type,
                    ["HAS_EXPERIENCE_IN", "FOCUSES_ON_TOPIC"] as path_relations,
                    2 as rank_hint

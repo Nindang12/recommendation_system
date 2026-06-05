@@ -527,7 +527,9 @@ class PGPRRecommender:
             name = c.get("name") or c.get("title") or "N/A"
             reasoning_paths = self._fallback_reasoning_paths(c, target_type, id_field, t_id, name, score)
             rec = {
+                "id": t_id,
                 f"{target_type.lower()}_id": t_id,
+                "type": target_type.lower(),
                 "name": name,
                 "score": round(score, 3),
                 "reasoning_paths": reasoning_paths,

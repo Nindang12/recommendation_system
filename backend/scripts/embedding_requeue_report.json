@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-06-05T13:40:29.717854+00:00",
+  "apply": true,
+  "force": false,
+  "entity_types": [
+    "project",
+    "funder",
+    "enterprise",
+    "expert"
+  ],
+  "scanned": 35,
+  "eligible": 3,
+  "queued": 3,
+  "skipped": {
+    "ready": 32
+  },
+  "results": [
+    {
+      "entity_type": "expert",
+      "entity_id": "user_exp_6a1528217705a46bd4e0f3e7",
+      "reason": "not_ready:ready",
+      "embedding_status": "ready",
+      "kg_sync_status": "synced_verified",
+      "publish_status": "published",
+      "ok": true,
+      "error": null
+    },
+    {
+      "entity_type": "expert",
+      "entity_id": "user_exp_6a16a9d0884ddff696bbd28d",
+      "reason": "not_ready:ready",
+      "embedding_status": "ready",
+      "kg_sync_status": "synced_unverified",
+      "publish_status": "published",
+      "ok": true,
+      "error": null
+    },
+    {
+      "entity_type": "expert",
+      "entity_id": "user_exp_6a170a928853709adb094ab6",
+      "reason": "not_ready:ready",
+      "embedding_status": "ready",
+      "kg_sync_status": "synced_unverified",
+      "publish_status": "published",
+      "ok": true,
+      "error": null
+    }
+  ],
+  "finished_at": "2026-06-05T13:40:30.078445+00:00"
+}

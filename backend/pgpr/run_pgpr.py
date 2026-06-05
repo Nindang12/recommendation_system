@@ -7,6 +7,14 @@ import os
 import sys
 
 
+def _configure_stdout() -> None:
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+
 def run_step1(data_dir: str = "pgpr_data", emb_dim: int = 64) -> None:
     """Bước 1: Export KG từ Neo4j, lưu vocab + triples, train TransE."""
     from pgpr_kg import build_kg_from_neo4j
@@ -21,12 +29,29 @@ def run_step2(
     save_path: str = None,
     n_positive: int = 200,
     n_negative: int = 200,
+    task: str = "Project_Expert",
 ) -> None:
     """Bước 2: Train policy REINFORCE."""
-    from pgpr_train import train_pgpr
-    save_path = save_path or os.path.join(data_dir, "policy.pt")
-    print("Bước 2: Train policy (REINFORCE)...")
+    _configure_stdout()
+    from pgpr_train import GROUND_TRUTH_RULES, train_pgpr
+    save_path = save_path or ("" if task.lower() == "all" else os.path.join(data_dir, f"policy_{task}.pt"))
+    print(f"Bước 2: Train policy (REINFORCE) cho task {task}...")
+    if task.lower() == "all":
+        for task_name in GROUND_TRUTH_RULES:
+            print(f"\n{'=' * 60}\nTRAIN TASK: {task_name}\n{'=' * 60}")
+            train_pgpr(
+                task_name=task_name,
+                data_dir=data_dir,
+                n_epoch=n_epoch,
+                save_path="",
+                n_positive=n_positive,
+                n_negative=n_negative,
+            )
+        print("Bước 2 xong. Đã tạo policy_<Source>_<Target>.pt cho các task hỗ trợ.")
+        return
+
     train_pgpr(
+        task_name=task,
         data_dir=data_dir,
         n_epoch=n_epoch,
         save_path=save_path,
@@ -50,6 +75,7 @@ def run_step3(project_id: str = "PRJ_0001", data_dir: str = "pgpr_data", limit: 
 
 
 def main():
+    _configure_stdout()
     parser = argparse.ArgumentParser(description="Chạy PGPR: step 1 (KG+embedding), step 2 (train policy), step 3 (recommendation)")
     parser.add_argument("--step", type=int, choices=[1, 2, 3], help="Chỉ chạy bước 1, 2 hoặc 3")
     parser.add_argument("--all", action="store_true", help="Chạy bước 1 rồi bước 2 (không chạy 3)")
@@ -59,19 +85,32 @@ def main():
     parser.add_argument("--emb_dim", type=int, default=64, help="Embedding dimension (bước 1)")
     parser.add_argument("--n_positive", type=int, default=200)
     parser.add_argument("--n_negative", type=int, default=200)
+    parser.add_argument("--task", default="Project_Expert", help="Task train policy, ví dụ Project_Expert, Project_Project hoặc all")
     parser.add_argument("--limit", type=int, default=5, help="Số expert gợi ý (bước 3)")
     args = parser.parse_args()
 
     if args.all:
         run_step1(data_dir=args.data_dir, emb_dim=args.emb_dim)
-        run_step2(data_dir=args.data_dir, n_epoch=args.n_epoch, n_positive=args.n_positive, n_negative=args.n_negative)
+        run_step2(
+            data_dir=args.data_dir,
+            n_epoch=args.n_epoch,
+            n_positive=args.n_positive,
+            n_negative=args.n_negative,
+            task=args.task,
+        )
         print("Đã chạy bước 1 và 2. Để gợi ý chuyên gia, chạy: python run_pgpr.py --step 3 --project_id PRJ_0001")
         return
 
     if args.step == 1:
         run_step1(data_dir=args.data_dir, emb_dim=args.emb_dim)
     elif args.step == 2:
-        run_step2(data_dir=args.data_dir, n_epoch=args.n_epoch, n_positive=args.n_positive, n_negative=args.n_negative)
+        run_step2(
+            data_dir=args.data_dir,
+            n_epoch=args.n_epoch,
+            n_positive=args.n_positive,
+            n_negative=args.n_negative,
+            task=args.task,
+        )
     elif args.step == 3:
         run_step3(project_id=args.project_id, data_dir=args.data_dir, limit=args.limit)
     else:

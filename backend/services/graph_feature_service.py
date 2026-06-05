@@ -68,17 +68,18 @@ class GraphFeatureService:
                 f"""
                 MATCH (n:{label} {{{id_prop}: $entity_id}})
                 OPTIONAL MATCH (n)-[r]-(m)
+                WITH r, m, CASE WHEN m IS NULL THEN {{}} ELSE properties(m) END AS props
                 WHERE m IS NULL OR (
-                  NOT coalesce(m.visibility, "public") IN ["hidden", "disabled"]
-                  AND coalesce(m.participation_scope, "public") <> "disabled"
-                  AND coalesce(m.entity_verification_status, "verified") <> "rejected"
-                  AND coalesce(m.kg_sync_status, "synced_verified") <> "merge_required"
+                  NOT coalesce(props.visibility, "public") IN ["hidden", "disabled"]
+                  AND coalesce(props.participation_scope, "public") <> "disabled"
+                  AND coalesce(props.entity_verification_status, "verified") <> "rejected"
+                  AND coalesce(props.kg_sync_status, "synced_verified") <> "merge_required"
                 )
                 RETURN collect(DISTINCT type(r)) AS relations,
                        collect(DISTINCT coalesce(
-                         m.name, m.title, m.label,
-                         m.topic_id, m.skill_id, m.industry_id, m.location_id,
-                         m.project_id, m.expert_id, m.enterprise_id, m.funder_id
+                         props.name, props.title, props.label,
+                         props.topic_id, props.skill_id, props.industry_id, props.location_id,
+                         props.project_id, props.expert_id, props.enterprise_id, props.funder_id
                        )) AS labels
                 """,
                 entity_id=entity_id,

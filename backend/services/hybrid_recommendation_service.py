@@ -171,7 +171,12 @@ class HybridRecommendationService:
             merged[cid] = item
 
         scored = [
-            self._score_candidate(item, source_entity=source_entity, src_ctx=src_ctx)
+            self._score_candidate(
+                item,
+                source_entity=source_entity,
+                src_ctx=src_ctx,
+                target_type=target_type,
+            )
             for item in merged.values()
         ]
         scored = self._rerank_and_cap(scored, limit=limit)
@@ -193,9 +198,11 @@ class HybridRecommendationService:
         *,
         source_entity: Dict[str, Any],
         src_ctx: Dict[str, Any],
+        target_type: str,
     ) -> Dict[str, Any]:
         out = dict(item)
-        target_type = str(out.get("type") or "").lower()
+        target_type = str(out.get("type") or target_type or "").lower()
+        out["type"] = target_type
         target_id = str(out.get("id") or "")
         target_entity = self.auth_repo.find_entity_by_id(target_type, target_id) if target_id else {}
 

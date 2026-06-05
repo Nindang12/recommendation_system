@@ -12,13 +12,33 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo import ReplaceOne
 
-load_dotenv()
-
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.getenv("MONGO_DB_NAME", "rd_recommendation_system")
-
 SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(SCRIPT_DIR / ".env")
+
+DB_NAME = os.getenv("MONGO_DB_NAME", "rd_recommendation_system")
 DEFAULT_DATA_FILE = SCRIPT_DIR / "seed_data.txt"
+
+
+def _build_mongo_uri() -> str:
+    explicit_uri = os.getenv("MONGO_URI")
+    if explicit_uri:
+        return explicit_uri
+
+    username = os.getenv("MONGO_USERNAME")
+    password = os.getenv("MONGO_PASSWORD")
+    host = os.getenv("MONGO_HOST", "localhost")
+    port = os.getenv("MONGO_PORT", "27017")
+    auth_source = os.getenv("MONGO_AUTH_SOURCE", "admin")
+    if username and password:
+        return f"mongodb://{username}:{password}@{host}:{port}/{DB_NAME}?authSource={auth_source}"
+
+    return f"mongodb://{host}:{port}"
+
+
+MONGO_URI = _build_mongo_uri()
 
 MERGED_COLLECTIONS = ["experts", "enterprises", "projects", "funders", "products", "datasets"]
 COLLECTION_ID_KEYS = {

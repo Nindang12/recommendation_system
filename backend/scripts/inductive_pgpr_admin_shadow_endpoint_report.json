@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "endpoint": "POST /api/v1/admin/inductive-pgpr/shadow",
+  "prototype_only": true,
+  "runtime_enabled": false,
+  "admin_status_code": 200,
+  "normal_user_status_code": 403,
+  "unauthenticated_status_code": 401
+}

@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "created_at": "2026-06-05T15:48:59.878796+00:00",
+  "tests": {
+    "action_schema_freeze": "passed",
+    "snapshot_env": "passed",
+    "policy_forward_pass": "passed",
+    "shadow_interface_runtime_disabled": "passed",
+    "beam_search_shadow": "passed",
+    "owner_only_public_personal_admin_mask": "passed"
+  },
+  "synthetic_graph": {
+    "node_count": 9,
+    "action_edge_count": 13,
+    "blocked_relations": {
+      "WORK_FOR": 1
+    },
+    "path_entities": [
+      "Expert::exp_new",
+      "ResearchTopic::topic_ai",
+      "Project::prj_ai"
+    ],
+    "path_relations": [
+      "HAS_EXPERIENCE_IN::OUT",
+      "FOCUSES_ON_TOPIC::IN"
+    ]
+  },
+  "shadow": {
+    "status": "shadow_disabled",
+    "candidate_count": 1,
+    "trace_length": 2,
+    "beam_candidate_count": 1,
+    "beam_latency_ms": 1.141,
+    "personal_beam_candidate_count": 2,
+    "admin_beam_candidate_count": 4
+  }
+}

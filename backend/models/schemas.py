@@ -127,6 +127,23 @@ class EmbeddingRecomputeRequest(BaseModel):
     reason: str = Field(default="", description="Why this recompute was requested (audit log)")
 
 
+class InductivePGPRShadowRequest(BaseModel):
+    source_type: EntityType = Field(..., description="Source entity type to inspect")
+    source_id: str = Field(..., min_length=1, description="Source entity id")
+    target_type: EntityType = Field(..., description="Target entity type to inspect")
+    beam_width: int = Field(5, ge=1, le=20)
+    max_hops: int = Field(3, ge=1, le=6)
+    limit: int = Field(5, ge=1, le=20)
+    mode: Literal["public", "personal", "admin_debug"] = Field(
+        "admin_debug",
+        description="Inspection mode. Endpoint is admin-only regardless of this value.",
+    )
+    current_user_id: Optional[str] = Field(
+        default=None,
+        description="Optional user context for personal-mode mask inspection.",
+    )
+
+
 class ExplainRecommendationRequest(BaseModel):
     recommendation: Dict[str, Any] = Field(..., description="The recommendation object to explain")
     target_type: EntityType = Field(..., description="The type of the recommended entity")

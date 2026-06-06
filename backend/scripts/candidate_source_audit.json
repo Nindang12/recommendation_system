@@ -1,0 +1,508 @@
+{
+  "status": "complete",
+  "generated_at": "2026-06-06T08:29:53.711119+00:00",
+  "cases_path": "D:\\Documents\\Đồ án\\backend\\scripts\\evaluation_cases.json",
+  "query_count": 22,
+  "top_k": 5,
+  "total_returned_candidates": 109,
+  "method_counts": {
+    "hybrid_embedding_path": 55,
+    "pgpr_policy": 36,
+    "hybrid_embedding": 18
+  },
+  "path_layer_counts": {
+    "pgpr_policy": 36,
+    "path_reranked_by_embedding_topic": 55,
+    "cypher_fallback": 0,
+    "embedding_only": 18
+  },
+  "evidence_counts": {
+    "path_supported": 91,
+    "embedding_only": 18
+  },
+  "candidate_source_counts": {
+    "pgpr": 91,
+    "embedding": 109
+  },
+  "query_method_presence": {
+    "pgpr_policy": 18,
+    "hybrid_embedding_path": 21,
+    "hybrid_embedding": 15
+  },
+  "rows": [
+    {
+      "case_id": "prj_001_to_expert_primary",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 1532.623,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 4,
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_001_to_expert_secondary",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 1634.897,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 4,
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_005_to_expert_top",
+      "source_type": "project",
+      "source_id": "prj_005",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 1593.294,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 3,
+        "pgpr_policy": 1,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_005_to_expert_pool",
+      "source_type": "project",
+      "source_id": "prj_005",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 2030.194,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 3,
+        "pgpr_policy": 1,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_004_to_expert",
+      "source_type": "project",
+      "source_id": "prj_004",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 1997.433,
+      "result_count": 4,
+      "methods": {
+        "hybrid_embedding_path": 3,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 3,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 3,
+        "embedding": 4
+      }
+    },
+    {
+      "case_id": "hybrid_prj_001_to_expert",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 1640.459,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 4,
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "hybrid_prj_005_to_expert",
+      "source_type": "project",
+      "source_id": "prj_005",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 1693.571,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 3,
+        "pgpr_policy": 1,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_001_to_funder_primary",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "funder",
+      "mode": "public",
+      "latency_ms": 1591.167,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 2,
+        "hybrid_embedding": 1,
+        "hybrid_embedding_path": 2
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_001_to_funder_secondary",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "funder",
+      "mode": "public",
+      "latency_ms": 1827.076,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 3,
+        "hybrid_embedding": 2
+      },
+      "evidence_levels": {
+        "path_supported": 3,
+        "embedding_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 3,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_005_to_funder",
+      "source_type": "project",
+      "source_id": "prj_005",
+      "target_type": "funder",
+      "mode": "public",
+      "latency_ms": 1575.107,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 2,
+        "pgpr_policy": 2,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "hybrid_prj_001_to_funder",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "funder",
+      "mode": "public",
+      "latency_ms": 1945.438,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 2,
+        "hybrid_embedding": 2,
+        "hybrid_embedding_path": 1
+      },
+      "evidence_levels": {
+        "path_supported": 3,
+        "embedding_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 3,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_001_to_enterprise",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "target_type": "enterprise",
+      "mode": "public",
+      "latency_ms": 1563.027,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 2,
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "prj_005_to_enterprise",
+      "source_type": "project",
+      "source_id": "prj_005",
+      "target_type": "enterprise",
+      "mode": "public",
+      "latency_ms": 1479.589,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding": 2,
+        "hybrid_embedding_path": 1,
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "embedding_only": 2,
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "embedding": 5,
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "exp_001_to_project",
+      "source_type": "expert",
+      "source_id": "exp_001",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 1895.977,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 4,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "exp_006_to_project",
+      "source_type": "expert",
+      "source_id": "exp_006",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 1916.095,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 4,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "hybrid_exp_001_to_project",
+      "source_type": "expert",
+      "source_id": "exp_001",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 1924.117,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 4,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "ent_001_to_project",
+      "source_type": "enterprise",
+      "source_id": "ent_001",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 1469.112,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 4,
+        "hybrid_embedding_path": 1
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "ent_001_to_expert",
+      "source_type": "enterprise",
+      "source_id": "ent_001",
+      "target_type": "expert",
+      "mode": "public",
+      "latency_ms": 2305.153,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 1,
+        "hybrid_embedding_path": 4
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "hybrid_ent_001_to_project",
+      "source_type": "enterprise",
+      "source_id": "ent_001",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 1569.743,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 4,
+        "hybrid_embedding_path": 1
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "fnd_001_to_project",
+      "source_type": "funder",
+      "source_id": "fnd_001",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 1875.91,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 1,
+        "pgpr_policy": 3,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "fnd_002_to_project",
+      "source_type": "funder",
+      "source_id": "fnd_002",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 2008.961,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 2,
+        "hybrid_embedding": 1,
+        "hybrid_embedding_path": 2
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    },
+    {
+      "case_id": "hybrid_fnd_001_to_project",
+      "source_type": "funder",
+      "source_id": "fnd_001",
+      "target_type": "project",
+      "mode": "public",
+      "latency_ms": 2015.086,
+      "result_count": 5,
+      "methods": {
+        "hybrid_embedding_path": 2,
+        "pgpr_policy": 2,
+        "hybrid_embedding": 1
+      },
+      "evidence_levels": {
+        "path_supported": 4,
+        "embedding_only": 1
+      },
+      "candidate_sources": {
+        "pgpr": 4,
+        "embedding": 5
+      }
+    }
+  ],
+  "interpretation": {
+    "pgpr_path_supported_methods": [
+      "pgpr_policy",
+      "hybrid_embedding_path"
+    ],
+    "embedding_only_method": "hybrid_embedding",
+    "fallback_method": "cypher_fallback",
+    "note": "candidate source `pgpr` means the candidate has PGPR/path-layer evidence. `pgpr_policy` is policy/path evidence, `hybrid_embedding_path` is path-supported reranking, and `cypher_fallback` is counted separately when it appears."
+  }
+}

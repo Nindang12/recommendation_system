@@ -1,0 +1,1778 @@
+{
+  "status": "complete",
+  "created_at": "2026-06-05T15:49:29.053878+00:00",
+  "runtime_unchanged": true,
+  "shadow_runtime_enabled": false,
+  "snapshot_path": "D:\\Documents\\Đồ án\\backend\\artifacts\\graph_snapshots\\snapshot_20260605T150221_309299Z0000_inductive_feasibility.json",
+  "beam_width": 5,
+  "max_hops": 3,
+  "limit": 5,
+  "mode": "public",
+  "case_count": 12,
+  "summary": {
+    "total_overlap_at_5": 31,
+    "total_new_candidates_at_5": 16,
+    "total_path_count": 47,
+    "total_invalid_path_count": 0,
+    "total_terminal_target_type_mismatch_count": 0,
+    "total_blocked_action_count": 363,
+    "latency_ms": {
+      "hybrid": {
+        "p50": 1725.137,
+        "p95": 2196.938,
+        "avg": 1291.9
+      },
+      "inductive_shadow": {
+        "p50": 4.101,
+        "p95": 6.882,
+        "avg": 4.387
+      }
+    },
+    "quality_claim": "not_claimed"
+  },
+  "rows": [
+    {
+      "case_id": "project_prj_001_to_expert",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "source_key": "Project::prj_001",
+      "target_type": "expert",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "exp_002",
+          "name": "TS. Trần Thị B",
+          "score": 0.61543,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_003",
+          "name": "TS. Phạm Minh C",
+          "score": 0.391268,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_004",
+          "name": "PGS.TS. Lê Thu D",
+          "score": 0.305459,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_005",
+          "name": "TS. Vũ Quốc E",
+          "score": 0.210486,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_008",
+          "name": "TS. Trương Đức H",
+          "score": 0.199629,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Expert::exp_001",
+          "id": "exp_001",
+          "path_score_prototype": 0.145935,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Health Informatics"
+            },
+            {
+              "source": "ResearchDirection::Health Informatics",
+              "relation": "RESEARCHES::IN",
+              "target": "Expert::exp_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_003",
+          "id": "exp_003",
+          "path_score_prototype": 0.050853,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_010",
+          "id": "exp_010",
+          "path_score_prototype": 0.050846,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "REQUIRES_SKILL::OUT",
+              "target": "Skill::skill_pytorch"
+            },
+            {
+              "source": "Skill::skill_pytorch",
+              "relation": "HAS_SKILL::IN",
+              "target": "Expert::exp_010"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_008",
+          "id": "exp_008",
+          "path_score_prototype": 0.048494,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_008"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_005",
+          "id": "exp_005",
+          "path_score_prototype": 0.048344,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "REQUIRES_SKILL::OUT",
+              "target": "Skill::skill_pytorch"
+            },
+            {
+              "source": "Skill::skill_pytorch",
+              "relation": "HAS_SKILL::IN",
+              "target": "Expert::exp_005"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 3,
+      "overlap_candidate_ids": [
+        "exp_003",
+        "exp_005",
+        "exp_008"
+      ],
+      "new_candidates_at_5": 2,
+      "new_candidate_ids": [
+        "exp_001",
+        "exp_010"
+      ],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 28,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 23
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 2098.847,
+        "inductive_shadow": 7.64
+      }
+    },
+    {
+      "case_id": "project_prj_001_to_funder",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "source_key": "Project::prj_001",
+      "target_type": "funder",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "fnd_002",
+          "name": "National Technology Development Fund (NATIF)",
+          "score": 1.0,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "fnd_003",
+          "name": "Vietnam Digital Innovation Grant (VDIG)",
+          "score": 0.423325,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "fnd_001",
+          "name": "Vietnam Innovation Fund (VINIF)",
+          "score": 0.04931,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "fnd_005",
+          "name": "National EdTech Fund",
+          "score": 0.038377,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "fnd_004",
+          "name": "Agri Innovation Program Vietnam",
+          "score": 0.034056,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Funder::fnd_003",
+          "id": "fnd_003",
+          "path_score_prototype": 0.049664,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Funder::fnd_002",
+          "id": "fnd_002",
+          "path_score_prototype": 0.049341,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_002"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Funder::fnd_001",
+          "id": "fnd_001",
+          "path_score_prototype": 0.046929,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_001"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 3,
+      "overlap_candidate_ids": [
+        "fnd_001",
+        "fnd_002",
+        "fnd_003"
+      ],
+      "new_candidates_at_5": 0,
+      "new_candidate_ids": [],
+      "path_count": 3,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 43,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 38
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 1820.491,
+        "inductive_shadow": 1.782
+      }
+    },
+    {
+      "case_id": "project_prj_001_to_enterprise",
+      "source_type": "project",
+      "source_id": "prj_001",
+      "source_key": "Project::prj_001",
+      "target_type": "enterprise",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "ent_002",
+          "name": "VinaSmart Factory Tech",
+          "score": 0.8611,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_005",
+          "name": "LearnNext EdTech",
+          "score": 0.557431,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_007",
+          "name": "GreenGrid Solutions",
+          "score": 0.502561,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_003",
+          "name": "SecurePay Analytics JSC",
+          "score": 0.465109,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_006",
+          "name": "UrbanRoute Logistics Tech",
+          "score": 0.459689,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Enterprise::ent_001",
+          "id": "ent_001",
+          "path_score_prototype": 0.129946,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "REQUIRES_SKILL::OUT",
+              "target": "Skill::skill_pytorch"
+            },
+            {
+              "source": "Skill::skill_pytorch",
+              "relation": "REQUIRES_SKILL::IN",
+              "target": "Enterprise::ent_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_003",
+          "id": "ent_003",
+          "path_score_prototype": 0.062323,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Enterprise::ent_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_002",
+          "id": "ent_002",
+          "path_score_prototype": 0.020054,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Enterprise::ent_002"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_007",
+          "id": "ent_007",
+          "path_score_prototype": 0.019456,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Enterprise::ent_007"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_004",
+          "id": "ent_004",
+          "path_score_prototype": 0.019343,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Project::prj_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Enterprise::ent_004"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 3,
+      "overlap_candidate_ids": [
+        "ent_002",
+        "ent_003",
+        "ent_007"
+      ],
+      "new_candidates_at_5": 2,
+      "new_candidate_ids": [
+        "ent_001",
+        "ent_004"
+      ],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 33,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 28
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 1727.007,
+        "inductive_shadow": 6.882
+      }
+    },
+    {
+      "case_id": "expert_exp_001_to_project",
+      "source_type": "expert",
+      "source_id": "exp_001",
+      "source_key": "Expert::exp_001",
+      "target_type": "project",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "prj_004",
+          "name": "AgriVision for Coffee Disease Monitoring",
+          "score": 0.273495,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_002",
+          "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+          "score": 0.204252,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_006",
+          "name": "SmartRoute for Urban Fleet Optimization",
+          "score": 0.200749,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_001",
+          "name": "AI for Healthcare: Chest X-Ray Anomaly Detection",
+          "score": 0.088393,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "prj_007",
+          "name": "GridSense for Renewable Forecast and Stability",
+          "score": 0.048224,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Project::prj_001",
+          "id": "prj_001",
+          "path_score_prototype": 0.134429,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Health Informatics"
+            },
+            {
+              "source": "ResearchDirection::Health Informatics",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_006",
+          "id": "prj_006",
+          "path_score_prototype": 0.132084,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đông Nam Bộ"
+            },
+            {
+              "source": "Location::VN-Đông Nam Bộ",
+              "relation": "LOCATED_IN::IN",
+              "target": "Project::prj_006"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_003",
+          "id": "prj_003",
+          "path_score_prototype": 0.020083,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_004",
+          "id": "prj_004",
+          "path_score_prototype": 0.018974,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_004"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_005",
+          "id": "prj_005",
+          "path_score_prototype": 0.018682,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_005"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 3,
+      "overlap_candidate_ids": [
+        "prj_001",
+        "prj_004",
+        "prj_006"
+      ],
+      "new_candidates_at_5": 2,
+      "new_candidate_ids": [
+        "prj_003",
+        "prj_005"
+      ],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 29,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 24
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 2196.938,
+        "inductive_shadow": 5.599
+      }
+    },
+    {
+      "case_id": "expert_exp_001_to_funder",
+      "source_type": "expert",
+      "source_id": "exp_001",
+      "source_key": "Expert::exp_001",
+      "target_type": "funder",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "fnd_003",
+          "name": "Vietnam Digital Innovation Grant (VDIG)",
+          "score": 0.341,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "fnd_004",
+          "name": "Agri Innovation Program Vietnam",
+          "score": 0.341,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "fnd_005",
+          "name": "National EdTech Fund",
+          "score": 0.2635,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "fnd_001",
+          "name": "Vietnam Innovation Fund (VINIF)",
+          "score": 0.221583,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "fnd_007",
+          "name": "Green Energy Transition Fund",
+          "score": 0.091261,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Funder::fnd_006",
+          "id": "fnd_006",
+          "path_score_prototype": 0.150685,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đông Nam Bộ"
+            },
+            {
+              "source": "Location::VN-Đông Nam Bộ",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_006"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 0,
+      "overlap_candidate_ids": [],
+      "new_candidates_at_5": 1,
+      "new_candidate_ids": [
+        "fnd_006"
+      ],
+      "path_count": 1,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 41,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 36
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 73.807,
+        "inductive_shadow": 2.914
+      }
+    },
+    {
+      "case_id": "expert_exp_001_to_enterprise",
+      "source_type": "expert",
+      "source_id": "exp_001",
+      "source_key": "Expert::exp_001",
+      "target_type": "enterprise",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "ent_007",
+          "name": "GreenGrid Solutions",
+          "score": 0.695605,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_002",
+          "name": "VinaSmart Factory Tech",
+          "score": 0.640422,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_003",
+          "name": "SecurePay Analytics JSC",
+          "score": 0.557925,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_004",
+          "name": "AgriSense Vietnam Co.,Ltd",
+          "score": 0.538054,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "ent_005",
+          "name": "LearnNext EdTech",
+          "score": 0.433627,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Enterprise::ent_006",
+          "id": "ent_006",
+          "path_score_prototype": 0.150685,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đông Nam Bộ"
+            },
+            {
+              "source": "Location::VN-Đông Nam Bộ",
+              "relation": "LOCATED_IN::IN",
+              "target": "Enterprise::ent_006"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_001",
+          "id": "ent_001",
+          "path_score_prototype": 0.146206,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "HAS_EXPERIENCE_IN::OUT",
+              "target": "ResearchTopic::topic_medical_imaging"
+            },
+            {
+              "source": "ResearchTopic::topic_medical_imaging",
+              "relation": "FOCUSES_ON_TOPIC::IN",
+              "target": "Enterprise::ent_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_002",
+          "id": "ent_002",
+          "path_score_prototype": 0.022143,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Enterprise::ent_002"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_004",
+          "id": "ent_004",
+          "path_score_prototype": 0.021506,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Enterprise::ent_004"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_007",
+          "id": "ent_007",
+          "path_score_prototype": 0.021399,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Expert::exp_001",
+              "relation": "RESEARCHES::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Enterprise::ent_007"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 3,
+      "overlap_candidate_ids": [
+        "ent_002",
+        "ent_004",
+        "ent_007"
+      ],
+      "new_candidates_at_5": 2,
+      "new_candidate_ids": [
+        "ent_006",
+        "ent_001"
+      ],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 32,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 27
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 2237.543,
+        "inductive_shadow": 4.114
+      }
+    },
+    {
+      "case_id": "enterprise_ent_001_to_expert",
+      "source_type": "enterprise",
+      "source_id": "ent_001",
+      "source_key": "Enterprise::ent_001",
+      "target_type": "expert",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "exp_005",
+          "name": "TS. Vũ Quốc E",
+          "score": 0.707492,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_003",
+          "name": "TS. Phạm Minh C",
+          "score": 0.490279,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_009",
+          "name": "TS. Nguyễn Mai K",
+          "score": 0.422596,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_008",
+          "name": "TS. Trương Đức H",
+          "score": 0.383791,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "exp_004",
+          "name": "PGS.TS. Lê Thu D",
+          "score": 0.293794,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Expert::exp_001",
+          "id": "exp_001",
+          "path_score_prototype": 0.120108,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "FOCUSES_ON_TOPIC::OUT",
+              "target": "ResearchTopic::topic_medical_imaging"
+            },
+            {
+              "source": "ResearchTopic::topic_medical_imaging",
+              "relation": "HAS_EXPERIENCE_IN::IN",
+              "target": "Expert::exp_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_010",
+          "id": "exp_010",
+          "path_score_prototype": 0.046985,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "REQUIRES_SKILL::OUT",
+              "target": "Skill::skill_pytorch"
+            },
+            {
+              "source": "Skill::skill_pytorch",
+              "relation": "HAS_SKILL::IN",
+              "target": "Expert::exp_010"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_003",
+          "id": "exp_003",
+          "path_score_prototype": 0.046121,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_005",
+          "id": "exp_005",
+          "path_score_prototype": 0.044673,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "REQUIRES_SKILL::OUT",
+              "target": "Skill::skill_pytorch"
+            },
+            {
+              "source": "Skill::skill_pytorch",
+              "relation": "HAS_SKILL::IN",
+              "target": "Expert::exp_005"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_008",
+          "id": "exp_008",
+          "path_score_prototype": 0.043981,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_008"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 3,
+      "overlap_candidate_ids": [
+        "exp_003",
+        "exp_005",
+        "exp_008"
+      ],
+      "new_candidates_at_5": 2,
+      "new_candidate_ids": [
+        "exp_001",
+        "exp_010"
+      ],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 28,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 23
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 1723.266,
+        "inductive_shadow": 5.48
+      }
+    },
+    {
+      "case_id": "enterprise_ent_001_to_project",
+      "source_type": "enterprise",
+      "source_id": "ent_001",
+      "source_key": "Enterprise::ent_001",
+      "target_type": "project",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "prj_005",
+          "name": "LearnPath AI for Personalized Curriculum",
+          "score": 1.0,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_004",
+          "name": "AgriVision for Coffee Disease Monitoring",
+          "score": 0.815908,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_003",
+          "name": "SecurePay AI Fraud Intelligence",
+          "score": 0.307882,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_002",
+          "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+          "score": 0.256782,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_006",
+          "name": "SmartRoute for Urban Fleet Optimization",
+          "score": 0.235222,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Project::prj_001",
+          "id": "prj_001",
+          "path_score_prototype": 0.121164,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "REQUIRES_SKILL::OUT",
+              "target": "Skill::skill_pytorch"
+            },
+            {
+              "source": "Skill::skill_pytorch",
+              "relation": "REQUIRES_SKILL::IN",
+              "target": "Project::prj_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_003",
+          "id": "prj_003",
+          "path_score_prototype": 0.062416,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Project::prj_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_006",
+          "id": "prj_006",
+          "path_score_prototype": 0.017035,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_006"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_004",
+          "id": "prj_004",
+          "path_score_prototype": 0.016966,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_004"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_005",
+          "id": "prj_005",
+          "path_score_prototype": 0.016675,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "FOCUSES_ON::OUT",
+              "target": "ResearchDirection::Artificial Intelligence"
+            },
+            {
+              "source": "ResearchDirection::Artificial Intelligence",
+              "relation": "FOCUSES_ON::IN",
+              "target": "Project::prj_005"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 4,
+      "overlap_candidate_ids": [
+        "prj_003",
+        "prj_004",
+        "prj_005",
+        "prj_006"
+      ],
+      "new_candidates_at_5": 1,
+      "new_candidate_ids": [
+        "prj_001"
+      ],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 32,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 27
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 1563.607,
+        "inductive_shadow": 5.626
+      }
+    },
+    {
+      "case_id": "enterprise_ent_001_to_funder",
+      "source_type": "enterprise",
+      "source_id": "ent_001",
+      "source_key": "Enterprise::ent_001",
+      "target_type": "funder",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "fnd_001",
+          "name": "Vietnam Innovation Fund (VINIF)",
+          "score": 0.251918,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "fnd_003",
+          "name": "Vietnam Digital Innovation Grant (VDIG)",
+          "score": 0.134672,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "fnd_004",
+          "name": "Agri Innovation Program Vietnam",
+          "score": 0.130604,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "fnd_005",
+          "name": "National EdTech Fund",
+          "score": 0.097077,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "fnd_007",
+          "name": "Green Energy Transition Fund",
+          "score": 0.091981,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Funder::fnd_003",
+          "id": "fnd_003",
+          "path_score_prototype": 0.045042,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Funder::fnd_002",
+          "id": "fnd_002",
+          "path_score_prototype": 0.044749,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_002"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Funder::fnd_001",
+          "id": "fnd_001",
+          "path_score_prototype": 0.042561,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Enterprise::ent_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Funder::fnd_001"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 2,
+      "overlap_candidate_ids": [
+        "fnd_001",
+        "fnd_003"
+      ],
+      "new_candidates_at_5": 1,
+      "new_candidate_ids": [
+        "fnd_002"
+      ],
+      "path_count": 3,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 42,
+      "blocked_action_counts": {
+        "cycle_pruned": 5,
+        "target_type_pruned": 37
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 75.294,
+        "inductive_shadow": 3.205
+      }
+    },
+    {
+      "case_id": "funder_fnd_001_to_expert",
+      "source_type": "funder",
+      "source_id": "fnd_001",
+      "source_key": "Funder::fnd_001",
+      "target_type": "expert",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "exp_003",
+          "name": "TS. Phạm Minh C",
+          "score": 0.341,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "exp_005",
+          "name": "TS. Vũ Quốc E",
+          "score": 0.341,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "exp_001",
+          "name": "PGS.TS. Nguyễn Văn A",
+          "score": 0.221583,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "exp_010",
+          "name": "TS. Đặng Quang L",
+          "score": 0.186,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "exp_004",
+          "name": "PGS.TS. Lê Thu D",
+          "score": 0.143653,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Expert::exp_003",
+          "id": "exp_003",
+          "path_score_prototype": 0.1226,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_008",
+          "id": "exp_008",
+          "path_score_prototype": 0.116913,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_008"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Expert::exp_009",
+          "id": "exp_009",
+          "path_score_prototype": 0.112311,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Expert::exp_009"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 1,
+      "overlap_candidate_ids": [
+        "exp_003"
+      ],
+      "new_candidates_at_5": 2,
+      "new_candidate_ids": [
+        "exp_008",
+        "exp_009"
+      ],
+      "path_count": 3,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 21,
+      "blocked_action_counts": {
+        "cycle_pruned": 3,
+        "target_type_pruned": 18
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 116.283,
+        "inductive_shadow": 3.759
+      }
+    },
+    {
+      "case_id": "funder_fnd_001_to_project",
+      "source_type": "funder",
+      "source_id": "fnd_001",
+      "source_key": "Funder::fnd_001",
+      "target_type": "project",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "prj_004",
+          "name": "AgriVision for Coffee Disease Monitoring",
+          "score": 1.0,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_002",
+          "name": "AI-driven Predictive Maintenance for CNC Production Lines",
+          "score": 0.206398,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_007",
+          "name": "GridSense for Renewable Forecast and Stability",
+          "score": 0.200355,
+          "scoring_method": "hybrid_embedding_path",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_006",
+          "name": "SmartRoute for Urban Fleet Optimization",
+          "score": 0.198719,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        },
+        {
+          "id": "prj_003",
+          "name": "SecurePay AI Fraud Intelligence",
+          "score": 0.197139,
+          "scoring_method": "pgpr_policy",
+          "evidence_level": "path_supported"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Project::prj_001",
+          "id": "prj_001",
+          "path_score_prototype": 0.250035,
+          "hops": 1,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "FUNDS::OUT",
+              "target": "Project::prj_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Project::prj_003",
+          "id": "prj_003",
+          "path_score_prototype": 0.139968,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Project::prj_003"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 1,
+      "overlap_candidate_ids": [
+        "prj_003"
+      ],
+      "new_candidates_at_5": 1,
+      "new_candidate_ids": [
+        "prj_001"
+      ],
+      "path_count": 2,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 20,
+      "blocked_action_counts": {
+        "cycle_pruned": 3,
+        "target_type_pruned": 17
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 1820.681,
+        "inductive_shadow": 1.559
+      }
+    },
+    {
+      "case_id": "funder_fnd_001_to_enterprise",
+      "source_type": "funder",
+      "source_id": "fnd_001",
+      "source_key": "Funder::fnd_001",
+      "target_type": "enterprise",
+      "hybrid_error": null,
+      "hybrid_candidates": [
+        {
+          "id": "ent_002",
+          "name": "VinaSmart Factory Tech",
+          "score": 0.341,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "ent_005",
+          "name": "LearnNext EdTech",
+          "score": 0.28954,
+          "scoring_method": "cypher_fallback",
+          "evidence_level": "fallback_only"
+        },
+        {
+          "id": "ent_001",
+          "name": "TechMed Solutions VN",
+          "score": 0.251918,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "ent_003",
+          "name": "SecurePay Analytics JSC",
+          "score": 0.135613,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        },
+        {
+          "id": "ent_004",
+          "name": "AgriSense Vietnam Co.,Ltd",
+          "score": 0.129927,
+          "scoring_method": "hybrid_embedding",
+          "evidence_level": "embedding_only"
+        }
+      ],
+      "inductive_shadow_candidates": [
+        {
+          "entity_key": "Enterprise::ent_001",
+          "id": "ent_001",
+          "path_score_prototype": 0.320465,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "FOCUSES_ON_SECTORS::OUT",
+              "target": "Industry::HEAL"
+            },
+            {
+              "source": "Industry::HEAL",
+              "relation": "OPERATES_IN::IN",
+              "target": "Enterprise::ent_001"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_003",
+          "id": "ent_003",
+          "path_score_prototype": 0.170538,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "LOCATED_IN::OUT",
+              "target": "Location::VN-Đồng bằng sông Hồng"
+            },
+            {
+              "source": "Location::VN-Đồng bằng sông Hồng",
+              "relation": "LOCATED_IN::IN",
+              "target": "Enterprise::ent_003"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_002",
+          "id": "ent_002",
+          "path_score_prototype": 0.048899,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "FOCUSES_ON_SECTORS::OUT",
+              "target": "Industry::IT"
+            },
+            {
+              "source": "Industry::IT",
+              "relation": "OPERATES_IN::IN",
+              "target": "Enterprise::ent_002"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_004",
+          "id": "ent_004",
+          "path_score_prototype": 0.048004,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "FOCUSES_ON_SECTORS::OUT",
+              "target": "Industry::IT"
+            },
+            {
+              "source": "Industry::IT",
+              "relation": "OPERATES_IN::IN",
+              "target": "Enterprise::ent_004"
+            }
+          ],
+          "path_valid": true
+        },
+        {
+          "entity_key": "Enterprise::ent_005",
+          "id": "ent_005",
+          "path_score_prototype": 0.047699,
+          "hops": 2,
+          "reasoning_path": [
+            {
+              "source": "Funder::fnd_001",
+              "relation": "FOCUSES_ON_SECTORS::OUT",
+              "target": "Industry::IT"
+            },
+            {
+              "source": "Industry::IT",
+              "relation": "OPERATES_IN::IN",
+              "target": "Enterprise::ent_005"
+            }
+          ],
+          "path_valid": true
+        }
+      ],
+      "overlap_at_5": 5,
+      "overlap_candidate_ids": [
+        "ent_001",
+        "ent_002",
+        "ent_003",
+        "ent_004",
+        "ent_005"
+      ],
+      "new_candidates_at_5": 0,
+      "new_candidate_ids": [],
+      "path_count": 5,
+      "invalid_path_count": 0,
+      "terminal_target_type_mismatch_count": 0,
+      "terminal_target_type_mismatches": [],
+      "blocked_action_count": 14,
+      "blocked_action_counts": {
+        "cycle_pruned": 3,
+        "target_type_pruned": 11
+      },
+      "blocked_node_counts": {},
+      "latency_ms": {
+        "hybrid": 49.039,
+        "inductive_shadow": 4.088
+      }
+    }
+  ],
+  "checklist": {
+    "path_validity_checked": true,
+    "terminal_target_type_checked": true,
+    "blocked_action_reasons_logged": true,
+    "owner_only_or_rejected_mask_checked_by_env": true,
+    "candidate_quality_claimed": false
+  }
+}

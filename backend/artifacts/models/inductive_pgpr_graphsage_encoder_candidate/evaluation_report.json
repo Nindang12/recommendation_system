@@ -1,0 +1,39 @@
+{
+  "status": "insufficient_data_warning",
+  "created_at": "2026-06-05T15:08:00.004153+00:00",
+  "model_name": "inductive_pgpr_graphsage_encoder_candidate",
+  "model_status": "rejected",
+  "promote_allowed": false,
+  "training_data_version": "snapshot_20260605T150221_309532Z0000",
+  "evaluation_baseline": "v2_after_hybrid_anchor",
+  "snapshot_path": "D:\\Documents\\Đồ án\\backend\\artifacts\\graph_snapshots\\snapshot_20260605T150221_309299Z0000_inductive_feasibility.json",
+  "dataset_stats": {
+    "node_count": 131,
+    "positive_edges": 367,
+    "negative_edges": 367,
+    "random_seed": 42,
+    "split_counts": {
+      "train": {
+        "positive": 256,
+        "negative": 256
+      },
+      "val": {
+        "positive": 55,
+        "negative": 55
+      },
+      "test": {
+        "positive": 56,
+        "negative": 56
+      }
+    }
+  },
+  "minimum_data_thresholds": {
+    "min_positive_edges": 500,
+    "min_nodes": 2
+  },
+  "pyg_available": false,
+  "warnings": [
+    "positive_edges_below_threshold(367<500)"
+  ],
+  "runtime_unchanged": true
+}

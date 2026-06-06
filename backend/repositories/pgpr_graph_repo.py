@@ -678,10 +678,11 @@ class PGPRGraphRepository:
                 continue
 
             id_props, name_props = label_props[label]
-            id_expr = "coalesce(" + ", ".join(f"n.{prop}" for prop in id_props) + ")"
-            name_expr = "coalesce(" + ", ".join([f"n.{prop}" for prop in name_props] + ["$entity_id"]) + ")"
+            id_expr = "coalesce(" + ", ".join(f"props.{prop}" for prop in id_props) + ")"
+            name_expr = "coalesce(" + ", ".join([f"props.{prop}" for prop in name_props] + ["$entity_id"]) + ")"
             query = f"""
             MATCH (n:{label})
+            WITH properties(n) AS props
             WHERE {id_expr} = $entity_id
             RETURN {name_expr} AS name
             LIMIT 1

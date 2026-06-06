@@ -1,0 +1,215 @@
+{
+  "status": "complete",
+  "created_at": "2026-06-05T15:31:19.147207+00:00",
+  "runtime_unchanged": true,
+  "shadow_runtime_enabled": false,
+  "snapshot_path": "D:\\Documents\\Đồ án\\backend\\artifacts\\graph_snapshots\\snapshot_20260605T150221_309299Z0000_inductive_feasibility.json",
+  "source": "Project::prj_001",
+  "target_type": "Expert",
+  "inductive_pgpr_shadow": {
+    "status": "shadow_disabled",
+    "runtime_enabled": false,
+    "prototype_only": true,
+    "source_key": "Project::prj_001",
+    "target_type": "Expert",
+    "beam_width": 5,
+    "max_hops": 3,
+    "candidate_count": 5,
+    "candidates": [
+      {
+        "entity_key": "Expert::exp_001",
+        "score": -1.986939,
+        "path_score_prototype": 0.137114,
+        "reasoning_path": [
+          {
+            "source": "Project::prj_001",
+            "relation": "FOCUSES_ON::OUT",
+            "target": "ResearchDirection::Health Informatics"
+          },
+          {
+            "source": "ResearchDirection::Health Informatics",
+            "relation": "RESEARCHES::IN",
+            "target": "Expert::exp_001"
+          }
+        ],
+        "path_validity": {
+          "valid": true,
+          "invalid_relations": [],
+          "invalid_directions": [],
+          "missing_nodes": [],
+          "path_length": 2
+        },
+        "hops": 2
+      },
+      {
+        "entity_key": "Expert::user_exp_6a229d1f6b26ca342ae4bfb1",
+        "score": -2.616973,
+        "path_score_prototype": 0.073024,
+        "reasoning_path": [
+          {
+            "source": "Project::prj_001",
+            "relation": "FOCUSES_ON_TOPIC::OUT",
+            "target": "ResearchTopic::topic_computer_vision"
+          },
+          {
+            "source": "ResearchTopic::topic_computer_vision",
+            "relation": "HAS_EXPERIENCE_IN::IN",
+            "target": "Expert::user_exp_6a229d1f6b26ca342ae4bfb1"
+          }
+        ],
+        "path_validity": {
+          "valid": true,
+          "invalid_relations": [],
+          "invalid_directions": [],
+          "missing_nodes": [],
+          "path_length": 2
+        },
+        "hops": 2
+      },
+      {
+        "entity_key": "Expert::exp_010",
+        "score": -2.996388,
+        "path_score_prototype": 0.049967,
+        "reasoning_path": [
+          {
+            "source": "Project::prj_001",
+            "relation": "REQUIRES_SKILL::OUT",
+            "target": "Skill::skill_pytorch"
+          },
+          {
+            "source": "Skill::skill_pytorch",
+            "relation": "HAS_SKILL::IN",
+            "target": "Expert::exp_010"
+          }
+        ],
+        "path_validity": {
+          "valid": true,
+          "invalid_relations": [],
+          "invalid_directions": [],
+          "missing_nodes": [],
+          "path_length": 2
+        },
+        "hops": 2
+      },
+      {
+        "entity_key": "Expert::exp_005",
+        "score": -2.996912,
+        "path_score_prototype": 0.049941,
+        "reasoning_path": [
+          {
+            "source": "Project::prj_001",
+            "relation": "REQUIRES_SKILL::OUT",
+            "target": "Skill::skill_pytorch"
+          },
+          {
+            "source": "Skill::skill_pytorch",
+            "relation": "HAS_SKILL::IN",
+            "target": "Expert::exp_005"
+          }
+        ],
+        "path_validity": {
+          "valid": true,
+          "invalid_relations": [],
+          "invalid_directions": [],
+          "missing_nodes": [],
+          "path_length": 2
+        },
+        "hops": 2
+      },
+      {
+        "entity_key": "Expert::exp_002",
+        "score": -4.196023,
+        "path_score_prototype": 0.015055,
+        "reasoning_path": [
+          {
+            "source": "Project::prj_001",
+            "relation": "FOCUSES_ON::OUT",
+            "target": "ResearchDirection::Artificial Intelligence"
+          },
+          {
+            "source": "ResearchDirection::Artificial Intelligence",
+            "relation": "RESEARCHES::IN",
+            "target": "Expert::exp_002"
+          }
+        ],
+        "path_validity": {
+          "valid": true,
+          "invalid_relations": [],
+          "invalid_directions": [],
+          "missing_nodes": [],
+          "path_length": 2
+        },
+        "hops": 2
+      }
+    ],
+    "blocked_action_count": 29,
+    "blocked_action_counts": {
+      "cycle_pruned": 5,
+      "target_type_pruned": 24
+    },
+    "blocked_node_counts": {},
+    "latency_ms": 17.954,
+    "expansion_trace": [
+      {
+        "depth": 0,
+        "current_key": "Project::prj_001",
+        "valid_action_count": 7
+      },
+      {
+        "depth": 1,
+        "current_key": "ResearchTopic::topic_computer_vision",
+        "valid_action_count": 2
+      },
+      {
+        "depth": 1,
+        "current_key": "Skill::skill_pytorch",
+        "valid_action_count": 3
+      },
+      {
+        "depth": 1,
+        "current_key": "Skill::skill_python",
+        "valid_action_count": 11
+      },
+      {
+        "depth": 1,
+        "current_key": "ResearchDirection::Artificial Intelligence",
+        "valid_action_count": 10
+      },
+      {
+        "depth": 1,
+        "current_key": "ResearchDirection::Health Informatics",
+        "valid_action_count": 1
+      }
+    ]
+  },
+  "hybrid_reference": {
+    "status": "loaded",
+    "path": "D:\\Documents\\Đồ án\\backend\\scripts\\evaluation_inductive_pgpr_baseline.json",
+    "summary": {
+      "queries": 22,
+      "precision_at_5": 0.26363636363636367,
+      "recall_at_5": 0.6515151515151515,
+      "ndcg_at_5": 0.5355031656326352,
+      "mrr": 0.587121212121212,
+      "hit_rate_at_5": 0.8636363636363636,
+      "precision_at_10": null,
+      "recall_at_10": null,
+      "ndcg_at_10": null,
+      "hit_rate_at_10": null,
+      "coverage": 0.5844155844155844,
+      "cold_start_success_rate": 1.0,
+      "explanation_coverage": 0.8,
+      "latency_ms_avg": 2006.9186363636363,
+      "latency_ms_p50": 2005.545,
+      "latency_ms_p95": 2448.975,
+      "time_to_first_usable_ms_avg": 2006.9186363636363
+    },
+    "query_count": 22,
+    "note": "This is the current hybrid evaluation baseline; Inductive PGPR shadow is not promoted and is not compared as a quality metric yet."
+  },
+  "conclusion": {
+    "architecture_ready_for_shadow": true,
+    "quality_claim": "not_claimed",
+    "next_step": "Use this report to validate path generation before RL training; train only after data/dependency readiness."
+  }
+}

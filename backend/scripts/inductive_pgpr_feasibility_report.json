@@ -1,0 +1,185 @@
+{
+  "status": "complete",
+  "created_at": "2026-06-05T15:02:21.421799+00:00",
+  "snapshot_path": "D:\\Documents\\Đồ án\\backend\\artifacts\\graph_snapshots\\snapshot_20260605T150221_309299Z0000_inductive_feasibility.json",
+  "snapshot_metadata": {
+    "node_count": 131,
+    "edge_count": 367,
+    "label_counts": {
+      "Dataset": 7,
+      "Enterprise": 7,
+      "Expert": 14,
+      "Funder": 7,
+      "Industry": 8,
+      "Location": 19,
+      "Product": 7,
+      "Project": 7,
+      "ResearchDirection": 15,
+      "ResearchTopic": 25,
+      "Skill": 15
+    },
+    "relationship_counts": {
+      "BELONGS_TO": 27,
+      "COLLABORATES_WITH": 10,
+      "CREATES": 7,
+      "DEVELOPS": 7,
+      "FOCUSES_ON": 28,
+      "FOCUSES_ON_REGION": 19,
+      "FOCUSES_ON_SECTORS": 10,
+      "FOCUSES_ON_TOPIC": 28,
+      "FUNDS": 7,
+      "HAS_ACCESS_TO": 12,
+      "HAS_APPLICATION_EXPERIENCE_IN": 10,
+      "HAS_EXPERIENCE_IN": 22,
+      "HAS_SKILL": 24,
+      "LOCATED_IN": 32,
+      "OPERATES_IN": 14,
+      "OWNS_DATA": 10,
+      "PARTICIPATES_IN": 10,
+      "PARTNERS_WITH": 7,
+      "REQUIRES_DATA": 7,
+      "REQUIRES_SKILL": 21,
+      "RESEARCHES": 20,
+      "SUPPORTS": 14,
+      "SUPPORTS_TOPIC": 7,
+      "TARGETS": 7,
+      "WORK_FOR": 7
+    },
+    "node_limit": 10000,
+    "edge_limit": 50000
+  },
+  "dependencies": {
+    "torch": true,
+    "torch_geometric": false
+  },
+  "pgpr_vocab": {
+    "data_dir": "D:\\Documents\\Đồ án\\backend\\pgpr\\pgpr_data",
+    "entity_count": 115
+  },
+  "cold_start": {
+    "total_entities": 35,
+    "missing_pgpr_vocab": 5,
+    "ready_embedding_missing_pgpr_vocab": 2,
+    "by_type": {
+      "expert": {
+        "total": 14,
+        "missing_pgpr_vocab": 5,
+        "ready_embedding_missing_pgpr_vocab": 2
+      },
+      "project": {
+        "total": 7,
+        "missing_pgpr_vocab": 0,
+        "ready_embedding_missing_pgpr_vocab": 0
+      },
+      "funder": {
+        "total": 7,
+        "missing_pgpr_vocab": 0,
+        "ready_embedding_missing_pgpr_vocab": 0
+      },
+      "enterprise": {
+        "total": 7,
+        "missing_pgpr_vocab": 0,
+        "ready_embedding_missing_pgpr_vocab": 0
+      }
+    }
+  },
+  "relations": {
+    "relationship_counts": {
+      "BELONGS_TO": 27,
+      "COLLABORATES_WITH": 10,
+      "CREATES": 7,
+      "DEVELOPS": 7,
+      "FOCUSES_ON": 28,
+      "FOCUSES_ON_REGION": 19,
+      "FOCUSES_ON_SECTORS": 10,
+      "FOCUSES_ON_TOPIC": 28,
+      "FUNDS": 7,
+      "HAS_ACCESS_TO": 12,
+      "HAS_APPLICATION_EXPERIENCE_IN": 10,
+      "HAS_EXPERIENCE_IN": 22,
+      "HAS_SKILL": 24,
+      "LOCATED_IN": 32,
+      "OPERATES_IN": 14,
+      "OWNS_DATA": 10,
+      "PARTICIPATES_IN": 10,
+      "PARTNERS_WITH": 7,
+      "REQUIRES_DATA": 7,
+      "REQUIRES_SKILL": 21,
+      "RESEARCHES": 20,
+      "SUPPORTS": 14,
+      "SUPPORTS_TOPIC": 7,
+      "TARGETS": 7,
+      "WORK_FOR": 7
+    },
+    "allowed_action_relations": [
+      "FOCUSES_ON",
+      "FOCUSES_ON_SECTORS",
+      "FOCUSES_ON_TOPIC",
+      "FUNDS",
+      "HAS_EXPERIENCE_IN",
+      "HAS_SKILL",
+      "INTERESTED_IN",
+      "LOCATED_IN",
+      "OPERATES_IN",
+      "PARTICIPATES_IN",
+      "PARTNERS_WITH",
+      "REQUIRES_SKILL",
+      "RESEARCHES",
+      "SUPPORTS_SKILL",
+      "USES_SKILL"
+    ],
+    "allowed_action_edges": 223,
+    "allowed_action_coverage": 0.607629,
+    "blocked_or_unclassified_relations": {
+      "BELONGS_TO": 27,
+      "COLLABORATES_WITH": 10,
+      "CREATES": 7,
+      "DEVELOPS": 7,
+      "FOCUSES_ON_REGION": 19,
+      "HAS_ACCESS_TO": 12,
+      "HAS_APPLICATION_EXPERIENCE_IN": 10,
+      "OWNS_DATA": 10,
+      "REQUIRES_DATA": 7,
+      "SUPPORTS": 14,
+      "SUPPORTS_TOPIC": 7,
+      "TARGETS": 7,
+      "WORK_FOR": 7
+    },
+    "positive_label_relations": [
+      "CO_AUTHOR_WITH",
+      "FUNDS",
+      "PARTICIPATES_IN",
+      "PARTNERS_WITH",
+      "RELATED_TO"
+    ],
+    "positive_label_edges": 24
+  },
+  "decision": {
+    "promote_allowed": false,
+    "checks": {
+      "node_count_ready_for_deep_model": false,
+      "edge_count_ready_for_deep_model": false,
+      "positive_labels_ready": false,
+      "cold_start_eval_cases_ready": false,
+      "action_schema_coverage_ready": false,
+      "torch_available": true,
+      "torch_geometric_available": false
+    },
+    "blocking_checks": [
+      "node_count_ready_for_deep_model",
+      "edge_count_ready_for_deep_model",
+      "positive_labels_ready",
+      "cold_start_eval_cases_ready",
+      "action_schema_coverage_ready",
+      "torch_geometric_available"
+    ],
+    "thresholds": {
+      "min_node_count": 1000,
+      "min_edge_count": 10000,
+      "min_positive_labels": 500,
+      "min_cold_start_cases": 20,
+      "min_allowed_action_coverage": 0.65
+    },
+    "recommendation": "Do not train/promote a real Inductive PGPR model yet. Keep this as candidate lifecycle/prototype, grow labels/data, and use current hybrid as production baseline."
+  }
+}

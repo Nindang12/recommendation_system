@@ -10003,6 +10003,152 @@ Ket qua:
 - `npm run typecheck`: pass.
 - `python scripts\compile_project.py`: pass.
 
+## 2026-06-05 - Danh gia Inductive PGPR candidate voi GraphSAGE end-to-end
+
+### Muc tieu
+
+- Bat dau thuc hien ke hoach `KE_HOACH_UPGRADE_INDUCTIVE_PGPR_GRAPHSAGE.md`.
+- Chi lam theo huong **candidate/research**, khong thay PGPR/hybrid production hien tai.
+- Uu tien Phase -1 feasibility check va Phase 0 baseline evaluation truoc khi nghi den train/promote model moi.
+
+### Da lam
+
+- Tao file ke hoach:
+  - `KE_HOACH_UPGRADE_INDUCTIVE_PGPR_GRAPHSAGE.md`
+  - Doi dinh huong thanh "Inductive PGPR candidate", khong goi la upgrade thay the PGPR hien tai.
+  - Them Phase -1 feasibility check.
+  - Them action schema freeze, training/runtime graph separation, path validity/XAI quality gate.
+- Tao script:
+  - `backend/scripts/inductive_pgpr_feasibility_check.py`
+  - Script read-only, export/lay snapshot Neo4j va danh gia kha thi cho Inductive PGPR candidate.
+- Chay feasibility check:
+  - Output: `backend/scripts/inductive_pgpr_feasibility_report.json`
+  - Snapshot: `backend/artifacts/graph_snapshots/*_inductive_feasibility.json`
+- Chay baseline evaluation nhe cho Phase 0:
+  - Output JSON: `backend/scripts/evaluation_inductive_pgpr_baseline.json`
+  - Output CSV: `backend/scripts/evaluation_inductive_pgpr_baseline.csv`
+  - Output MD: `backend/scripts/evaluation_inductive_pgpr_baseline.md`
+  - Methods: `random`, `topic_overlap`, `embedding_only`, `hybrid`
+  - Limit: 5, K: 5
+- Chay smoke test GraphSAGE lifecycle:
+  - `python scripts\test_phase10_graphsage_lifecycle.py`
+  - Output: `backend/scripts/phase10_graphsage_lifecycle_report.json`
+- Chay scaffold GraphSAGE encoder candidate tren snapshot thuc te:
+  - Model name: `inductive_pgpr_graphsage_encoder_candidate`
+  - Output: `backend/artifacts/models/inductive_pgpr_graphsage_encoder_candidate/`
+  - Ket qua: `promote_allowed=false`, `model_status=rejected`, `runtime_unchanged=true`.
+- Sua warning Neo4j property `label` khi resolve entity names:
+  - File: `backend/repositories/pgpr_graph_repo.py`
+  - Doi query resolve name sang doc `properties(n)` thay vi doc truc tiep `n.label`, `n.name`, ...
+
+### Ket qua feasibility
+
+Snapshot hien tai:
+
+```text
+node_count = 131
+edge_count = 367
+pgpr_vocab entity_count = 115
+```
+
+Cold-start:
+
+```text
+total_entities = 35
+missing_pgpr_vocab = 5
+ready_embedding_missing_pgpr_vocab = 2
+```
+
+Positive labels/action:
+
+```text
+positive_label_edges = 24
+allowed_action_edges = 223
+allowed_action_coverage = 0.607629
+```
+
+Dependency:
+
+```text
+torch = available
+torch_geometric = unavailable
+```
+
+Decision:
+
+```text
+promote_allowed = false
+blocking_checks:
+- node_count_ready_for_deep_model
+- edge_count_ready_for_deep_model
+- positive_labels_ready
+- cold_start_eval_cases_ready
+- action_schema_coverage_ready
+- torch_geometric_available
+```
+
+### Ket qua baseline evaluation
+
+Evaluation Phase 0 gioi han:
+
+```text
+status = success
+rows = 88
+queries_run = 22
+regression_gate = PASS
+```
+
+Tom tat metrics:
+
+| Method | NDCG@5 | MRR | Recall@5 | Coverage | Explanation coverage | Avg latency |
+|--------|--------|-----|----------|----------|----------------------|-------------|
+| random | 0.3840 | 0.4788 | 0.5076 | 0.5844 | 0.6182 | 1965.00 ms |
+| topic_overlap | 0.4085 | 0.5455 | 0.3409 | 0.1688 | 0.0000 | 9.38 ms |
+| embedding_only | 0.5402 | 0.6152 | 0.6136 | 0.5844 | 0.0000 | 34.62 ms |
+| hybrid | 0.5355 | 0.5871 | 0.6515 | 0.5844 | 0.8000 | 2006.92 ms |
+
+Ghi chu:
+
+- Full evaluation mac dinh bi timeout sau 120 giay, do do da dung tien trinh va chay baseline gioi han.
+- Hybrid co explanation coverage tot nhat trong nhom da chay.
+- Embedding-only co NDCG/MRR cao trong tap nho, nhung khong co explanation coverage nen khong thay the hybrid/XAI.
+
+### Ket qua candidate scaffold
+
+```text
+model_name = inductive_pgpr_graphsage_encoder_candidate
+model_status = rejected
+promote_allowed = false
+runtime_unchanged = true
+node_count = 131
+positive_edges = 367
+negative_edges = 367
+min_positive_edges = 500
+pyg_available = false
+warnings = positive_edges_below_threshold(367<500)
+```
+
+### Ly do khong train/promote Inductive PGPR that luc nay
+
+- Graph hien tai con nho so voi nguong deep model.
+- Positive labels cho Inductive PGPR con it.
+- Cold-start evaluation cases chua du day.
+- PyTorch Geometric chua san sang.
+- Action schema coverage moi khoang 60.76%, chua dat nguong 65%.
+- Neu train/promote luc nay de gay nham lan ve chat luong model va co nguy co thua hybrid baseline.
+
+### Ket luan
+
+- Da thuc hien Phase -1 va Phase 0 theo ke hoach.
+- Inductive PGPR hien nen giu o trang thai **candidate/prototype lifecycle**, chua phai production model.
+- Hybrid hien tai tiep tuc la baseline van hanh chinh.
+- Buoc tiep theo neu muon di tiep:
+  - bo sung data/labels;
+  - cai PyTorch Geometric hoac implementation thay the;
+  - chot `ALLOWED_ACTION_RELATIONS`;
+  - tao offline InductiveKGEnv prototype;
+  - chay shadow mode khi candidate offline vuot gate.
+
 ## 2026-06-04 - Bat buoc giai thich chi tiet su dung XAI model
 
 ### Van de
@@ -10334,3 +10480,686 @@ Ket qua:
 
 - `npm run typecheck`: pass.
 - `python scripts\compile_project.py`: pass.
+
+## 2026-06-05 - Prototype kien truc Inductive PGPR candidate
+
+### Muc tieu
+
+- Tiep tuc theo huong kien truc, khong cho data lon.
+- Xay khung Inductive PGPR candidate voi GraphSAGE/node feature encoder end-to-end.
+- Khong thay the PGPR/hybrid runtime hien tai.
+
+### Da lam
+
+- Them `backend/pgpr/inductive_action_schema.py`.
+  - Chot `ALLOWED_ACTION_RELATIONS` cho policy action space:
+    `FOCUSES_ON_TOPIC`, `HAS_EXPERIENCE_IN`, `INTERESTED_IN`,
+    `RESEARCHES`, `FOCUSES_ON`, `HAS_SKILL`, `REQUIRES_SKILL`,
+    `USES_SKILL`, `SUPPORTS_SKILL`, `LOCATED_IN`, `OPERATES_IN`,
+    `FOCUSES_ON_SECTORS`, `FUNDS`, `PARTNERS_WITH`, `PARTICIPATES_IN`,
+    `RELATED_TO`, `CO_AUTHOR_WITH`.
+  - Tach `EVIDENCE_ONLY_RELATIONS` nhu `WORK_FOR`, `HAS_ACCESS_TO`,
+    `OWNS_DATA`, `REQUIRES_DATA`, `TARGETS`, `SUPPORTS`, `BELONGS_TO`.
+  - Them helper kiem tra coverage va relation-direction token.
+- Them `backend/pgpr/inductive_pgpr_env.py`.
+  - Doc sanitized graph snapshot/cache thay vi doc truc tiep Neo4j runtime.
+  - Khong phu thuoc `vocab.json`; node duoc map bang key on dinh nhu
+    `Expert::exp_001`, `Project::prj_001`.
+  - Dung `NodeFeatureEncoder` de tao embedding 128 chieu cho node moi.
+  - Tao action hai chieu cho relation hop le de co the di cac path dang
+    `Expert -> ResearchTopic <- Project`.
+  - Co path validity gate: relation phai hop le va node phai ton tai trong snapshot.
+- Them `backend/pgpr/inductive_pgpr_policy.py`.
+  - Prototype forward pass cua policy dung node embedding + relation-direction embedding.
+  - Tra `log_probs` va `entropy` cho tap valid actions, khong can entity id trong vocab.
+- Them `backend/pgpr/inductive_shadow.py`.
+  - Tao interface shadow-mode cho Inductive PGPR candidate.
+  - Mac dinh `runtime_enabled=false`, `prototype_only=true`, chua noi vao API
+    `/recommendations/policy`.
+- Cap nhat `backend/scripts/inductive_pgpr_feasibility_check.py`.
+  - Dung chung action schema moi, tranh duplicate danh sach relation.
+- Them `backend/scripts/test_inductive_pgpr_prototype.py`.
+  - Test synthetic/sample graph cho action schema, env, policy forward pass va shadow interface.
+
+### Ly do lam nhu vay
+
+- `ALLOWED_ACTION_RELATIONS` can duoc freeze truoc khi train de policy khong hoc
+  duong di qua relation private/governance hoac relation chi nen dung lam evidence.
+- Env doc snapshot giup tach ro training graph va runtime graph. Training/evaluation
+  sau nay co the sanitize, mask rejected/disabled/private truoc khi train.
+- Policy moi dung embedding thay cho vocab id la buoc kien truc can co neu muon
+  PGPR nhan biet node moi theo huong inductive.
+- Shadow interface giup co noi de chay thu, log trace, so sanh offline ma khong
+  lam thay doi ket qua production.
+
+### Kiem tra
+
+- Compile cac file moi va feasibility script: pass.
+- `python scripts\test_inductive_pgpr_prototype.py`: pass.
+  - Report: `backend/scripts/inductive_pgpr_prototype_report.json`.
+  - `WORK_FOR` bi chan khoi action space.
+  - Env synthetic index 5 node va 6 directed actions hop le.
+  - Policy forward pass tra log-prob finite cho moi valid action.
+  - Shadow runner giu `runtime_enabled=false`.
+- Thu tren snapshot that:
+  - node_count: 131
+  - edge_count goc: 367
+  - allowed_edges: 223
+  - directed action edges trong prototype: 446
+  - allowed_coverage: 0.607629
+  - Cac relation bi chan: `BELONGS_TO`, `COLLABORATES_WITH`, `CREATES`,
+    `DEVELOPS`, `FOCUSES_ON_REGION`, `HAS_ACCESS_TO`,
+    `HAS_APPLICATION_EXPERIENCE_IN`, `OWNS_DATA`, `REQUIRES_DATA`,
+    `SUPPORTS`, `SUPPORTS_TOPIC`, `TARGETS`, `WORK_FOR`.
+
+### Ket luan bao cao
+
+Do du lieu hien tai la du lieu mau, cac chi so feasibility nhu so node, edge va
+positive labels khong duoc dung de danh gia chat luong cuoi cung cua Inductive
+PGPR. Giai doan nay chi nham xac nhan kien truc nang cap, kha nang export graph,
+xay dung feature, tao dataset, quan ly artifact va bao ve runtime hien tai bang
+co che candidate/promote/rollback. Viec train va promote Inductive PGPR se duoc
+thuc hien lai khi co du lieu thuc nghiem du lon.
+
+## 2026-06-05 - Prototype hardening cho Inductive PGPR candidate
+
+### Muc tieu
+
+- Lam cung prototype truoc khi train RL.
+- Chung minh env co the sinh reasoning path hop ly bang beam-search tren snapshot.
+- Van giu production PGPR/hybrid khong doi.
+
+### Da lam
+
+- Cap nhat `backend/pgpr/inductive_action_schema.py`.
+  - Them `REVERSIBLE_RELATIONS`.
+  - Them `FORWARD_ONLY_RELATIONS`.
+  - Policy token chi tao chieu `IN` cho relation reversible.
+- Cap nhat `backend/pgpr/inductive_pgpr_env.py`.
+  - Them governance mask cho node co `owner_only`, `rejected`, `disabled`,
+    `blocked`, `merge_required`, `deleted`.
+  - Them blocked node/action counters.
+  - Them target-type action pruning:
+    - neu dang recommend `Expert` thi khong mo rong sang target entity type sai
+      nhu `Project`, `Funder`, `Enterprise`;
+    - chan quay lai source;
+    - co cycle pruning cho beam-search.
+  - Forward-only relation khong con duoc tao edge nguoc trong env.
+- Cap nhat `backend/pgpr/inductive_shadow.py`.
+  - Them `recommend_beam_shadow()`.
+  - Output gom candidate target, reasoning path, prototype path score,
+    blocked action count, latency va expansion trace.
+  - Van tra `runtime_enabled=false`, `prototype_only=true`.
+- Them `backend/scripts/run_inductive_pgpr_shadow_report.py`.
+  - Mac dinh chay:
+    - source: `Project::prj_001`
+    - target_type: `Expert`
+    - beam_width: 5
+    - max_hops: 3
+  - Ghi report vao `backend/scripts/inductive_pgpr_shadow_report.json`.
+  - Nap hybrid baseline hien co de lam reference, nhung khong claim chat luong
+    Inductive PGPR.
+- Cap nhat `backend/scripts/test_inductive_pgpr_prototype.py`.
+  - Test relation direction policy.
+  - Test governance mask voi rejected node.
+  - Test beam-search shadow.
+
+### Kiem tra
+
+- Compile cac module Inductive PGPR va script moi: pass.
+- `python scripts\test_inductive_pgpr_prototype.py`: pass.
+  - synthetic graph index 6 node sau khi mask rejected node.
+  - action_edge_count = 7.
+  - `WORK_FOR` van bi chan khoi action space.
+  - `FUNDS` la forward-only, khong reverse-walk tu Project sang Funder.
+  - beam shadow tim duoc candidate va reasoning path.
+- `python scripts\run_inductive_pgpr_shadow_report.py --source Project::prj_001 --target-type Expert --beam-width 5 --max-hops 3`: pass.
+  - candidate_count: 5.
+  - latency_ms: 17.954.
+  - blocked_action_count: 29.
+  - blocked_action_counts:
+    - `cycle_pruned`: 5
+    - `target_type_pruned`: 24
+  - Vi du path hop le:
+    - `Project::prj_001 --FOCUSES_ON::OUT--> ResearchDirection::Health Informatics --RESEARCHES::IN--> Expert::exp_001`
+    - `Project::prj_001 --FOCUSES_ON_TOPIC::OUT--> ResearchTopic::topic_computer_vision --HAS_EXPERIENCE_IN::IN--> Expert::user_exp_6a229d1f6b26ca342ae4bfb1`
+    - `Project::prj_001 --REQUIRES_SKILL::OUT--> Skill::skill_pytorch --HAS_SKILL::IN--> Expert::exp_010`
+
+### Trang thai
+
+Inductive PGPR prototype architecture completed:
+- Action schema frozen.
+- Snapshot-based env implemented.
+- Node embedding encoder integrated.
+- Policy forward pass works without vocab id.
+- Shadow interface exists and remains runtime-disabled.
+- Beam-search path generation works on sample and real snapshot.
+- Production PGPR/hybrid unchanged.
+
+Pending:
+- Train/evaluate policy only after data/dependency readiness.
+- Connect CandidateMaskService/governance rules formally before any runtime use.
+- Replace prototype random/untrained policy score with trained/checkpointed model score.
+- Promote only through candidate/promote/rollback gate.
+
+## 2026-06-05 - Shadow comparison report cho Inductive PGPR candidate
+
+### Muc tieu
+
+- So sanh diagnostic giua current hybrid va Inductive PGPR shadow tren nhieu
+  source/target_type.
+- Khong chung minh Inductive PGPR tot hon hybrid.
+- Kiem tra:
+  - path co hop le khong;
+  - candidate co qua ky quac khong;
+  - action mask co chan dung khong;
+  - latency beam-search co nam trong muc chap nhan duoc khong.
+
+### Da lam
+
+- Them `backend/scripts/run_inductive_pgpr_shadow_compare.py`.
+- Default source sample:
+  - `project/prj_001`
+  - `expert/exp_001`
+  - `enterprise/ent_001`
+  - `funder/fnd_001`
+- Default target types:
+  - `expert`
+  - `project`
+  - `funder`
+  - `enterprise`
+- Script chay tat ca cap source/target_type khac loai, tong 12 case.
+- Moi case ghi:
+  - hybrid candidates;
+  - inductive shadow candidates;
+  - `overlap_at_5`;
+  - `new_candidates_at_5`;
+  - `path_count`;
+  - `invalid_path_count`;
+  - `terminal_target_type_mismatch_count`;
+  - `blocked_action_count`;
+  - `blocked_action_counts`;
+  - latency cua hybrid va inductive shadow.
+
+### Kiem tra
+
+- `python -m py_compile backend\scripts\run_inductive_pgpr_shadow_compare.py`: pass.
+- `python scripts\run_inductive_pgpr_shadow_compare.py --beam-width 5 --max-hops 3 --limit 5`: pass.
+- Report: `backend/scripts/inductive_pgpr_shadow_compare_report.json`.
+- Ket qua tong hop:
+  - case_count: 12
+  - total_overlap_at_5: 22
+  - total_new_candidates_at_5: 15
+  - total_path_count: 37
+  - total_invalid_path_count: 0
+  - total_terminal_target_type_mismatch_count: 0
+  - total_blocked_action_count: 344
+  - hybrid latency:
+    - p50: 1706.224 ms
+    - p95: 1939.454 ms
+    - avg: 1318.641 ms
+  - inductive shadow latency:
+    - p50: 3.067 ms
+    - p95: 5.999 ms
+    - avg: 3.474 ms
+- Khi chay hybrid reference co canh bao tu Neo4j ve property `location`
+  khong ton tai va mot so task chua co policy model, nhung compare script khong
+  fail va khong anh huong den Inductive shadow runtime-disabled.
+
+### Checklist hardening tiep theo
+
+- [ ] InductiveKGEnv dung CandidateMaskService adapter hoac rule tuong duong.
+- [x] Shadow report compare voi hybrid baseline tren nhieu source/target_type.
+- [ ] Kiem tra khong co owner_only cua user khac trong public mode bang fixture rieng.
+- [x] Kiem tra khong co rejected/disabled/merge_required trong reasoning path o env synthetic.
+- [x] Kiem tra terminal target dung target_type.
+- [x] Do latency p50/p95 cho shadow beam-search.
+- [x] Log invalid/blocked action reasons.
+
+### Trang thai
+
+Inductive PGPR prototype hardening completed:
+- Relation direction policy added.
+- Governance mask added to snapshot env.
+- Target-type pruning and cycle pruning added.
+- Beam-search shadow inference works on synthetic and real snapshot.
+- Shadow comparison report against hybrid exists.
+- Production PGPR/hybrid unchanged.
+- Prototype remains runtime-disabled.
+
+Pending:
+- Formal CandidateMaskService integration.
+- Public-mode owner_only fixture test.
+- Trained policy checkpoint.
+- Evaluation/regression gate before any promote.
+
+## 2026-06-05 - Dong bo Inductive mask voi CandidateMaskService
+
+### Muc tieu
+
+- Khong de InductiveKGEnv co bo rule governance rieng lech voi he thong chinh.
+- Chung minh owner_only khong lo trong public mode.
+- Chung minh personal mode chi cho phep owner_only cua chinh current user.
+- Admin debug co the inspect nhung prototype van runtime-disabled.
+
+### Da lam
+
+- Them `backend/pgpr/inductive_mask_adapter.py`.
+  - Tao `InductiveMaskAdapter`.
+  - Convert snapshot node properties thanh status shape giong `CandidateMaskService`.
+  - Delegate sang:
+    - `evaluate_source_status`
+    - `evaluate_target_status`
+    - `evaluate_intermediate_status`
+  - Ho tro context `public`, `personal`, `admin_debug`.
+- Cap nhat `backend/pgpr/inductive_pgpr_env.py`.
+  - Env khong con block node bang rule rieng khi index snapshot.
+  - Env index day du node de admin/debug co the inspect.
+  - Khi sinh action moi evaluate node theo role:
+    - source
+    - target
+    - intermediate
+  - Blocked action reason dung reason tu `CandidateMaskService`.
+  - Action payload co `mask_reasons` va `mask_mode`.
+- Cap nhat fixture trong `backend/scripts/test_inductive_pgpr_prototype.py`.
+  - Them rejected expert.
+  - Them owner_only expert cua user khac.
+  - Them owner_only expert cua current user.
+  - Test public/personal/admin_debug.
+
+### Kiem tra
+
+- Compile:
+  - `backend/pgpr/inductive_mask_adapter.py`
+  - `backend/pgpr/inductive_pgpr_env.py`
+  - `backend/pgpr/inductive_shadow.py`
+  - `backend/scripts/test_inductive_pgpr_prototype.py`
+  - `backend/scripts/run_inductive_pgpr_shadow_compare.py`
+  - Ket qua: pass.
+- `python scripts\test_inductive_pgpr_prototype.py`: pass.
+  - `owner_only_public_personal_admin_mask`: pass.
+  - Public mode:
+    - owner_only cua user khac khong nam trong valid actions.
+    - owner_only khong co personal context khong nam trong terminal candidate.
+  - Personal mode:
+    - owner_only cua `current_user_id=user_self` duoc phep.
+    - owner_only cua user khac bi chan.
+  - Admin debug:
+    - co the inspect owner_only candidates.
+    - shadow van `runtime_enabled=false`.
+- `python scripts\run_inductive_pgpr_shadow_compare.py --beam-width 5 --max-hops 3 --limit 5`: pass.
+  - case_count: 12
+  - total_overlap_at_5: 31
+  - total_new_candidates_at_5: 16
+  - total_path_count: 47
+  - total_invalid_path_count: 0
+  - total_terminal_target_type_mismatch_count: 0
+  - total_blocked_action_count: 363
+  - hybrid latency:
+    - p50: 1725.137 ms
+    - p95: 2196.938 ms
+    - avg: 1291.9 ms
+  - inductive shadow latency:
+    - p50: 4.101 ms
+    - p95: 6.882 ms
+    - avg: 4.387 ms
+
+### Trang thai
+
+Inductive PGPR shadow comparison completed:
+- 12 source/target cases tested.
+- Shadow generated valid reasoning paths.
+- No invalid paths.
+- No terminal target type mismatch.
+- Blocked action reasons logged.
+- Prototype latency measured.
+- CandidateMaskService-compatible adapter added.
+- Public/personal/admin_debug owner_only fixture tested.
+- Production PGPR/hybrid unchanged.
+- Prototype remains runtime-disabled.
+
+Pending:
+- Do not train/promote until data/dependency/evaluation are ready.
+- Trained policy checkpoint.
+- Evaluation/regression gate before any promote.
+- Optional next direction: Shadow mode API/debug integration for admin-only inspection.
+
+## 2026-06-06 - Admin shadow API/debug cho Inductive PGPR candidate
+
+### Muc tieu
+
+- Cho admin/root_admin inspect Inductive PGPR shadow path ma khong anh huong user.
+- Khong noi vao production recommendation route.
+- Khong ghi de recommendation cache.
+- Response phai noi ro `prototype_only=true` va `runtime_enabled=false`.
+
+### Da lam
+
+- Them `backend/services/inductive_pgpr_shadow_service.py`.
+  - Chay hybrid candidates bang current evaluation ranker.
+  - Chay Inductive PGPR beam-search shadow tren snapshot.
+  - Tra ve:
+    - source
+    - target_type
+    - hybrid candidates
+    - inductive shadow candidates
+    - reasoning paths
+    - blocked reasons
+    - latency
+    - overlap/new candidates
+    - invalid path count
+    - terminal target mismatch count
+  - Khong ghi cache va khong promote model.
+- Cap nhat `backend/models/schemas.py`.
+  - Them `InductivePGPRShadowRequest`.
+  - Gioi han:
+    - `beam_width`: 1..20
+    - `max_hops`: 1..6
+    - `limit`: 1..20
+    - `mode`: public/personal/admin_debug
+- Cap nhat `backend/api/v1/endpoints/admin.py`.
+  - Them endpoint:
+    - `POST /api/v1/admin/inductive-pgpr/shadow`
+  - Dung `get_current_admin_user`, nen chi `admin` va `root_admin` goi duoc.
+  - Response top-level va data deu giu:
+    - `prototype_only=true`
+    - `runtime_enabled=false`
+  - Co warning admin-only shadow inspection.
+- Cap nhat `backend/pgpr/inductive_shadow.py`.
+  - `from_snapshot_path()` ho tro `env_kwargs` de truyen `mode/current_user_id`.
+- Them `backend/scripts/test_inductive_pgpr_admin_shadow_endpoint.py`.
+  - Smoke test endpoint bang fake service, khong dung Mongo/Neo4j.
+  - Xac nhan route tra 200 va contract runtime-disabled.
+
+### Kiem tra
+
+- Compile:
+  - `backend/services/inductive_pgpr_shadow_service.py`
+  - `backend/pgpr/inductive_shadow.py`
+  - `backend/models/schemas.py`
+  - `backend/api/v1/endpoints/admin.py`
+  - `backend/scripts/test_inductive_pgpr_admin_shadow_endpoint.py`
+  - Ket qua: pass.
+- `python scripts\test_inductive_pgpr_admin_shadow_endpoint.py`: pass.
+  - Endpoint test:
+    - `POST /api/v1/admin/inductive-pgpr/shadow`
+    - HTTP 200
+    - `prototype_only=true`
+    - `runtime_enabled=false`
+    - comparison payload co `invalid_path_count`.
+  - Security test:
+    - admin: HTTP 200
+    - user thuong: HTTP 403
+    - unauthenticated: HTTP 401
+- Smoke service that cho `project/prj_001 -> expert`, `mode=admin_debug`:
+  - hybrid_count: 5
+  - shadow_count: 5
+  - overlap_at_5: 2
+  - new_candidates_at_5: 3
+  - path_count: 5
+  - invalid_path_count: 0
+  - terminal_target_type_mismatch_count: 0
+  - hybrid latency: 1782.687 ms
+  - inductive shadow latency: 71.069 ms
+  - `runtime_enabled=false`
+  - Ghi chu: latency 71.069 ms la latency cua diagnostic service co wrapper,
+    load snapshot/service, hybrid reference va payload shaping. Day chua phai
+    production inductive runtime latency.
+
+### Trang thai
+
+Shadow mode API/debug integration completed:
+- Admin/root_admin-only endpoint exists.
+- Shadow response includes hybrid and inductive candidates.
+- Shadow paths, blocked reasons, overlap/new candidates and latency are exposed.
+- Prototype remains runtime-disabled.
+- Production PGPR/hybrid unchanged.
+- User recommendation routes do not use this endpoint.
+
+Pending:
+- Build admin UI panel if can demo visually.
+- Do not train/promote until data/dependency/evaluation are ready.
+- Trained policy checkpoint and regression gate before any promote.
+
+### Checklist tong trang thai Inductive PGPR candidate
+
+- [x] Action schema frozen.
+- [x] Snapshot env implemented.
+- [x] CandidateMaskService-compatible mask adapter.
+- [x] Beam-search shadow works.
+- [x] Shadow comparison report exists.
+- [x] Admin-only shadow API exists.
+- [x] Admin endpoint permission tested: admin 200, user 403, unauthenticated 401.
+- [x] Runtime remains disabled.
+- [x] Production recommendation unchanged.
+
+Pending:
+- [ ] Admin UI shadow panel, optional.
+- [ ] Trained policy checkpoint.
+- [ ] Regression gate before promote.
+- [ ] No promote until data/dependency/evaluation ready.
+- [ ] Optional timeout_ms / max_expanded_nodes if beam search becomes heavier.
+
+## 2026-06-06 - Nang cap noi dung bao cao theo nhan xet phan bien
+
+### Muc tieu
+
+- Lam ro vai tro thuc te cua PGPR trong pipeline hybrid.
+- Giai thich co can cu ve trong so hybrid.
+- Goi GraphSAGE-lite dung pham vi, tranh overclaim thanh GNN deep learning moi.
+- Bo sung tieu chi gan nhan evaluation.
+- Tach ro dong gop ky thuat va dong gop thuc tien cua do an.
+
+### Da lam
+
+- Them `backend/scripts/run_candidate_source_audit.py`.
+  - Chay 22 evaluation cases voi hybrid top-5.
+  - Dem `scoring_method`, `evidence_level`, `candidate_sources`.
+  - Sinh:
+    - `backend/scripts/candidate_source_audit.json`
+    - `backend/scripts/candidate_source_audit.md`
+- Cap nhat `Mau_Luan_Van_Tot_Nghiep_from_ABSTRACT.md`.
+  - Bo sung doan lam ro:
+    - PGPR la nguon reasoning path chinh khi source co trong vocab va policy da train.
+    - Cypher fallback/hybrid ranking duoc dung khi node moi hoac policy khong du candidate.
+    - He thong khong claim thay the hoan toan fallback bang PGPR.
+  - Bo sung giai thich GraphSAGE-lite:
+    - khong phai dong gop GNN moi;
+    - la co che embedding quy nap lay cam hung tu GraphSAGE;
+    - phu hop du lieu nho va yeu cau van hanh on dinh.
+  - Bo sung cong thuc va ly do trong so hybrid:
+    - PGPR 0.62
+    - path 0.18
+    - embedding 0.12
+    - topic/skill 0.08
+    - PGPR/path chiem 0.80 vi uu tien evidence giai thich duoc.
+    - embedding/topic chiem 0.20 de ho tro coverage va cold-start.
+  - Bo sung bang nguon candidate:
+    - PGPR policy
+    - Cypher path fallback
+    - embedding similarity
+    - topic/skill overlap
+  - Bo sung tieu chi gan nhan evaluation va bang graded relevance 0..3.
+  - Bo sung phan phan tich nguon dong gop candidate.
+  - Tach `Dong gop ky thuat` va `Dong gop thuc tien`.
+  - Them artifact `candidate_source_audit` vao nguon noi bo va phu luc.
+
+### Ket qua audit
+
+- Query: 22.
+- Top-K: 5.
+- Tong candidate tra ve: 109.
+- Theo `scoring_method`:
+  - `hybrid_embedding_path`: 50
+  - `pgpr_policy`: 39
+  - `hybrid_embedding`: 20
+- Theo `evidence_level`:
+  - `path_supported`: 89
+  - `embedding_only`: 20
+- Theo `candidate_sources`:
+  - `pgpr`: 89
+  - `embedding`: 109
+- Dien giai:
+  - 89/109 candidate top-5 van co PGPR/path evidence.
+  - `hybrid_embedding_path` khong co nghia la bo PGPR; do la candidate co path/PGPR evidence duoc hybrid rerank them bang embedding/topic.
+
+### Trang thai
+
+- Bao cao da phu hop hon voi nhan xet:
+  - khong overclaim PGPR;
+  - khong overclaim GraphSAGE-lite;
+  - co so lieu ve nguon candidate;
+  - co tieu chi gan nhan evaluation;
+  - dong gop rieng cua do an ro hon.
+
+## 2026-06-06 - Lam ro them audit PGPR va latency random trong bao cao
+
+### Ly do
+
+- Nhan xet bo sung chi ra `candidate_sources=pgpr` co the bi hieu nham la toan bo deu la PGPR policy rollout.
+- Bang latency co `random` gan 1.9 giay, de bi hoi vi sao baseline random lai cham gan hybrid.
+- Can viet ket luan thuc nghiem theo huong kha thi/regression, khong overclaim benchmark.
+
+### Da lam
+
+- Cap nhat `backend/scripts/run_candidate_source_audit.py` de them `path_layer_counts`.
+  - `pgpr_policy`
+  - `path_reranked_by_embedding_topic`
+  - `cypher_fallback`
+  - `embedding_only`
+- Chay lai audit tren 22 query top-5 va cap nhat:
+  - `backend/scripts/candidate_source_audit.json`
+  - `backend/scripts/candidate_source_audit.md`
+- Cap nhat `Mau_Luan_Van_Tot_Nghiep_from_ABSTRACT.md`:
+  - tach ro `pgpr_policy`, `hybrid_embedding_path`, `cypher_fallback`, `embedding_only`;
+  - giai thich `candidate_sources=pgpr` la marker cua PGPR/path layer, khong phai tat ca deu la policy rollout thuan;
+  - giai thich latency random cao do evaluation random van gom candidate qua PGPR/path pool, embedding/topic supplement va CandidateMaskService roi moi shuffle;
+  - bo sung ket luan thuc nghiem: hybrid khong vuot troi tuyet doi moi chi so, nhung phu hop muc tieu ranking + explanation + coverage trong boi canh du lieu nho.
+
+### Ket qua audit moi
+
+- Query: 22.
+- Top-K: 5.
+- Tong candidate tra ve: 109.
+- Theo `scoring_method`:
+  - `hybrid_embedding_path`: 55
+  - `pgpr_policy`: 36
+  - `hybrid_embedding`: 18
+- Theo lop path/candidate:
+  - `pgpr_policy`: 36
+  - `hybrid_embedding_path`: 55
+  - `cypher_fallback`: 0
+  - `hybrid_embedding`: 18
+- Theo `evidence_level`:
+  - `path_supported`: 91
+  - `embedding_only`: 18
+- Dien giai:
+  - 91/109 candidate top-5 co PGPR/path evidence.
+  - Trong audit hien tai khong co `cypher_fallback` xuat hien o top-5.
+  - `hybrid_embedding_path` la path-supported candidate duoc rerank bang embedding/topic, khong phai embedding-only.
+
+## 2026-06-06 - Bo sung Ollama llama3 vao noi dung bao cao XAI
+
+### Ly do
+
+- He thong thuc te co dung Ollama model `llama3` cho luong giai thich chi tiet.
+- Bao cao truoc do moi noi chung ve XAI/template, chua neu ro vai tro cua LLM.
+- Can tranh hieu nham rang LLM tham gia ranking hoac sinh candidate.
+
+### Da lam
+
+- Cap nhat `Mau_Luan_Van_Tot_Nghiep_from_ABSTRACT.md`:
+  - Them mo ta trong muc XAI:
+    - rule-based explanation dung cho API recommendation chinh;
+    - Ollama `llama3` dung cho giai thich chi tiet/on-demand;
+    - LLM chi dien dat lai evidence tu reasoning path/scoring metadata, khong doi score/rank.
+  - Them dong cong nghe `XAI/LLM | Rule-based explainer, Ollama llama3`.
+  - Cap nhat phan hien thuc `PGPR va XAI`:
+    - `RecommendationService._enrich_with_xai()` dung `PGPRExplainer(use_llm=False)`;
+    - `POST /api/v1/explanations` va `POST /api/v1/recommendations/explain` co `mode=llm`;
+    - `PGPRExplainer(use_llm=True)` goi Ollama `/api/generate`;
+    - model lay tu `OLLAMA_MODEL`, hien cau hinh la `llama3`.
+  - Them vao dong gop thuc tien: tich hop Ollama `llama3` cho giai thich chi tiet.
+  - Them han che: LLM can prompt rang buoc va che do `auto` fallback rule-based de tranh dien dat vuot qua evidence hoac loi model.
+  - Doi huong phat trien tu "tich hop LLM" sang "nang cap RAG/LLM co kiem soat".
+  - Them nguon noi bo lien quan `.env`, `pgpr_xai_explainer.py`, `explanations.py`.
+
+### Trang thai
+
+- Bao cao da phan biet ro:
+  - recommendation/ranking: PGPR + hybrid;
+  - giai thich nhanh: rule-based XAI;
+  - giai thich chi tiet: Ollama `llama3`;
+  - fallback: chi xay ra voi `mode=auto`; `mode=llm` yeu cau Ollama tra loi thanh cong.
+
+## 2026-06-06 - Siet wording ve hallucination risk cua XAI LLM
+
+### Ly do
+
+- Can chan truoc cau hoi hoi dong ve viec LLM co the tu tao ly do/hallucinate.
+- Can noi ro `llama3` chi dien dat evidence dau vao, khong tham gia ranking.
+
+### Da lam
+
+- Cap nhat muc 2.1.4 trong `Mau_Luan_Van_Tot_Nghiep_from_ABSTRACT.md`:
+  - LLM chi dien dat lai bang chung tu reasoning paths, scoring metadata va evidence level.
+  - LLM khong sinh candidate, khong doi diem xep hang, khong tu tao ly do ngoai du lieu dau vao.
+- Bo sung han che 5.3:
+  - chat luong dien dat cua `llama3` phu thuoc prompt, evidence dau vao va kha nang tuan thu rang buoc cua model;
+  - van can rule-based fallback va warning khi evidence yeu nhu embedding-only/provisional data.
+- Bo sung huong phat trien 5.4:
+  - danh gia chat luong explanation do `llama3` sinh ra;
+  - kiem tra consistency giua noi dung giai thich va reasoning paths/evidence level truoc khi hien thi.
+
+## 2026-06-06 - Dong bo abstract va thuat toan voi XAI Ollama llama3
+
+### Ly do
+
+- Abstract nen phan anh dung he thong co tich hop Ollama `llama3` cho giai thich chi tiet.
+- Giai ma recommendation can noi ro mode XAI de khop voi code:
+  - recommendation API chinh dung rule-based;
+  - explain detail/on-demand co the goi LLM;
+  - `mode=auto` moi fallback rule-based khi LLM loi.
+
+### Da lam
+
+- Cap nhat Abstract:
+  - them cau ve local LLM layer dung Ollama `llama3`;
+  - nhan manh LLM chi verbalize reasoning-path evidence/scoring metadata va khong doi ranking.
+- Cap nhat gia ma inference:
+  - buoc 9 thanh `Enrich XAI explanation`;
+  - 9.1 dung rule-based explainer cho API recommendation chinh;
+  - 9.2 goi Ollama `llama3` khi user yeu cau giai thich chi tiet;
+  - 9.3 prompt chi chua reasoning paths, score components va metadata;
+  - 9.4 fallback rule-based trong `mode=auto` neu LLM loi/timeout.
+- Cap nhat han che:
+  - `llama3` phu thuoc prompt, evidence dau vao va kha nang tuan thu rang buoc cua model.
+- Cap nhat huong phat trien:
+  - danh gia explanation theo faithfulness, consistency, readability;
+  - thu nghiem them LLM cuc bo khac de so sanh toc do, do on dinh va muc do bam sat evidence.
+
+## 2026-06-06 - Bo sung case study, threats to validity va cau hoi bao ve
+
+### Ly do
+
+- Bao cao da co metric va candidate audit, nhung can them vi du cu the de hoi dong thay he thong goi y va giai thich nhu the nao.
+- Can bo sung phan gioi han thuc nghiem theo van phong hoc thuat, tranh hieu nham metric tren du lieu seed la benchmark manh.
+- Can lam ro security/governance va vai tro cua Ollama `llama3` trong XAI de bao ve truoc cac cau hoi ve an toan va hallucination.
+
+### Da lam
+
+- Cap nhat `Mau_Luan_Van_Tot_Nghiep_from_ABSTRACT.md`:
+  - Them case study `Project prj_001 -> Expert` voi top recommendation `exp_002`, score thuc te va reasoning path qua dataset `VN Chest X-Ray 100k`.
+  - Them path minh hoa ky nang `REQUIRES_SKILL -> PyTorch <- HAS_SKILL` cho candidate khac trong cung query.
+  - Them case yeu `Project prj_005 -> Enterprise ent_005`, trong do embedding similarity cao nhung khong co reasoning path, evidence level la `embedding_only`.
+  - Them bang danh gia dinh tinh XAI theo faithfulness, consistency, readability va safety.
+  - Them muc `Threats to validity` cho du lieu seed nho, 22 query, nhan admin-reviewed, candidate space hep, trong so hybrid heuristic, XAI LLM, GraphSAGE-lite va ablation chua day du.
+  - Them bang security/governance ve CandidateMaskService, owner_only, RBAC admin API, outbox, `source_hash` va LLM fallback.
+  - Ghi ro evaluation hien moi so sanh `random`, `topic_overlap`, `embedding_only`, `full_hybrid`; chua co ablation day du cho `pgpr/path_only` va `hybrid_without_embedding`.
+  - Bo sung dong gop ky thuat ve XAI rule-based + Ollama `llama3` theo huong evidence-grounded.
+  - Them phu luc cau hoi bao ve du kien va doi phu luc huong dan su dung sang Phu luc D.
+
+### Trang thai
+
+- Day la thay doi tai lieu/bao cao, khong thay doi code runtime.
+- Bao cao hien co them bang chung van hanh that, phan gioi han thuc nghiem ro hon va bo cau tra loi ngan cho cac cau hoi hoi dong co the hoi.

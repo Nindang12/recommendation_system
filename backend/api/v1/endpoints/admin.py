@@ -14,7 +14,7 @@ from api.deps import (
     require_non_empty_reason,
     require_root_role,
 )
-from models.schemas import AdminCreateUserRequest, EmbeddingRecomputeRequest
+from models.schemas import AdminCreateUserRequest, EmbeddingRecomputeRequest, InductivePGPRShadowRequest
 from repositories.auth_repo import AuthRepository
 from services.admin_audit_log_service import AdminAuditLogService
 from services.auth_service import AuthService
@@ -22,6 +22,7 @@ from api.deps import get_embedding_admin_service
 from services.embedding_admin_service import EmbeddingAdminService
 from services.governance_audit_service import GovernanceAuditService
 from services.governance_action_service import GovernanceActionService
+from services.inductive_pgpr_shadow_service import InductivePGPRShadowService
 from services.provisional_kg_sync_service import ProvisionalKGSyncService
 
 router = APIRouter()
@@ -510,6 +511,35 @@ async def admin_recompute_entity_embedding(
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {"status": "success", "data": data}
+
+
+@router.post("/inductive-pgpr/shadow")
+async def inspect_inductive_pgpr_shadow(
+    payload: InductivePGPRShadowRequest,
+    _: None = Depends(rate_limit("admin_inductive_pgpr_shadow", limit=30, window_seconds=60)),
+    current_user: Dict[str, Any] = Depends(get_current_admin_user),
+) -> Dict[str, Any]:
+    service = InductivePGPRShadowService()
+    try:
+        data = await service.inspect(
+            source_type=payload.source_type,
+            source_id=payload.source_id,
+            target_type=payload.target_type,
+            beam_width=payload.beam_width,
+            max_hops=payload.max_hops,
+            limit=payload.limit,
+            mode=payload.mode,
+            current_user_id=payload.current_user_id or str(current_user.get("id") or ""),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {
+        "status": "success",
+        "prototype_only": True,
+        "runtime_enabled": False,
+        "warning": "Admin-only shadow inspection. Not used by production recommendation routes.",
+        "data": data,
+    }
 
 
 @router.get("/users")

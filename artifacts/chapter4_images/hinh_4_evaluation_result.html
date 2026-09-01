@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    width: 1280px;
+    margin: 0;
+    padding: 42px;
+    background: #f5f7fb;
+    color: #111827;
+    font-family: Inter, Segoe UI, Arial, sans-serif;
+  }
+  .figure {
+    min-height: 680px;
+    background: white;
+    border: 1px solid #dbe3f0;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, .10);
+    overflow: hidden;
+  }
+  .header {
+    padding: 28px 34px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(90deg, #dc2626 0%, #0f172a 100%);
+    color: white;
+  }
+  h1 { margin: 0; font-size: 30px; letter-spacing: 0; }
+  .subtitle { margin-top: 8px; opacity: .9; font-size: 16px; }
+  .content { padding: 30px 34px 34px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    background: #ffffff;
+  }
+  .metric {
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .label { color: #64748b; font-size: 13px; text-transform: uppercase; font-weight: 700; }
+  .value { margin-top: 8px; font-size: 30px; font-weight: 800; color: #111827; }
+  .small { color: #64748b; font-size: 14px; line-height: 1.55; }
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th, td { padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  th { color: #334155; background: #f8fafc; font-weight: 800; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .terminal {
+    background: #0b1220;
+    color: #dbeafe;
+    border-radius: 14px;
+    padding: 20px;
+    font-family: Consolas, Cascadia Mono, monospace;
+    font-size: 17px;
+    line-height: 1.55;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    white-space: pre-wrap;
+  }
+  .ok { color: #16a34a; font-weight: 800; }
+  .warn { color: #d97706; font-weight: 800; }
+  .pill {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #ecfeff;
+    color: #0e7490;
+    font-weight: 800;
+    font-size: 13px;
+    margin: 3px 5px 3px 0;
+  }
+  .json { color: #d1fae5; }
+  .key { color: #93c5fd; }
+  .str { color: #fde68a; }
+  .numlit { color: #c4b5fd; }
+</style>
+</head>
+<body>
+  <div class="figure">
+    <div class="header">
+      <h1>Ket qua offline evaluation leave-one-edge-out</h1>
+      <div class="subtitle">240 queries, 240 rows, regression gate PASS (promote_allowed)</div>
+    </div>
+    <div class="content">
+<div class="grid3">
+  <div class="metric"><div class="label">NDCG@5</div><div class="value">0.7465</div></div>
+  <div class="metric"><div class="label">MRR</div><div class="value">0.7832</div></div>
+  <div class="metric"><div class="label">Recall@5</div><div class="value">0.7438</div></div>
+</div>
+<div style="height:18px"></div>
+<div class="grid3">
+  <div class="metric"><div class="label">Precision@5</div><div class="value">0.6660</div></div>
+  <div class="metric"><div class="label">Explanation cov.</div><div class="value">0.8833</div></div>
+  <div class="metric"><div class="label">Latency p50 (ms)</div><div class="value">3042.36</div></div>
+</div>
+<div style="height:18px"></div>
+<table>
+<tr><th>Method</th><th>NDCG@5</th><th>MRR</th><th>P@5</th><th>R@5</th><th>Latency p50</th><th>Explanation</th></tr>
+<tr><td>hybrid</td><td class='num'>0.7465</td><td class='num'>0.7832</td><td class='num'>0.6660</td><td class='num'>0.7438</td><td class='num'>3042.36</td><td class='num'>0.8833</td></tr>
+</table>
+<div style="height:18px"></div>
+<div class="small">Artifact: evaluation_report_data1_leave_one_edge_out_240_hybrid.json</div>
+</div>
+  </div>
+</body>
+</html>

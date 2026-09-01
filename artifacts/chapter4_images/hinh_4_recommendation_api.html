@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    width: 1280px;
+    margin: 0;
+    padding: 42px;
+    background: #f5f7fb;
+    color: #111827;
+    font-family: Inter, Segoe UI, Arial, sans-serif;
+  }
+  .figure {
+    min-height: 680px;
+    background: white;
+    border: 1px solid #dbe3f0;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, .10);
+    overflow: hidden;
+  }
+  .header {
+    padding: 28px 34px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(90deg, #7c3aed 0%, #0f172a 100%);
+    color: white;
+  }
+  h1 { margin: 0; font-size: 30px; letter-spacing: 0; }
+  .subtitle { margin-top: 8px; opacity: .9; font-size: 16px; }
+  .content { padding: 30px 34px 34px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    background: #ffffff;
+  }
+  .metric {
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .label { color: #64748b; font-size: 13px; text-transform: uppercase; font-weight: 700; }
+  .value { margin-top: 8px; font-size: 30px; font-weight: 800; color: #111827; }
+  .small { color: #64748b; font-size: 14px; line-height: 1.55; }
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th, td { padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  th { color: #334155; background: #f8fafc; font-weight: 800; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .terminal {
+    background: #0b1220;
+    color: #dbeafe;
+    border-radius: 14px;
+    padding: 20px;
+    font-family: Consolas, Cascadia Mono, monospace;
+    font-size: 17px;
+    line-height: 1.55;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    white-space: pre-wrap;
+  }
+  .ok { color: #16a34a; font-weight: 800; }
+  .warn { color: #d97706; font-weight: 800; }
+  .pill {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #ecfeff;
+    color: #0e7490;
+    font-weight: 800;
+    font-size: 13px;
+    margin: 3px 5px 3px 0;
+  }
+  .json { color: #d1fae5; }
+  .key { color: #93c5fd; }
+  .str { color: #fde68a; }
+  .numlit { color: #c4b5fd; }
+</style>
+</head>
+<body>
+  <div class="figure">
+    <div class="header">
+      <h1>Ket qua goi Recommendation API</h1>
+      <div class="subtitle">Response co score, reasoning path, explanation va metadata chat luong du lieu</div>
+    </div>
+    <div class="content"><div class="terminal">{
+  &quot;score&quot;: 0.8584,
+  &quot;final_score&quot;: 0.9206,
+  &quot;scoring_method&quot;: &quot;hybrid&quot;,
+  &quot;evidence_level&quot;: &quot;path_supported&quot;,
+  &quot;reasoning_paths&quot;: [
+    {&quot;relations&quot;: [&quot;PARTICIPATES_IN&quot;, &quot;FUNDS&quot;], &quot;score&quot;: 0.82}
+  ],
+  &quot;explanation&quot;: &quot;Ung vien co lien ket qua Knowledge Graph va metadata diem so.&quot;,
+  &quot;data_quality_notes&quot;: [&quot;verified&quot;, &quot;embedding_ready&quot;]
+}</div></div>
+  </div>
+</body>
+</html>

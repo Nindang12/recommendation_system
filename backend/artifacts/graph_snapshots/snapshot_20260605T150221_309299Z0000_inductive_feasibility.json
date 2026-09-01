@@ -1,0 +1,4446 @@
+{
+  "schema_version": 1,
+  "snapshot_id": "snapshot_20260605T150221_309532Z0000",
+  "created_at": "2026-06-05T15:02:21.309532+00:00",
+  "source": "neo4j",
+  "privacy": {
+    "sanitized": true,
+    "excluded": [
+      "access_token",
+      "api_key",
+      "contact_email",
+      "contact_phone",
+      "email",
+      "emails",
+      "embedding",
+      "embedding_vector",
+      "hashed_password",
+      "password",
+      "password_hash",
+      "phone",
+      "phones",
+      "refresh_token",
+      "secret",
+      "token",
+      "vector"
+    ],
+    "note": "Snapshot keeps model features only and does not export secrets/contact data/vectors."
+  },
+  "metadata": {
+    "node_count": 131,
+    "edge_count": 367,
+    "label_counts": {
+      "Dataset": 7,
+      "Enterprise": 7,
+      "Expert": 14,
+      "Funder": 7,
+      "Industry": 8,
+      "Location": 19,
+      "Product": 7,
+      "Project": 7,
+      "ResearchDirection": 15,
+      "ResearchTopic": 25,
+      "Skill": 15
+    },
+    "relationship_counts": {
+      "BELONGS_TO": 27,
+      "COLLABORATES_WITH": 10,
+      "CREATES": 7,
+      "DEVELOPS": 7,
+      "FOCUSES_ON": 28,
+      "FOCUSES_ON_REGION": 19,
+      "FOCUSES_ON_SECTORS": 10,
+      "FOCUSES_ON_TOPIC": 28,
+      "FUNDS": 7,
+      "HAS_ACCESS_TO": 12,
+      "HAS_APPLICATION_EXPERIENCE_IN": 10,
+      "HAS_EXPERIENCE_IN": 22,
+      "HAS_SKILL": 24,
+      "LOCATED_IN": 32,
+      "OPERATES_IN": 14,
+      "OWNS_DATA": 10,
+      "PARTICIPATES_IN": 10,
+      "PARTNERS_WITH": 7,
+      "REQUIRES_DATA": 7,
+      "REQUIRES_SKILL": 21,
+      "RESEARCHES": 20,
+      "SUPPORTS": 14,
+      "SUPPORTS_TOPIC": 7,
+      "TARGETS": 7,
+      "WORK_FOR": 7
+    },
+    "node_limit": 10000,
+    "edge_limit": 50000
+  },
+  "nodes": [
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Image",
+        "name": "VN Chest X-Ray 100k"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Time-series",
+        "name": "VN CNC Sensor Stream 50M"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Graph",
+        "name": "VN Digital Payment Graph 20M"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:3",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:3",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Image",
+        "name": "VN Coffee Leaf Multispectral 200k"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:4",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:4",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Event Log",
+        "name": "VN Learning Interaction Logs 12M"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Time-series",
+        "name": "VN Urban Fleet Telematics 30M"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6",
+      "labels": [
+        "Dataset"
+      ],
+      "primary_label": "Dataset",
+      "properties": {
+        "type": "Time-series",
+        "name": "VN Renewable Grid Forecast 15M"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:7",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:7",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "MedVision Core V1",
+        "type": "Algorithm"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:8",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:8",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "FactorySense Platform V2",
+        "type": "Platform"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:9",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:9",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "SecurePay Risk Engine",
+        "type": "Platform"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:10",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:10",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "AgriVision Edge Kit",
+        "type": "Toolkit"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:11",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:11",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "LearnPath AI",
+        "type": "Platform"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:12",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:12",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "SmartRoute Planner",
+        "type": "Platform"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:13",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:13",
+      "labels": [
+        "Product"
+      ],
+      "primary_label": "Product",
+      "properties": {
+        "name": "GridSense Forecast Suite",
+        "type": "Suite"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "id": "VN-Đông Nam Bộ",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Đông Nam Bộ"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "id": "exp_001",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_001",
+        "location_id": "VN-Đông Nam Bộ",
+        "embedding_status": "ready",
+        "name": "PGS.TS. Nguyễn Văn A"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "id": "skill_python",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Python",
+        "skill_id": "skill_python"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:17",
+      "id": "skill_pytorch",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "PyTorch",
+        "skill_id": "skill_pytorch"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Artificial Intelligence"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:19",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:19",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Health Informatics"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "id": "topic_computer_vision",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Computer Vision",
+        "topic_id": "topic_computer_vision"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "id": "topic_medical_imaging",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Medical Imaging",
+        "topic_id": "topic_medical_imaging"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:22",
+      "id": "HEAL",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "HEAL",
+        "name": "Healthcare Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "id": "VN-Bắc Trung Bộ",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Bắc Trung Bộ"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "id": "exp_002",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_002",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "name": "TS. Trần Thị B"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:25",
+      "id": "skill_tensorflow",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "TensorFlow",
+        "skill_id": "skill_tensorflow"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Smart Manufacturing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:27",
+      "id": "topic_predictive_maintenance",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Predictive Maintenance",
+        "topic_id": "topic_predictive_maintenance"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:28",
+      "id": "topic_time_series_analysis",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Time-series Analysis",
+        "topic_id": "topic_time_series_analysis"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:29",
+      "id": "MFG",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "MFG",
+        "name": "Manufacturing Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "id": "VN-Đồng bằng sông Hồng",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Đồng bằng sông Hồng"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "id": "exp_003",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_003",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "TS. Phạm Minh C"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:32",
+      "id": "skill_xgboost",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "XGBoost",
+        "skill_id": "skill_xgboost"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Financial Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "id": "topic_fraud_detection",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Fraud Detection",
+        "topic_id": "topic_fraud_detection"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:35",
+      "id": "topic_graph_analytics",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Graph Analytics",
+        "topic_id": "topic_graph_analytics"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "id": "FIN",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "FIN",
+        "name": "Financial Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:37",
+      "id": "VN-Tây Nguyên",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Tây Nguyên"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "id": "exp_004",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_004",
+        "location_id": "VN-Tây Nguyên",
+        "embedding_status": "ready",
+        "name": "PGS.TS. Lê Thu D"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:39",
+      "id": "skill_opencv",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "OpenCV",
+        "skill_id": "skill_opencv"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Agricultural Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:41",
+      "id": "topic_crop_disease_detection",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Crop Disease Detection",
+        "topic_id": "topic_crop_disease_detection"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:42",
+      "id": "topic_multispectral_imaging",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Multispectral Imaging",
+        "topic_id": "topic_multispectral_imaging"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:43",
+      "id": "AGR",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "AGR",
+        "name": "Agriculture Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:44",
+      "id": "VN-Duyên hải Nam Trung Bộ",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Duyên hải Nam Trung Bộ"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "id": "exp_005",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_005",
+        "location_id": "VN-Duyên hải Nam Trung Bộ",
+        "embedding_status": "ready",
+        "name": "TS. Vũ Quốc E"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Educational Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:47",
+      "id": "topic_adaptive_learning",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Adaptive Learning",
+        "topic_id": "topic_adaptive_learning"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:48",
+      "id": "topic_knowledge_tracing",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Knowledge Tracing",
+        "topic_id": "topic_knowledge_tracing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:49",
+      "id": "EDU",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "EDU",
+        "name": "Education Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "id": "exp_006",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_006",
+        "location_id": "VN-Đông Nam Bộ",
+        "embedding_status": "ready",
+        "name": "TS. Nguyễn Huy F"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:51",
+      "id": "skill_or_tools",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "OR-Tools",
+        "skill_id": "skill_or_tools"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Logistics Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:53",
+      "id": "topic_route_optimization",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Route Optimization",
+        "topic_id": "topic_route_optimization"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:54",
+      "id": "topic_demand_forecasting",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Demand Forecasting",
+        "topic_id": "topic_demand_forecasting"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:55",
+      "id": "LOG",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "LOG",
+        "name": "Logistics Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "id": "exp_007",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_007",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "name": "TS. Hoàng Lan G"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Energy Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:58",
+      "id": "topic_solar_forecasting",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Solar Forecasting",
+        "topic_id": "topic_solar_forecasting"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:59",
+      "id": "topic_grid_stability_prediction",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Grid Stability Prediction",
+        "topic_id": "topic_grid_stability_prediction"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:60",
+      "id": "ENE",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "ENE",
+        "name": "Energy Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "id": "exp_008",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_008",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "TS. Trương Đức H"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:62",
+      "id": "skill_graph_analytics",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Graph Analytics",
+        "skill_id": "skill_graph_analytics"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "id": "exp_009",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_009",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "TS. Nguyễn Mai K"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "id": "exp_010",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "exp_010",
+        "location_id": "VN-Đông Nam Bộ",
+        "embedding_status": "ready",
+        "name": "TS. Đặng Quang L"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:65",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:65",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Information Systems"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:66",
+      "id": "topic_knowledge_graph_recommendation",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Knowledge Graph Recommendation",
+        "topic_id": "topic_knowledge_graph_recommendation"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:67",
+      "id": "topic_graph_representation_learning",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Graph Representation Learning",
+        "topic_id": "topic_graph_representation_learning"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "id": "IT",
+      "labels": [
+        "Industry"
+      ],
+      "primary_label": "Industry",
+      "properties": {
+        "industry_id": "IT",
+        "name": "Information Technology"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:69",
+      "id": "VN-41",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-41"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "id": "user_exp_6a229d1f6b26ca342ae4bfb1",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "name": "Đặng Lê Nin",
+        "expert_id": "user_exp_6a229d1f6b26ca342ae4bfb1",
+        "location_id": "VN-41"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:71",
+      "id": "skill_deep_learning",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "deep-learning",
+        "skill_id": "skill_deep_learning"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:72",
+      "id": "skill_knowledge_graph",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "knowledge-graph",
+        "skill_id": "skill_knowledge_graph"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:73",
+      "id": "topic_machine_learning",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Machine Learning",
+        "topic_id": "topic_machine_learning"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:74",
+      "id": "topic_knowledge_graph",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Knowledge Graph",
+        "topic_id": "topic_knowledge_graph"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:75",
+      "id": "topic_graph_neural_networks",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Graph Neural Networks",
+        "topic_id": "topic_graph_neural_networks"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:76",
+      "id": "user_exp_6a1528217705a46bd4e0f3e7",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "no_signal",
+        "embedding_status": "ready",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "user_exp_6a1528217705a46bd4e0f3e7"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:77",
+      "id": "user_exp_6a16a9d0884ddff696bbd28d",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "no_signal",
+        "embedding_status": "ready",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "user_exp_6a16a9d0884ddff696bbd28d"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:78",
+      "id": "user_exp_6a170a928853709adb094ab6",
+      "labels": [
+        "Expert"
+      ],
+      "primary_label": "Expert",
+      "properties": {
+        "embedding_signal": "no_signal",
+        "embedding_status": "ready",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "expert_id": "user_exp_6a170a928853709adb094ab6"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "id": "ent_001",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_001",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "TechMed Solutions VN"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:80",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:80",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Digital Health"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "id": "ent_002",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_002",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "name": "VinaSmart Factory Tech"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:82",
+      "id": "topic_industrial_iot_analytics",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Industrial IoT Analytics",
+        "topic_id": "topic_industrial_iot_analytics"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:83",
+      "id": "skill_time_series_forecasting",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Time-series Forecasting",
+        "skill_id": "skill_time_series_forecasting"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "id": "ent_003",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_003",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "SecurePay Analytics JSC"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:85",
+      "id": "topic_risk_scoring",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Risk Scoring",
+        "topic_id": "topic_risk_scoring"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "id": "ent_004",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_004",
+        "location_id": "VN-Tây Nguyên",
+        "embedding_status": "ready",
+        "name": "AgriSense Vietnam Co.,Ltd"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:87",
+      "id": "topic_precision_irrigation",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Precision Irrigation",
+        "topic_id": "topic_precision_irrigation"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:88",
+      "id": "skill_computer_vision",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Computer Vision",
+        "skill_id": "skill_computer_vision"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "id": "ent_005",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_005",
+        "location_id": "VN-Duyên hải Nam Trung Bộ",
+        "embedding_status": "ready",
+        "name": "LearnNext EdTech"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:90",
+      "id": "topic_learning_analytics",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Learning Analytics",
+        "topic_id": "topic_learning_analytics"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:91",
+      "id": "skill_recommender_systems",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Recommender Systems",
+        "skill_id": "skill_recommender_systems"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "id": "ent_006",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_006",
+        "location_id": "VN-Đông Nam Bộ",
+        "embedding_status": "ready",
+        "name": "UrbanRoute Logistics Tech"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:93",
+      "id": "topic_fleet_forecasting",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Fleet Forecasting",
+        "topic_id": "topic_fleet_forecasting"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:94",
+      "id": "skill_reinforcement_learning",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Reinforcement Learning",
+        "skill_id": "skill_reinforcement_learning"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "id": "ent_007",
+      "labels": [
+        "Enterprise"
+      ],
+      "primary_label": "Enterprise",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "enterprise_id": "ent_007",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "name": "GreenGrid Solutions"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:96",
+      "id": "topic_grid_stability_analytics",
+      "labels": [
+        "ResearchTopic"
+      ],
+      "primary_label": "ResearchTopic",
+      "properties": {
+        "name": "Grid Stability Analytics",
+        "topic_id": "topic_grid_stability_analytics"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:97",
+      "id": "skill_time_series_deep_learning",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "Time-series Deep Learning",
+        "skill_id": "skill_time_series_deep_learning"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "id": "fnd_001",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_001",
+        "type": "NGO",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "Vietnam Innovation Fund (VINIF)"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "id": "fnd_002",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_002",
+        "type": "Government",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "National Technology Development Fund (NATIF)"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:100",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:100",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Digital Transformation"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "id": "fnd_003",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_003",
+        "type": "Government",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "name": "Vietnam Digital Innovation Grant (VDIG)"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "id": "fnd_004",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_004",
+        "type": "NGO",
+        "location_id": "VN-Tây Nguyên",
+        "embedding_status": "ready",
+        "name": "Agri Innovation Program Vietnam"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "id": "fnd_005",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_005",
+        "type": "Government",
+        "location_id": "VN-Duyên hải Nam Trung Bộ",
+        "embedding_status": "ready",
+        "name": "National EdTech Fund"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "id": "fnd_006",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_006",
+        "type": "Government",
+        "location_id": "VN-Đông Nam Bộ",
+        "embedding_status": "ready",
+        "name": "Urban Mobility Grant Vietnam"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:105",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:105",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "Smart City"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "id": "fnd_007",
+      "labels": [
+        "Funder"
+      ],
+      "primary_label": "Funder",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "funder_id": "fnd_007",
+        "type": "NGO",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "name": "Green Energy Transition Fund"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "id": "prj_001",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "AI for Healthcare: Chest X-Ray Anomaly Detection",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "project_id": "prj_001",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "id": "prj_002",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "AI-driven Predictive Maintenance for CNC Production Lines",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "project_id": "prj_002",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "id": "prj_003",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "SecurePay AI Fraud Intelligence",
+        "location_id": "VN-Đồng bằng sông Hồng",
+        "embedding_status": "ready",
+        "project_id": "prj_003",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "id": "prj_004",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "AgriVision for Coffee Disease Monitoring",
+        "location_id": "VN-Tây Nguyên",
+        "embedding_status": "ready",
+        "project_id": "prj_004",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "id": "prj_005",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "LearnPath AI for Personalized Curriculum",
+        "location_id": "VN-Duyên hải Nam Trung Bộ",
+        "embedding_status": "ready",
+        "project_id": "prj_005",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "id": "prj_006",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "SmartRoute for Urban Fleet Optimization",
+        "location_id": "VN-Đông Nam Bộ",
+        "embedding_status": "ready",
+        "project_id": "prj_006",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "id": "prj_007",
+      "labels": [
+        "Project"
+      ],
+      "primary_label": "Project",
+      "properties": {
+        "embedding_signal": "ok",
+        "embedding_model": "graphsage_lite_v1",
+        "embedding_dimension": 128,
+        "embedding_version": 1,
+        "title": "GridSense for Renewable Forecast and Stability",
+        "location_id": "VN-Bắc Trung Bộ",
+        "embedding_status": "ready",
+        "project_id": "prj_007",
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:114",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:114",
+      "labels": [
+        "Skill"
+      ],
+      "primary_label": "Skill",
+      "properties": {
+        "name": "python"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:115",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:115",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "artificial-intelligence"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:116",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:116",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "data-science-knowledge-graph"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:117",
+      "id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:117",
+      "labels": [
+        "ResearchDirection"
+      ],
+      "primary_label": "ResearchDirection",
+      "properties": {
+        "name": "computer-vision-multimedia"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:118",
+      "id": "VN-Hà Nội",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Hà Nội"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:119",
+      "id": "VN-Hồ Chí Minh",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Hồ Chí Minh"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:120",
+      "id": "VN-Đà Nẵng",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Đà Nẵng"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:121",
+      "id": "VN-Hải Phòng",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Hải Phòng"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:122",
+      "id": "VN-Bình Dương",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Bình Dương"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:123",
+      "id": "VN-Đắk Lắk",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Đắk Lắk"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:124",
+      "id": "VN-Gia Lai",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Gia Lai"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:125",
+      "id": "VN-Lâm Đồng",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Lâm Đồng"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:126",
+      "id": "VN-Nha Trang",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Nha Trang"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:127",
+      "id": "VN-Đồng Nai",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Đồng Nai"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:128",
+      "id": "VN-Huế",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Huế"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:129",
+      "id": "VN-Quảng Trị",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Quảng Trị"
+      }
+    },
+    {
+      "element_id": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:130",
+      "id": "VN-Quảng Nam",
+      "labels": [
+        "Location"
+      ],
+      "primary_label": "Location",
+      "properties": {
+        "location_id": "VN-Quảng Nam"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606846991",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474767",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160015",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:17",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102543",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787791",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:19",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730319",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415567",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152925902653358095",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:22",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220736",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917535624710848513",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476295",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:7",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380303",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816146959",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152946793374285839",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658068",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155197493676343316",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:117",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658069",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:19",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155197493676343317",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:80",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847000",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474776",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160024",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:25",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102552",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787800",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730328",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:27",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415576",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:28",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152925902653358104",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:29",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220737",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917535624710848512",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476296",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:8",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380312",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816146968",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155198593187971096",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:24",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:15",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658075",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:27",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658076",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:28",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847007",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474783",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160031",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:32",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102559",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787807",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730335",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415583",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:35",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152925902653358111",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220738",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919787424524533760",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919787424524533761",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476297",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:9",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380319",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816146975",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152946793374285855",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658082",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658083",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:35",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847014",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:37",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474790",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160038",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:39",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787814",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102566",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730342",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:41",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415590",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:42",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917533425687593003",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:43",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220739",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:3",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917535624710848514",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476298",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:10",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380326",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816146982",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155198593187971110",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:38",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:31",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658089",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:41",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658090",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:42",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847021",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:44",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474797",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160045",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:17",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787821",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102573",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730349",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:47",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415597",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:48",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917533425687593009",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:49",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220740",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:4",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917535624710848515",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:3",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476299",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:11",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380333",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816146989",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152946793374285869",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658095",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:47",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658096",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:48",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847026",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474802",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160050",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:51",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787826",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102578",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730354",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:53",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415602",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:54",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917533425687593015",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:55",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220741",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917535624710848516",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:4",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476300",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:12",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380338",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816146994",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155198593187971122",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:45",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658101",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:53",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658102",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:54",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847032",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474808",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160056",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:25",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787832",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102584",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730360",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:58",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415608",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:59",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917533425687593020",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:60",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917534525199220742",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917535624710848517",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917536724222476301",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:13",
+      "type": "DEVELOPS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152934698746380344",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "type": "WORK_FOR",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816147000",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152946793374285880",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:56",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:50",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658106",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:58",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658107",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:59",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847037",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474813",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160061",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:62",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102589",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787837",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730365",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152925902653358141",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919786325012905986",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919787424524533764",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:4",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816147005",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152946793374285885",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847039",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474815",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160063",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:62",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102591",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787839",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730367",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152925902653358143",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6922038124826591234",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919787424524533765",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816147007",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155198593187971135",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:61",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847040",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474816",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160064",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:17",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152923703630102592",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155175503443787840",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:65",
+      "type": "RESEARCHES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152924803141730368",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:66",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155176602955415616",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:67",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152925902653358144",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "HAS_APPLICATION_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919786325012905984",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "type": "OWNS_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6922039224338219009",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6922039224338219013",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "type": "HAS_ACCESS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152941295816147008",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "type": "PARTICIPATES_IN",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152946793374285888",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:64",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:63",
+      "type": "COLLABORATES_WITH",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658114",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:66",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658115",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:67",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847046",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:69",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152922604118474822",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155174403932160070",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:71",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1157426203745845318",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:72",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917530127152709746",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:114",
+      "type": "HAS_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919784125989650452",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917532326175965257",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:73",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917532326175965258",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:74",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917532326175965259",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:70",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:75",
+      "type": "HAS_EXPERIENCE_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658121",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:73",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:115",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658122",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:74",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:116",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658123",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:75",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:116",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847055",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869263",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:22",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554511",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497039",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182287",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:80",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124815",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810063",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752591",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:17",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774799",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:79",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847057",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869265",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:29",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554513",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182289",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497041",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124817",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:27",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810065",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:82",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752593",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:83",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774801",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:81",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658130",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:82",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847060",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869268",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554516",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182292",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497044",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124820",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810068",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:85",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752596",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:62",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774804",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:84",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658133",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:85",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847062",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:37",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869270",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:43",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554518",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182294",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497046",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124822",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:41",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810070",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:87",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752598",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:88",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774806",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:86",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658135",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:87",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847065",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:44",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869273",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:49",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554521",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182297",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497049",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124825",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:47",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810073",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:90",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752601",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:91",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774809",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:89",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658138",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:90",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847068",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869276",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:55",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554524",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182300",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497052",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124828",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:53",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810076",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:93",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752604",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:94",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774812",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:92",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658141",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:93",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847071",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152930300699869279",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:60",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155182100513554527",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "OPERATES_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182303",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497055",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124831",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:58",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810079",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:96",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752607",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:97",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152942395327774815",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:95",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "type": "PARTNERS_WITH",
+      "properties": {
+        "type": "Industry Partner"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152945693862658144",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:96",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "BELONGS_TO",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847074",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008162",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693410",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:19",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635938",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263714",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:22",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155189797094948962",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402594",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148598",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:118",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148599",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:98",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:119",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847075",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008163",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693411",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:100",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635939",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:27",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263715",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:29",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155189797094948963",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402595",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148600",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:120",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148601",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:121",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148602",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:99",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:122",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847077",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693413",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008165",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635941",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263717",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155189797094948965",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:68",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402597",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919807215733833846",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:118",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919807215733833848",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:101",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:120",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847078",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:37",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693414",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008166",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635942",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:41",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263718",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:43",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402598",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152947892885913702",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:123",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148604",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:124",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148605",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:102",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:125",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847079",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:44",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693415",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008167",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635943",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:47",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263719",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:49",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402599",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919807215733833847",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:119",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6922059015547519096",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:120",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152947892885913703",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:103",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:126",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847080",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008168",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693416",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:105",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635944",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:53",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263720",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:55",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402600",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152947892885913704",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:119",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6919807215733833850",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:122",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148607",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:104",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:127",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847082",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155187598071693418",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152935798258008170",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "type": "SUPPORTS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152936897769635946",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:58",
+      "type": "SUPPORTS_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152937997281263722",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:60",
+      "type": "FOCUSES_ON_SECTORS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152943494839402602",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "type": "FUNDS",
+      "properties": {
+        "status": "ongoing"
+      }
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152947892885913706",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:128",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148609",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:129",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917555415920148610",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:106",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:130",
+      "type": "FOCUSES_ON_REGION",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847083",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497067",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182315",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:19",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124843",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810091",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:21",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752619",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437867",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:17",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152939096792891499",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:22",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754048",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:0",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265159",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:107",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:7",
+      "type": "CREATES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847084",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182316",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497068",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:26",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124844",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:27",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810092",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:28",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752620",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437868",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:83",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917546619827126301",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:29",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754049",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265160",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:108",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:8",
+      "type": "CREATES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847085",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:30",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182317",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497069",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:33",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124845",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:34",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810093",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:35",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752621",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437869",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:62",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917546619827126308",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:36",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754050",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:2",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265161",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:109",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:9",
+      "type": "CREATES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847086",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:37",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182318",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497070",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:40",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810094",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:20",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124846",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:41",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752622",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437870",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:88",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917546619827126315",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:43",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754051",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:3",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265162",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:110",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:10",
+      "type": "CREATES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847087",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:44",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182319",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497071",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:46",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124847",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:47",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810095",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:48",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752623",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437871",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:91",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917546619827126321",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:49",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754052",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:4",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265163",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:111",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:11",
+      "type": "CREATES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847088",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:14",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182320",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497072",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:52",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124848",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:53",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810096",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:54",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752624",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437872",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:94",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917546619827126327",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:55",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754053",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:5",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265164",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:112",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:12",
+      "type": "CREATES",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152921504606847089",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:23",
+      "type": "LOCATED_IN",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155183200025182321",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:18",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152931400211497073",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:57",
+      "type": "FOCUSES_ON",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152932499723124849",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:58",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155184299536810097",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:59",
+      "type": "FOCUSES_ON_TOPIC",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1152933599234752625",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:16",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:1155185399048437873",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:97",
+      "type": "REQUIRES_SKILL",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917546619827126332",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:60",
+      "type": "TARGETS",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917547719338754054",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6",
+      "type": "REQUIRES_DATA",
+      "properties": {}
+    },
+    {
+      "element_id": "5:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:6917552117385265165",
+      "source": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:113",
+      "target": "4:5b8c5cfc-3af4-4dbf-b67e-23ddd7a26c96:13",
+      "type": "CREATES",
+      "properties": {}
+    }
+  ]
+}

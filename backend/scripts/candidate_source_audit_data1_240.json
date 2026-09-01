@@ -1,0 +1,5495 @@
+{
+  "status": "complete",
+  "generated_at": "2026-06-20T14:26:36.486238+00:00",
+  "cases_path": "scripts\\evaluation_cases_data1_leave_one_edge_out_240.json",
+  "query_count": 240,
+  "loo_heldout_hook": true,
+  "top_k": 5,
+  "total_returned_candidates": 587,
+  "method_counts": {
+    "pgpr_policy": 542,
+    "cypher_fallback": 45
+  },
+  "path_layer_counts": {
+    "pgpr_policy": 542,
+    "path_reranked_by_embedding_topic": 0,
+    "cypher_fallback": 45,
+    "embedding_only": 0
+  },
+  "evidence_counts": {
+    "path_supported": 542,
+    "fallback_only": 45
+  },
+  "candidate_source_counts": {
+    "pgpr": 587
+  },
+  "query_method_presence": {
+    "pgpr_policy": 209,
+    "cypher_fallback": 21
+  },
+  "rows": [
+    {
+      "case_id": "data1_loo_project_to_expert_1",
+      "source_type": "project",
+      "source_id": "proj_10024763",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Eric_A._J._Hoste"
+      ],
+      "latency_ms": 1971.845,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_2",
+      "source_type": "project",
+      "source_id": "proj_10310410",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Charles_M._Rudin"
+      ],
+      "latency_ms": 2553.339,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_3",
+      "source_type": "project",
+      "source_id": "proj_10370888",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Violeta_Serra"
+      ],
+      "latency_ms": 1782.361,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_4",
+      "source_type": "project",
+      "source_id": "proj_10422445",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Gerard_C._Blobe"
+      ],
+      "latency_ms": 3551.511,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_5",
+      "source_type": "project",
+      "source_id": "proj_10435701",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Margaret_R._Wallace"
+      ],
+      "latency_ms": 1406.494,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_6",
+      "source_type": "project",
+      "source_id": "proj_10642524",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Jonathan_R._Carapetis"
+      ],
+      "latency_ms": 1993.392,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_7",
+      "source_type": "project",
+      "source_id": "proj_10708916",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Martin_Dichgans"
+      ],
+      "latency_ms": 2941.582,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_8",
+      "source_type": "project",
+      "source_id": "proj_10718529",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Cheryl_R._Greenberg"
+      ],
+      "latency_ms": 1255.043,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_9",
+      "source_type": "project",
+      "source_id": "proj_10722468",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_C._Angelini"
+      ],
+      "latency_ms": 2522.909,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_10",
+      "source_type": "project",
+      "source_id": "proj_10761316",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Markus_Jäger"
+      ],
+      "latency_ms": 1684.895,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_11",
+      "source_type": "project",
+      "source_id": "proj_10832110",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Yuman_Fong"
+      ],
+      "latency_ms": 2289.449,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_12",
+      "source_type": "project",
+      "source_id": "proj_10932008",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ThT4zacAAAAJ"
+      ],
+      "latency_ms": 423.305,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_13",
+      "source_type": "project",
+      "source_id": "proj_11115673",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Ignazio_Castagliuolo"
+      ],
+      "latency_ms": 842.258,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_14",
+      "source_type": "project",
+      "source_id": "proj_11129078",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "Pg3lkkgAAAAJ"
+      ],
+      "latency_ms": 1069.293,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_15",
+      "source_type": "project",
+      "source_id": "proj_11171793",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Violeta_Serra"
+      ],
+      "latency_ms": 1098.259,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_16",
+      "source_type": "project",
+      "source_id": "proj_11345766",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Ralph_Knöll"
+      ],
+      "latency_ms": 2705.352,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_17",
+      "source_type": "project",
+      "source_id": "proj_11516925",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Michael_G._Hanna"
+      ],
+      "latency_ms": 3828.212,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_18",
+      "source_type": "project",
+      "source_id": "proj_11671607",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_C._Angelini"
+      ],
+      "latency_ms": 2293.18,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_19",
+      "source_type": "project",
+      "source_id": "proj_11739816",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Joaquı́n_Arribas"
+      ],
+      "latency_ms": 984.378,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_20",
+      "source_type": "project",
+      "source_id": "proj_11980153",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Ignazio_Castagliuolo"
+      ],
+      "latency_ms": 801.116,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_21",
+      "source_type": "project",
+      "source_id": "proj_12018478",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Thorsten_Buch"
+      ],
+      "latency_ms": 2056.428,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_22",
+      "source_type": "project",
+      "source_id": "proj_12139622",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Jordi_Cabot"
+      ],
+      "latency_ms": 2142.483,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_23",
+      "source_type": "project",
+      "source_id": "proj_12152256",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Kenneth_Offit"
+      ],
+      "latency_ms": 1419.282,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_24",
+      "source_type": "project",
+      "source_id": "proj_12253385",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Amedeo_Columbano"
+      ],
+      "latency_ms": 682.791,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_25",
+      "source_type": "project",
+      "source_id": "proj_12396772",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Jonathan_R._Carapetis"
+      ],
+      "latency_ms": 1846.476,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_26",
+      "source_type": "project",
+      "source_id": "proj_12465653",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Thorsten_Buch"
+      ],
+      "latency_ms": 2200.254,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_27",
+      "source_type": "project",
+      "source_id": "proj_12581762",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Martin_Dichgans"
+      ],
+      "latency_ms": 2714.214,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_28",
+      "source_type": "project",
+      "source_id": "proj_12593965",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_C._Angelini"
+      ],
+      "latency_ms": 2420.827,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_29",
+      "source_type": "project",
+      "source_id": "proj_12710775",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Jonathan_R._Carapetis"
+      ],
+      "latency_ms": 1567.542,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_30",
+      "source_type": "project",
+      "source_id": "proj_12771347",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Hans_H._Goebel"
+      ],
+      "latency_ms": 2247.244,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_1",
+      "source_type": "expert",
+      "source_id": "OA_Alan_H._Beggs",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_19829676",
+        "proj_75982733",
+        "proj_85440843"
+      ],
+      "latency_ms": 12285.558,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_2",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Bardelli",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_17439663",
+        "proj_19117454",
+        "proj_24823224"
+      ],
+      "latency_ms": 8183.834,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_3",
+      "source_type": "expert",
+      "source_id": "OA_Alexander_K._C._Leung",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_33035554",
+        "proj_43078741",
+        "proj_60909915"
+      ],
+      "latency_ms": 28665.702,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_4",
+      "source_type": "expert",
+      "source_id": "OA_Amedeo_Columbano",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_12253385",
+        "proj_17137553",
+        "proj_30182452"
+      ],
+      "latency_ms": 5186.177,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_5",
+      "source_type": "expert",
+      "source_id": "OA_Amy_L._Cummings",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_37787353",
+        "proj_49280923"
+      ],
+      "latency_ms": 6827.154,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_6",
+      "source_type": "expert",
+      "source_id": "OA_Ana_Cavalli",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_38652849",
+        "proj_57475248"
+      ],
+      "latency_ms": 5609.518,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_7",
+      "source_type": "expert",
+      "source_id": "OA_Andrea_Casadei‐Gardini",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_35036296",
+        "proj_46531266"
+      ],
+      "latency_ms": 8044.603,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_8",
+      "source_type": "expert",
+      "source_id": "OA_Andrew_C._Steer",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_17987659",
+        "proj_21767229",
+        "proj_30917466"
+      ],
+      "latency_ms": 10628.808,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_9",
+      "source_type": "expert",
+      "source_id": "OA_Anthony_Chang",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_26734713"
+      ],
+      "latency_ms": 10152.443,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_10",
+      "source_type": "expert",
+      "source_id": "OA_Anton_J._M._Wagenmakers",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_26824614",
+        "proj_58956315",
+        "proj_67791387"
+      ],
+      "latency_ms": 9862.067,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_11",
+      "source_type": "expert",
+      "source_id": "OA_Antonio_Avallone",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_38469324",
+        "proj_51833067"
+      ],
+      "latency_ms": 8152.992,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_12",
+      "source_type": "expert",
+      "source_id": "OA_Antonio_Celesti",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_42895209",
+        "proj_66837615"
+      ],
+      "latency_ms": 4539.781,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_13",
+      "source_type": "expert",
+      "source_id": "OA_Benedikt_Schoser",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_27523725",
+        "proj_38956536",
+        "proj_45094843"
+      ],
+      "latency_ms": 10674.289,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_14",
+      "source_type": "expert",
+      "source_id": "OA_Bernadette_McGuinness",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_19014010",
+        "proj_21242586",
+        "proj_26255146"
+      ],
+      "latency_ms": 13350.119,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_15",
+      "source_type": "expert",
+      "source_id": "OA_C._Angelini",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_10722468",
+        "proj_11671607",
+        "proj_12593965"
+      ],
+      "latency_ms": 11870.393,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_16",
+      "source_type": "expert",
+      "source_id": "OA_Carlo_Barone",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_30385018",
+        "proj_37368499"
+      ],
+      "latency_ms": 6957.696,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_17",
+      "source_type": "expert",
+      "source_id": "OA_Carlos_Caldas",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_27766944",
+        "proj_45176266",
+        "proj_53411386"
+      ],
+      "latency_ms": 10707.069,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_18",
+      "source_type": "expert",
+      "source_id": "OA_Charles_M._Rudin",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_10310410",
+        "proj_29637754",
+        "proj_45437853"
+      ],
+      "latency_ms": 11449.283,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_19",
+      "source_type": "expert",
+      "source_id": "OA_Cheryl_R._Greenberg",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_10718529",
+        "proj_16050244",
+        "proj_21574838"
+      ],
+      "latency_ms": 12555.855,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_20",
+      "source_type": "expert",
+      "source_id": "OA_Christophe_Nicot",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_23088078",
+        "proj_37614109",
+        "proj_43024011"
+      ],
+      "latency_ms": 11240.933,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_21",
+      "source_type": "expert",
+      "source_id": "OA_Claudio_Vernieri",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_14230103",
+        "proj_33864145",
+        "proj_40945293"
+      ],
+      "latency_ms": 10226.791,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_22",
+      "source_type": "expert",
+      "source_id": "OA_Cord_Sunderkötter",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_84811572"
+      ],
+      "latency_ms": 20886.406,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_23",
+      "source_type": "expert",
+      "source_id": "OA_Daniele_Regge",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_33859839",
+        "proj_33999302",
+        "proj_60709199"
+      ],
+      "latency_ms": 7430.229,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_24",
+      "source_type": "expert",
+      "source_id": "OA_Daniele_Santini",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_19364666"
+      ],
+      "latency_ms": 10014.451,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_25",
+      "source_type": "expert",
+      "source_id": "OA_David_A._Spain",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_34587811"
+      ],
+      "latency_ms": 6665.127,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_26",
+      "source_type": "expert",
+      "source_id": "OA_Dhiraj_Yadav",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_15298728",
+        "proj_28589723",
+        "proj_46687948"
+      ],
+      "latency_ms": 14759.537,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_27",
+      "source_type": "expert",
+      "source_id": "OA_Dieter_Häussinger",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_21580364"
+      ],
+      "latency_ms": 21017.193,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_28",
+      "source_type": "expert",
+      "source_id": "OA_Dietrich_Henzler",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_49463311",
+        "proj_71450152"
+      ],
+      "latency_ms": 7288.546,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_29",
+      "source_type": "expert",
+      "source_id": "OA_Elena_Élez",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_42378461"
+      ],
+      "latency_ms": 9354.349,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_30",
+      "source_type": "expert",
+      "source_id": "OA_Emil_Lou",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_65341689"
+      ],
+      "latency_ms": 7426.615,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_1",
+      "source_type": "project",
+      "source_id": "proj_10024763",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_55498063"
+      ],
+      "latency_ms": 315.644,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_2",
+      "source_type": "project",
+      "source_id": "proj_10310410",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_53238667"
+      ],
+      "latency_ms": 382.979,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_3",
+      "source_type": "project",
+      "source_id": "proj_10370888",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_84890623"
+      ],
+      "latency_ms": 354.671,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_4",
+      "source_type": "project",
+      "source_id": "proj_10422445",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_11193261"
+      ],
+      "latency_ms": 411.323,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_5",
+      "source_type": "project",
+      "source_id": "proj_10435701",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_62403244"
+      ],
+      "latency_ms": 339.734,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_6",
+      "source_type": "project",
+      "source_id": "proj_10642524",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_98833012"
+      ],
+      "latency_ms": 374.537,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_7",
+      "source_type": "project",
+      "source_id": "proj_10708916",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_27356524"
+      ],
+      "latency_ms": 418.145,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_8",
+      "source_type": "project",
+      "source_id": "proj_10718529",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_34822802"
+      ],
+      "latency_ms": 779.934,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_9",
+      "source_type": "project",
+      "source_id": "proj_10722468",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_84086451"
+      ],
+      "latency_ms": 503.017,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_10",
+      "source_type": "project",
+      "source_id": "proj_10761316",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_82945850"
+      ],
+      "latency_ms": 351.172,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_11",
+      "source_type": "project",
+      "source_id": "proj_10832110",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_53238667"
+      ],
+      "latency_ms": 338.795,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_12",
+      "source_type": "project",
+      "source_id": "proj_10932008",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_90896701"
+      ],
+      "latency_ms": 338.168,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_13",
+      "source_type": "project",
+      "source_id": "proj_11115673",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_11822729"
+      ],
+      "latency_ms": 368.272,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_14",
+      "source_type": "project",
+      "source_id": "proj_11129078",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_43917175"
+      ],
+      "latency_ms": 354.271,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_15",
+      "source_type": "project",
+      "source_id": "proj_11171793",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_11268798"
+      ],
+      "latency_ms": 330.577,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_16",
+      "source_type": "project",
+      "source_id": "proj_11345766",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_48855515"
+      ],
+      "latency_ms": 369.769,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_17",
+      "source_type": "project",
+      "source_id": "proj_11516925",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_37911777"
+      ],
+      "latency_ms": 452.274,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_18",
+      "source_type": "project",
+      "source_id": "proj_11671607",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_84086451"
+      ],
+      "latency_ms": 462.107,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_19",
+      "source_type": "project",
+      "source_id": "proj_11739816",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_72631106"
+      ],
+      "latency_ms": 375.76,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_20",
+      "source_type": "project",
+      "source_id": "proj_11980153",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_18084338"
+      ],
+      "latency_ms": 527.416,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_21",
+      "source_type": "project",
+      "source_id": "proj_12018478",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_66484348"
+      ],
+      "latency_ms": 392.209,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_22",
+      "source_type": "project",
+      "source_id": "proj_12139622",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_15950325"
+      ],
+      "latency_ms": 344.788,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_23",
+      "source_type": "project",
+      "source_id": "proj_12152256",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_41977538"
+      ],
+      "latency_ms": 477.898,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_24",
+      "source_type": "project",
+      "source_id": "proj_12253385",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_75994406"
+      ],
+      "latency_ms": 362.958,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_25",
+      "source_type": "project",
+      "source_id": "proj_12396772",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_42645004"
+      ],
+      "latency_ms": 426.227,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_26",
+      "source_type": "project",
+      "source_id": "proj_12465653",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_33060777"
+      ],
+      "latency_ms": 471.494,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_27",
+      "source_type": "project",
+      "source_id": "proj_12581762",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_27356524"
+      ],
+      "latency_ms": 427.662,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_28",
+      "source_type": "project",
+      "source_id": "proj_12593965",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_84086451"
+      ],
+      "latency_ms": 371.58,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_29",
+      "source_type": "project",
+      "source_id": "proj_12710775",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_41118457"
+      ],
+      "latency_ms": 319.492,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_30",
+      "source_type": "project",
+      "source_id": "proj_12771347",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "fund_15308490"
+      ],
+      "latency_ms": 477.004,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_1",
+      "source_type": "funder",
+      "source_id": "fund_10074789",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_50253568"
+      ],
+      "latency_ms": 315.119,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_2",
+      "source_type": "funder",
+      "source_id": "fund_10180507",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_45805935"
+      ],
+      "latency_ms": 309.879,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_3",
+      "source_type": "funder",
+      "source_id": "fund_10528864",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_39847516"
+      ],
+      "latency_ms": 303.13,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_4",
+      "source_type": "funder",
+      "source_id": "fund_10710977",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_65390712"
+      ],
+      "latency_ms": 317.621,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_5",
+      "source_type": "funder",
+      "source_id": "fund_10720929",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_66237111"
+      ],
+      "latency_ms": 326.617,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_6",
+      "source_type": "funder",
+      "source_id": "fund_10858968",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_87179089"
+      ],
+      "latency_ms": 348.188,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_7",
+      "source_type": "funder",
+      "source_id": "fund_10980390",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_74057198"
+      ],
+      "latency_ms": 380.27,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_8",
+      "source_type": "funder",
+      "source_id": "fund_11076156",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_13183701"
+      ],
+      "latency_ms": 325.012,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_9",
+      "source_type": "funder",
+      "source_id": "fund_11193261",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_10422445",
+        "proj_35972049"
+      ],
+      "latency_ms": 301.626,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_10",
+      "source_type": "funder",
+      "source_id": "fund_11268798",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_88443030",
+        "proj_69231752",
+        "proj_57545195"
+      ],
+      "latency_ms": 284.042,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_11",
+      "source_type": "funder",
+      "source_id": "fund_11316095",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_77930386"
+      ],
+      "latency_ms": 308.876,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_12",
+      "source_type": "funder",
+      "source_id": "fund_11602463",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_41531450"
+      ],
+      "latency_ms": 302.638,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_13",
+      "source_type": "funder",
+      "source_id": "fund_11629834",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_43078741"
+      ],
+      "latency_ms": 307.082,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_14",
+      "source_type": "funder",
+      "source_id": "fund_11767684",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_44666857"
+      ],
+      "latency_ms": 307.087,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_15",
+      "source_type": "funder",
+      "source_id": "fund_11822729",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_11115673"
+      ],
+      "latency_ms": 350.914,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_16",
+      "source_type": "funder",
+      "source_id": "fund_11968057",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_31610960"
+      ],
+      "latency_ms": 359.67,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_17",
+      "source_type": "funder",
+      "source_id": "fund_12318496",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_51263011"
+      ],
+      "latency_ms": 367.785,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_18",
+      "source_type": "funder",
+      "source_id": "fund_12508791",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_39110392",
+        "proj_96001018",
+        "proj_45699368"
+      ],
+      "latency_ms": 332.75,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_19",
+      "source_type": "funder",
+      "source_id": "fund_13152399",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_69621701",
+        "proj_69383596",
+        "proj_57220618"
+      ],
+      "latency_ms": 285.786,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_20",
+      "source_type": "funder",
+      "source_id": "fund_13472788",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_80783197",
+        "proj_37630916"
+      ],
+      "latency_ms": 270.736,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_21",
+      "source_type": "funder",
+      "source_id": "fund_13614528",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_75769767",
+        "proj_80822897",
+        "proj_37614109"
+      ],
+      "latency_ms": 299.951,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_22",
+      "source_type": "funder",
+      "source_id": "fund_13971327",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_73130527"
+      ],
+      "latency_ms": 371.711,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_23",
+      "source_type": "funder",
+      "source_id": "fund_14162907",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_71838350",
+        "proj_21527924"
+      ],
+      "latency_ms": 315.871,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_24",
+      "source_type": "funder",
+      "source_id": "fund_14759398",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_53480158"
+      ],
+      "latency_ms": 330.668,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_25",
+      "source_type": "funder",
+      "source_id": "fund_14965670",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_71193252"
+      ],
+      "latency_ms": 298.546,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_26",
+      "source_type": "funder",
+      "source_id": "fund_15118409",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_21385139",
+        "proj_17107175",
+        "proj_35658400"
+      ],
+      "latency_ms": 319.888,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_27",
+      "source_type": "funder",
+      "source_id": "fund_15191193",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_57665018"
+      ],
+      "latency_ms": 477.298,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_28",
+      "source_type": "funder",
+      "source_id": "fund_15308490",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_27583012",
+        "proj_19747609",
+        "proj_12771347"
+      ],
+      "latency_ms": 448.118,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_29",
+      "source_type": "funder",
+      "source_id": "fund_15720446",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_31915155"
+      ],
+      "latency_ms": 301.373,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_30",
+      "source_type": "funder",
+      "source_id": "fund_15950325",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_12139622"
+      ],
+      "latency_ms": 320.845,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_1",
+      "source_type": "expert",
+      "source_id": "0n5S6uUAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "brz-dOkAAAAJ",
+        "foXpSlIAAAAJ",
+        "juCwRycAAAAJ"
+      ],
+      "latency_ms": 4941.094,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_2",
+      "source_type": "expert",
+      "source_id": "B60btb4AAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "juCwRycAAAAJ",
+        "OA_Hong-Linh_Truong",
+        "OA_Hong‐Linh_Truong"
+      ],
+      "latency_ms": 1036.732,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_3",
+      "source_type": "expert",
+      "source_id": "KK2le2UAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Florian_Rosenberg",
+        "OA_Frank_Leymann",
+        "OA_Philipp_Leitner"
+      ],
+      "latency_ms": 1884.454,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_4",
+      "source_type": "expert",
+      "source_id": "LTKlUkwAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "bVB8hGsAAAAJ",
+        "OA_Ana_Cavalli",
+        "OA_Edgardo_Montes_de"
+      ],
+      "latency_ms": 1512.706,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_5",
+      "source_type": "expert",
+      "source_id": "LaGRXwkAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Javier_Luis_Izquierdo",
+        "OA_Jordi_Cabot",
+        "OA_Manuel_Wimmer"
+      ],
+      "latency_ms": 5789.91,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_6",
+      "source_type": "expert",
+      "source_id": "OA_A._L._Hoefnagel",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Ana_Cristina_Diogo",
+        "OA_Anna_M._Ledgerwood",
+        "OA_Anthony_J._Dean"
+      ],
+      "latency_ms": 1952.778,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_7",
+      "source_type": "expert",
+      "source_id": "OA_A._Rose_Brannon",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Adam_J._Schoenfeld",
+        "OA_Agnès_Viale",
+        "OA_Ahmet_Zehir"
+      ],
+      "latency_ms": 3547.367,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_8",
+      "source_type": "expert",
+      "source_id": "OA_Aaron_R._Thorner",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Adam_J._Bass",
+        "OA_Andrea_Sartore-Bianchi",
+        "OA_Andrea_Sartore‐Bianchi"
+      ],
+      "latency_ms": 6941.204,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_9",
+      "source_type": "expert",
+      "source_id": "OA_Adam_J._Bass",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andrea_Bertotti",
+        "OA_Andrea_Sartore-Bianchi",
+        "OA_Andrea_Sartore‐Bianchi"
+      ],
+      "latency_ms": 7987.194,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_10",
+      "source_type": "expert",
+      "source_id": "OA_Adam_J._Schoenfeld",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Ahmet_Zehir",
+        "OA_Alessio_Cortellini",
+        "OA_Alexander_Drilon"
+      ],
+      "latency_ms": 3722.839,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_11",
+      "source_type": "expert",
+      "source_id": "OA_Adele_Busico",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alberto_Bardelli",
+        "OA_Alberto_Zaniboni",
+        "OA_Alessandra_Boccaccino"
+      ],
+      "latency_ms": 4263.177,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_12",
+      "source_type": "expert",
+      "source_id": "OA_Adrian_J._L._Clark",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alberto_Ferlin",
+        "OA_Albert_Schinzel",
+        "OA_Alessandra_Baumer"
+      ],
+      "latency_ms": 7477.13,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_13",
+      "source_type": "expert",
+      "source_id": "OA_Adrienne_Johnson",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alexa_B._Schrock",
+        "OA_Brian_M._Alexander",
+        "OA_David_S._Hong"
+      ],
+      "latency_ms": 6539.486,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_14",
+      "source_type": "expert",
+      "source_id": "OA_Afsaneh_Barzi",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alberto_Bardelli",
+        "OA_Alessia_Mennitto",
+        "OA_Alfredo_Falcone"
+      ],
+      "latency_ms": 12550.487,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_15",
+      "source_type": "expert",
+      "source_id": "OA_Agnès_Viale",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Ahmet_Zehir",
+        "OA_Andrea_Cercek",
+        "OA_Anna_M._Varghese"
+      ],
+      "latency_ms": 3825.692,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_16",
+      "source_type": "expert",
+      "source_id": "OA_Ahmet_Zehir",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Albrecht_Stenzinger",
+        "OA_Alexander_Drilon",
+        "OA_Alexa_B._Schrock"
+      ],
+      "latency_ms": 5622.715,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_17",
+      "source_type": "expert",
+      "source_id": "OA_Aimery_de_Gramont",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alan_P._Venook",
+        "OA_Alberto_Sobrero",
+        "OA_Alberto_Zaniboni"
+      ],
+      "latency_ms": 10811.227,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_18",
+      "source_type": "expert",
+      "source_id": "OA_Ainu_Prakash‐Cheng",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alexander_K._C._Leung",
+        "OA_Andrea_L._Utz",
+        "OA_Andrew_L._Wong"
+      ],
+      "latency_ms": 10660.314,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_19",
+      "source_type": "expert",
+      "source_id": "OA_Akira_Honda",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alexander_K._C._Leung",
+        "OA_Anca_Sindrilaru",
+        "OA_Andreas_Janecke"
+      ],
+      "latency_ms": 11792.825,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_20",
+      "source_type": "expert",
+      "source_id": "OA_Akmal_Hassan",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Albert_C._Ludolph",
+        "OA_Alexander_K._C._Leung",
+        "OA_Andreas_Hahn"
+      ],
+      "latency_ms": 16570.068,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_21",
+      "source_type": "expert",
+      "source_id": "OA_Alan_H._Beggs",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Albert_C._Ludolph",
+        "OA_Albert_H._Gennip",
+        "OA_Alessandra_Baumer"
+      ],
+      "latency_ms": 11844.108,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_22",
+      "source_type": "expert",
+      "source_id": "OA_Alan_P._Venook",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alfredo_Falcone",
+        "OA_Andrew_Elliott",
+        "OA_Andrés_Cervantes"
+      ],
+      "latency_ms": 15930.061,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_23",
+      "source_type": "expert",
+      "source_id": "OA_Alba_Llop‐Guevara",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alessandro_Ferrero",
+        "OA_Andrea_Herencia-Ropero",
+        "OA_Andrea_Sartore-Bianchi"
+      ],
+      "latency_ms": 2318.617,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_24",
+      "source_type": "expert",
+      "source_id": "OA_Albert_C._Ludolph",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Albert_H._Gennip",
+        "OA_Alessandra_Baumer",
+        "OA_Alessia_Diana"
+      ],
+      "latency_ms": 23880.489,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_25",
+      "source_type": "expert",
+      "source_id": "OA_Albert_H._Gennip",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Albert_Schinzel",
+        "OA_Alessandra_Baumer",
+        "OA_Alessia_Diana"
+      ],
+      "latency_ms": 18092.894,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_26",
+      "source_type": "expert",
+      "source_id": "OA_Albert_Schinzel",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alberto_Ferlin",
+        "OA_Alessandra_Baumer",
+        "OA_Alexander_K._C._Leung"
+      ],
+      "latency_ms": 16544.331,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_27",
+      "source_type": "expert",
+      "source_id": "OA_Albert_Y._Zomaya",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Charith_Perera",
+        "OA_Dan_Chen",
+        "OA_Dimitrios_Georgakopoulos"
+      ],
+      "latency_ms": 7420.377,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_28",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Bardelli",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alberto_Sobrero",
+        "OA_Alberto_Sogari",
+        "OA_Alberto_Zaniboni"
+      ],
+      "latency_ms": 7892.288,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_29",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Ferlin",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alessandra_Baumer",
+        "OA_Alexander_K._C._Leung",
+        "OA_Andrew_L._Wong"
+      ],
+      "latency_ms": 8650.286,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_30",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Sobrero",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alberto_Zaniboni",
+        "OA_Alessandro_Bittoni",
+        "OA_Alessandro_Passardi"
+      ],
+      "latency_ms": 16961.868,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_1",
+      "source_type": "project",
+      "source_id": "proj_10024763",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_42481393",
+        "proj_84362629",
+        "proj_83204791"
+      ],
+      "latency_ms": 653.53,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_2",
+      "source_type": "project",
+      "source_id": "proj_10310410",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_75670298",
+        "proj_29637754",
+        "proj_63047828"
+      ],
+      "latency_ms": 1293.246,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_3",
+      "source_type": "project",
+      "source_id": "proj_10370888",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_49013453",
+        "proj_50253568",
+        "proj_80854136"
+      ],
+      "latency_ms": 380.199,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_4",
+      "source_type": "project",
+      "source_id": "proj_10422445",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_30407283",
+        "proj_74302998",
+        "proj_17364562"
+      ],
+      "latency_ms": 885.637,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_5",
+      "source_type": "project",
+      "source_id": "proj_10435701",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_82515133",
+        "proj_31610960",
+        "proj_76033497"
+      ],
+      "latency_ms": 560.304,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_6",
+      "source_type": "project",
+      "source_id": "proj_10642524",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_13026753",
+        "proj_68474320",
+        "proj_63211517"
+      ],
+      "latency_ms": 1779.038,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_7",
+      "source_type": "project",
+      "source_id": "proj_10708916",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_51291015",
+        "proj_28288448",
+        "proj_73426408"
+      ],
+      "latency_ms": 2096.238,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_8",
+      "source_type": "project",
+      "source_id": "proj_10718529",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_16050244",
+        "proj_21574838",
+        "proj_76159227"
+      ],
+      "latency_ms": 1081.198,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_9",
+      "source_type": "project",
+      "source_id": "proj_10722468",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_69621701",
+        "proj_46245754",
+        "proj_69383596"
+      ],
+      "latency_ms": 1028.154,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_10",
+      "source_type": "project",
+      "source_id": "proj_10761316",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_23038869",
+        "proj_13324704",
+        "proj_20545737"
+      ],
+      "latency_ms": 718.792,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_11",
+      "source_type": "project",
+      "source_id": "proj_10832110",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_31843800",
+        "proj_77863757",
+        "proj_59269395"
+      ],
+      "latency_ms": 1001.778,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_12",
+      "source_type": "project",
+      "source_id": "proj_10932008",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_84072384",
+        "proj_70672663",
+        "proj_21135463"
+      ],
+      "latency_ms": 807.924,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_13",
+      "source_type": "project",
+      "source_id": "proj_11115673",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_11980153",
+        "proj_84162590",
+        "proj_35347216"
+      ],
+      "latency_ms": 310.256,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_14",
+      "source_type": "project",
+      "source_id": "proj_11129078",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_71838350",
+        "proj_21527924",
+        "proj_72209667"
+      ],
+      "latency_ms": 1086.673,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_15",
+      "source_type": "project",
+      "source_id": "proj_11171793",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_10370888",
+        "proj_49013453",
+        "proj_50253568"
+      ],
+      "latency_ms": 672.04,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_16",
+      "source_type": "project",
+      "source_id": "proj_11345766",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_37265320",
+        "proj_47206974",
+        "proj_45923659"
+      ],
+      "latency_ms": 318.061,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_17",
+      "source_type": "project",
+      "source_id": "proj_11516925",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_76349315",
+        "proj_40346652",
+        "proj_22882137"
+      ],
+      "latency_ms": 369.407,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_18",
+      "source_type": "project",
+      "source_id": "proj_11671607",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_69621701",
+        "proj_46245754",
+        "proj_69383596"
+      ],
+      "latency_ms": 869.437,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_19",
+      "source_type": "project",
+      "source_id": "proj_11739816",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_56825099",
+        "proj_43914594",
+        "proj_15946066"
+      ],
+      "latency_ms": 769.251,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_20",
+      "source_type": "project",
+      "source_id": "proj_11980153",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_11115673",
+        "proj_84162590",
+        "proj_35347216"
+      ],
+      "latency_ms": 774.624,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_21",
+      "source_type": "project",
+      "source_id": "proj_12018478",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_79987899",
+        "proj_25915423",
+        "proj_85361429"
+      ],
+      "latency_ms": 526.176,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_22",
+      "source_type": "project",
+      "source_id": "proj_12139622",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_82931841",
+        "proj_18582112",
+        "proj_15425661"
+      ],
+      "latency_ms": 579.301,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_23",
+      "source_type": "project",
+      "source_id": "proj_12152256",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_20326741",
+        "proj_57159146",
+        "proj_62028297"
+      ],
+      "latency_ms": 911.314,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_24",
+      "source_type": "project",
+      "source_id": "proj_12253385",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_30182452",
+        "proj_17137553"
+      ],
+      "latency_ms": 355.786,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_25",
+      "source_type": "project",
+      "source_id": "proj_12396772",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_13026753",
+        "proj_68474320",
+        "proj_63211517"
+      ],
+      "latency_ms": 328.633,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_26",
+      "source_type": "project",
+      "source_id": "proj_12465653",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_79987899",
+        "proj_25915423",
+        "proj_85361429"
+      ],
+      "latency_ms": 384.116,
+      "result_count": 0,
+      "methods": {},
+      "evidence_levels": {},
+      "candidate_sources": {}
+    },
+    {
+      "case_id": "data1_loo_project_to_project_27",
+      "source_type": "project",
+      "source_id": "proj_12581762",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_51291015",
+        "proj_28288448",
+        "proj_73426408"
+      ],
+      "latency_ms": 912.83,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_28",
+      "source_type": "project",
+      "source_id": "proj_12593965",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_69621701",
+        "proj_46245754",
+        "proj_69383596"
+      ],
+      "latency_ms": 1125.149,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_29",
+      "source_type": "project",
+      "source_id": "proj_12710775",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_13026753",
+        "proj_68474320",
+        "proj_63211517"
+      ],
+      "latency_ms": 755.211,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_project_to_project_30",
+      "source_type": "project",
+      "source_id": "proj_12771347",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "proj_76487867",
+        "proj_72782955",
+        "proj_27583012"
+      ],
+      "latency_ms": 851.687,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_1",
+      "source_type": "expert",
+      "source_id": "OA_Alan_P._Venook",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 8956.116,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_2",
+      "source_type": "expert",
+      "source_id": "OA_Alessandro_Gronchi",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9579.214,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_3",
+      "source_type": "expert",
+      "source_id": "OA_Alessandro_Passardi",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_89924194"
+      ],
+      "latency_ms": 7625.589,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_4",
+      "source_type": "expert",
+      "source_id": "OA_Alexander_Drilon",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 10399.103,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_5",
+      "source_type": "expert",
+      "source_id": "OA_Andreas_Fritsche",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_55329998"
+      ],
+      "latency_ms": 11181.064,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_6",
+      "source_type": "expert",
+      "source_id": "OA_Bernard_C._Rossier",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9951.15,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_7",
+      "source_type": "expert",
+      "source_id": "OA_Bharat_K._Kantharia",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9894.89,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_8",
+      "source_type": "expert",
+      "source_id": "OA_Caroline_A._Sewry",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 12131.736,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_9",
+      "source_type": "expert",
+      "source_id": "OA_Cecilia_Camacho‐Hübner",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9046.053,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_10",
+      "source_type": "expert",
+      "source_id": "OA_Chaeyoung_Lee",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_89924194"
+      ],
+      "latency_ms": 9545.19,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_11",
+      "source_type": "expert",
+      "source_id": "OA_Colin_L._Masters",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 14480.256,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_12",
+      "source_type": "expert",
+      "source_id": "OA_Daniel_Link",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 12064.057,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_13",
+      "source_type": "expert",
+      "source_id": "OA_Dhiraj_Yadav",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 14840.491,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_14",
+      "source_type": "expert",
+      "source_id": "OA_Dianna_C._Martin",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9443.053,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_15",
+      "source_type": "expert",
+      "source_id": "OA_Elena_Élez",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9909.828,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_16",
+      "source_type": "expert",
+      "source_id": "OA_Fabienne_Picard",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 10713.41,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_17",
+      "source_type": "expert",
+      "source_id": "OA_Francesca_Negri",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_73832763",
+        "ent_71840375",
+        "ent_40392413"
+      ],
+      "latency_ms": 7676.615,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_18",
+      "source_type": "expert",
+      "source_id": "OA_Giacomo_Bellani",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 6873.784,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_19",
+      "source_type": "expert",
+      "source_id": "OA_Hanna_Tukachinsky",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 6167.862,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_20",
+      "source_type": "expert",
+      "source_id": "OA_Hazel_M._Holden",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_55329998",
+        "ent_42333835",
+        "ent_84477131"
+      ],
+      "latency_ms": 10331.288,
+      "result_count": 5,
+      "methods": {
+        "cypher_fallback": 5
+      },
+      "evidence_levels": {
+        "fallback_only": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_21",
+      "source_type": "expert",
+      "source_id": "OA_Javier_Rangel‐Moreno",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9155.734,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_22",
+      "source_type": "expert",
+      "source_id": "OA_Jerry_G._Blaivas",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 9732.528,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_23",
+      "source_type": "expert",
+      "source_id": "OA_Jessica_Giordano",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 5721.104,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_24",
+      "source_type": "expert",
+      "source_id": "OA_John_Newsom–Davis",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 12113.837,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_25",
+      "source_type": "expert",
+      "source_id": "OA_Jonas_Denecke",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 14385.062,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_26",
+      "source_type": "expert",
+      "source_id": "OA_Julia_Weihrauch",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 11557.1,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_27",
+      "source_type": "expert",
+      "source_id": "OA_Karel_Pacák",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_33007034"
+      ],
+      "latency_ms": 15319.684,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_28",
+      "source_type": "expert",
+      "source_id": "OA_Kenneth_R._Shroyer",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 10563.424,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_29",
+      "source_type": "expert",
+      "source_id": "OA_Marina_Chiara_Garassino",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "latency_ms": 12526.528,
+      "result_count": 2,
+      "methods": {
+        "cypher_fallback": 2
+      },
+      "evidence_levels": {
+        "fallback_only": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_30",
+      "source_type": "expert",
+      "source_id": "OA_Mark_Sausen",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_33007034"
+      ],
+      "latency_ms": 5967.988,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_1",
+      "source_type": "enterprise",
+      "source_id": "ent_14871334",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alessandro_Passardi",
+        "OA_Chaeyoung_Lee",
+        "OA_Tam_Nguyen"
+      ],
+      "latency_ms": 2889.835,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_2",
+      "source_type": "enterprise",
+      "source_id": "ent_21800943",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 3458.576,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_3",
+      "source_type": "enterprise",
+      "source_id": "ent_26348412",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1360.418,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_4",
+      "source_type": "enterprise",
+      "source_id": "ent_29550973",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1382.664,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_5",
+      "source_type": "enterprise",
+      "source_id": "ent_33007034",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Hazel_M._Holden",
+        "OA_Karel_Pacák",
+        "OA_Mark_Sausen"
+      ],
+      "latency_ms": 1667.217,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_6",
+      "source_type": "enterprise",
+      "source_id": "ent_35916077",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 1987.774,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_7",
+      "source_type": "enterprise",
+      "source_id": "ent_36913106",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 1929.12,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_8",
+      "source_type": "enterprise",
+      "source_id": "ent_38787308",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Zoran_V._Popović"
+      ],
+      "latency_ms": 1866.374,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_9",
+      "source_type": "enterprise",
+      "source_id": "ent_39735362",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 2080.824,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_10",
+      "source_type": "enterprise",
+      "source_id": "ent_40392413",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1614.876,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_11",
+      "source_type": "enterprise",
+      "source_id": "ent_41745378",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1771.51,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_12",
+      "source_type": "enterprise",
+      "source_id": "ent_42333835",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 1703.842,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_13",
+      "source_type": "enterprise",
+      "source_id": "ent_44511690",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 2256.761,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_14",
+      "source_type": "enterprise",
+      "source_id": "ent_52941984",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alessandro_Passardi",
+        "OA_Chaeyoung_Lee",
+        "OA_Tam_Nguyen"
+      ],
+      "latency_ms": 1932.555,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_15",
+      "source_type": "enterprise",
+      "source_id": "ent_53243387",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden",
+        "OA_Karel_Pacák"
+      ],
+      "latency_ms": 1705.775,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_16",
+      "source_type": "enterprise",
+      "source_id": "ent_55329998",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 1918.212,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_17",
+      "source_type": "enterprise",
+      "source_id": "ent_56652440",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1296.88,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_18",
+      "source_type": "enterprise",
+      "source_id": "ent_65259306",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Zoran_V._Popović"
+      ],
+      "latency_ms": 2409.305,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_19",
+      "source_type": "enterprise",
+      "source_id": "ent_66127916",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_S._R._Wayne_Chen",
+        "OA_Sylvia_Stöckler‐Ipsiroglu"
+      ],
+      "latency_ms": 1815.971,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_20",
+      "source_type": "enterprise",
+      "source_id": "ent_71840375",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1064.914,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_21",
+      "source_type": "enterprise",
+      "source_id": "ent_72312432",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 1762.341,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_22",
+      "source_type": "enterprise",
+      "source_id": "ent_72696896",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Hazel_M._Holden",
+        "OA_Karel_Pacák",
+        "OA_Mark_Sausen"
+      ],
+      "latency_ms": 1692.174,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_23",
+      "source_type": "enterprise",
+      "source_id": "ent_73832763",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 916.299,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_24",
+      "source_type": "enterprise",
+      "source_id": "ent_74106480",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 955.045,
+      "result_count": 1,
+      "methods": {
+        "pgpr_policy": 1
+      },
+      "evidence_levels": {
+        "path_supported": 1
+      },
+      "candidate_sources": {
+        "pgpr": 1
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_25",
+      "source_type": "enterprise",
+      "source_id": "ent_78084855",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Zoran_V._Popović"
+      ],
+      "latency_ms": 2377.192,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_26",
+      "source_type": "enterprise",
+      "source_id": "ent_78600732",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alan_P._Venook",
+        "OA_Alessandro_Gronchi",
+        "OA_Alessandro_Passardi"
+      ],
+      "latency_ms": 1743.534,
+      "result_count": 4,
+      "methods": {
+        "pgpr_policy": 4
+      },
+      "evidence_levels": {
+        "path_supported": 4
+      },
+      "candidate_sources": {
+        "pgpr": 4
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_27",
+      "source_type": "enterprise",
+      "source_id": "ent_80780682",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Alan_P._Venook",
+        "OA_Alessandro_Gronchi",
+        "OA_Alessandro_Passardi"
+      ],
+      "latency_ms": 1600.291,
+      "result_count": 5,
+      "methods": {
+        "pgpr_policy": 5
+      },
+      "evidence_levels": {
+        "path_supported": 5
+      },
+      "candidate_sources": {
+        "pgpr": 5
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_28",
+      "source_type": "enterprise",
+      "source_id": "ent_81375448",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1410.774,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_29",
+      "source_type": "enterprise",
+      "source_id": "ent_84175129",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "latency_ms": 1281.582,
+      "result_count": 3,
+      "methods": {
+        "pgpr_policy": 3
+      },
+      "evidence_levels": {
+        "path_supported": 3
+      },
+      "candidate_sources": {
+        "pgpr": 3
+      }
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_30",
+      "source_type": "enterprise",
+      "source_id": "ent_84477131",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "heldout_relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "latency_ms": 1788.481,
+      "result_count": 2,
+      "methods": {
+        "pgpr_policy": 2
+      },
+      "evidence_levels": {
+        "path_supported": 2
+      },
+      "candidate_sources": {
+        "pgpr": 2
+      }
+    }
+  ],
+  "interpretation": {
+    "pgpr_path_supported_methods": [
+      "pgpr_policy",
+      "hybrid_embedding_path"
+    ],
+    "embedding_only_method": "hybrid_embedding",
+    "fallback_method": "cypher_fallback",
+    "note": "candidate source `pgpr` means the candidate has PGPR/path-layer evidence. `pgpr_policy` is policy/path evidence, `hybrid_embedding_path` is path-supported reranking, and `cypher_fallback` is counted separately when it appears."
+  }
+}

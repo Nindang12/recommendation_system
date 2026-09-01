@@ -1,0 +1,5528 @@
+{
+  "version": 1,
+  "description": "Leave-one-edge-out reconstruction cases from data1 graph: 30 queries per direction (240 total).",
+  "label_version": "data1_leave_one_edge_out_v3_240",
+  "label_created_at": "2026-06-20",
+  "label_policy": "graph_leave_one_edge_out_data1",
+  "generated_at": "2026-06-20T06:44:24.422467+00:00",
+  "generation_stats": {
+    "project_to_expert": 30,
+    "expert_to_project": 30,
+    "project_to_funder": 30,
+    "funder_to_project": 30,
+    "expert_to_expert": 30,
+    "project_to_project": 30,
+    "expert_to_enterprise": 30,
+    "enterprise_to_expert": 30
+  },
+  "cases": [
+    {
+      "case_id": "data1_loo_project_to_expert_1",
+      "source_type": "project",
+      "source_id": "proj_10024763",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Eric_A._J._Hoste"
+      ],
+      "graded_relevance": {
+        "OA_Eric_A._J._Hoste": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_2",
+      "source_type": "project",
+      "source_id": "proj_10310410",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Charles_M._Rudin"
+      ],
+      "graded_relevance": {
+        "OA_Charles_M._Rudin": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_3",
+      "source_type": "project",
+      "source_id": "proj_10370888",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Violeta_Serra"
+      ],
+      "graded_relevance": {
+        "OA_Violeta_Serra": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_4",
+      "source_type": "project",
+      "source_id": "proj_10422445",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Gerard_C._Blobe"
+      ],
+      "graded_relevance": {
+        "OA_Gerard_C._Blobe": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_5",
+      "source_type": "project",
+      "source_id": "proj_10435701",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Margaret_R._Wallace"
+      ],
+      "graded_relevance": {
+        "OA_Margaret_R._Wallace": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_6",
+      "source_type": "project",
+      "source_id": "proj_10642524",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Jonathan_R._Carapetis"
+      ],
+      "graded_relevance": {
+        "OA_Jonathan_R._Carapetis": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_7",
+      "source_type": "project",
+      "source_id": "proj_10708916",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Martin_Dichgans"
+      ],
+      "graded_relevance": {
+        "OA_Martin_Dichgans": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_8",
+      "source_type": "project",
+      "source_id": "proj_10718529",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Cheryl_R._Greenberg"
+      ],
+      "graded_relevance": {
+        "OA_Cheryl_R._Greenberg": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_9",
+      "source_type": "project",
+      "source_id": "proj_10722468",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_C._Angelini"
+      ],
+      "graded_relevance": {
+        "OA_C._Angelini": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_10",
+      "source_type": "project",
+      "source_id": "proj_10761316",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Markus_Jäger"
+      ],
+      "graded_relevance": {
+        "OA_Markus_Jäger": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_11",
+      "source_type": "project",
+      "source_id": "proj_10832110",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Yuman_Fong"
+      ],
+      "graded_relevance": {
+        "OA_Yuman_Fong": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_12",
+      "source_type": "project",
+      "source_id": "proj_10932008",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "ThT4zacAAAAJ"
+      ],
+      "graded_relevance": {
+        "ThT4zacAAAAJ": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_13",
+      "source_type": "project",
+      "source_id": "proj_11115673",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Ignazio_Castagliuolo"
+      ],
+      "graded_relevance": {
+        "OA_Ignazio_Castagliuolo": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_14",
+      "source_type": "project",
+      "source_id": "proj_11129078",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "Pg3lkkgAAAAJ"
+      ],
+      "graded_relevance": {
+        "Pg3lkkgAAAAJ": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_15",
+      "source_type": "project",
+      "source_id": "proj_11171793",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Violeta_Serra"
+      ],
+      "graded_relevance": {
+        "OA_Violeta_Serra": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_16",
+      "source_type": "project",
+      "source_id": "proj_11345766",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Ralph_Knöll"
+      ],
+      "graded_relevance": {
+        "OA_Ralph_Knöll": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_17",
+      "source_type": "project",
+      "source_id": "proj_11516925",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Michael_G._Hanna"
+      ],
+      "graded_relevance": {
+        "OA_Michael_G._Hanna": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_18",
+      "source_type": "project",
+      "source_id": "proj_11671607",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_C._Angelini"
+      ],
+      "graded_relevance": {
+        "OA_C._Angelini": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_19",
+      "source_type": "project",
+      "source_id": "proj_11739816",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Joaquı́n_Arribas"
+      ],
+      "graded_relevance": {
+        "OA_Joaquı́n_Arribas": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_20",
+      "source_type": "project",
+      "source_id": "proj_11980153",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Ignazio_Castagliuolo"
+      ],
+      "graded_relevance": {
+        "OA_Ignazio_Castagliuolo": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_21",
+      "source_type": "project",
+      "source_id": "proj_12018478",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Thorsten_Buch"
+      ],
+      "graded_relevance": {
+        "OA_Thorsten_Buch": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_22",
+      "source_type": "project",
+      "source_id": "proj_12139622",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Jordi_Cabot"
+      ],
+      "graded_relevance": {
+        "OA_Jordi_Cabot": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_23",
+      "source_type": "project",
+      "source_id": "proj_12152256",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Kenneth_Offit"
+      ],
+      "graded_relevance": {
+        "OA_Kenneth_Offit": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_24",
+      "source_type": "project",
+      "source_id": "proj_12253385",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Amedeo_Columbano"
+      ],
+      "graded_relevance": {
+        "OA_Amedeo_Columbano": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_25",
+      "source_type": "project",
+      "source_id": "proj_12396772",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Jonathan_R._Carapetis"
+      ],
+      "graded_relevance": {
+        "OA_Jonathan_R._Carapetis": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_26",
+      "source_type": "project",
+      "source_id": "proj_12465653",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Thorsten_Buch"
+      ],
+      "graded_relevance": {
+        "OA_Thorsten_Buch": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_27",
+      "source_type": "project",
+      "source_id": "proj_12581762",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Martin_Dichgans"
+      ],
+      "graded_relevance": {
+        "OA_Martin_Dichgans": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_28",
+      "source_type": "project",
+      "source_id": "proj_12593965",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_C._Angelini"
+      ],
+      "graded_relevance": {
+        "OA_C._Angelini": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_29",
+      "source_type": "project",
+      "source_id": "proj_12710775",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Jonathan_R._Carapetis"
+      ],
+      "graded_relevance": {
+        "OA_Jonathan_R._Carapetis": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_expert_30",
+      "source_type": "project",
+      "source_id": "proj_12771347",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "OA_Hans_H._Goebel"
+      ],
+      "graded_relevance": {
+        "OA_Hans_H._Goebel": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_1",
+      "source_type": "expert",
+      "source_id": "OA_Alan_H._Beggs",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_19829676",
+        "proj_75982733",
+        "proj_85440843"
+      ],
+      "graded_relevance": {
+        "proj_19829676": 3,
+        "proj_75982733": 3,
+        "proj_85440843": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_2",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Bardelli",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_17439663",
+        "proj_19117454",
+        "proj_24823224"
+      ],
+      "graded_relevance": {
+        "proj_17439663": 3,
+        "proj_19117454": 3,
+        "proj_24823224": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_3",
+      "source_type": "expert",
+      "source_id": "OA_Alexander_K._C._Leung",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_33035554",
+        "proj_43078741",
+        "proj_60909915"
+      ],
+      "graded_relevance": {
+        "proj_33035554": 3,
+        "proj_43078741": 3,
+        "proj_60909915": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_4",
+      "source_type": "expert",
+      "source_id": "OA_Amedeo_Columbano",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_12253385",
+        "proj_17137553",
+        "proj_30182452"
+      ],
+      "graded_relevance": {
+        "proj_12253385": 3,
+        "proj_17137553": 3,
+        "proj_30182452": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_5",
+      "source_type": "expert",
+      "source_id": "OA_Amy_L._Cummings",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_37787353",
+        "proj_49280923"
+      ],
+      "graded_relevance": {
+        "proj_37787353": 3,
+        "proj_49280923": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_6",
+      "source_type": "expert",
+      "source_id": "OA_Ana_Cavalli",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_38652849",
+        "proj_57475248"
+      ],
+      "graded_relevance": {
+        "proj_38652849": 3,
+        "proj_57475248": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_7",
+      "source_type": "expert",
+      "source_id": "OA_Andrea_Casadei‐Gardini",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_35036296",
+        "proj_46531266"
+      ],
+      "graded_relevance": {
+        "proj_35036296": 3,
+        "proj_46531266": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_8",
+      "source_type": "expert",
+      "source_id": "OA_Andrew_C._Steer",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_17987659",
+        "proj_21767229",
+        "proj_30917466"
+      ],
+      "graded_relevance": {
+        "proj_17987659": 3,
+        "proj_21767229": 3,
+        "proj_30917466": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_9",
+      "source_type": "expert",
+      "source_id": "OA_Anthony_Chang",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_26734713"
+      ],
+      "graded_relevance": {
+        "proj_26734713": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_10",
+      "source_type": "expert",
+      "source_id": "OA_Anton_J._M._Wagenmakers",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_26824614",
+        "proj_58956315",
+        "proj_67791387"
+      ],
+      "graded_relevance": {
+        "proj_26824614": 3,
+        "proj_58956315": 3,
+        "proj_67791387": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_11",
+      "source_type": "expert",
+      "source_id": "OA_Antonio_Avallone",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_38469324",
+        "proj_51833067"
+      ],
+      "graded_relevance": {
+        "proj_38469324": 3,
+        "proj_51833067": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_12",
+      "source_type": "expert",
+      "source_id": "OA_Antonio_Celesti",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_42895209",
+        "proj_66837615"
+      ],
+      "graded_relevance": {
+        "proj_42895209": 3,
+        "proj_66837615": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_13",
+      "source_type": "expert",
+      "source_id": "OA_Benedikt_Schoser",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_27523725",
+        "proj_38956536",
+        "proj_45094843"
+      ],
+      "graded_relevance": {
+        "proj_27523725": 3,
+        "proj_38956536": 3,
+        "proj_45094843": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_14",
+      "source_type": "expert",
+      "source_id": "OA_Bernadette_McGuinness",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_19014010",
+        "proj_21242586",
+        "proj_26255146"
+      ],
+      "graded_relevance": {
+        "proj_19014010": 3,
+        "proj_21242586": 3,
+        "proj_26255146": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_15",
+      "source_type": "expert",
+      "source_id": "OA_C._Angelini",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_10722468",
+        "proj_11671607",
+        "proj_12593965"
+      ],
+      "graded_relevance": {
+        "proj_10722468": 3,
+        "proj_11671607": 3,
+        "proj_12593965": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_16",
+      "source_type": "expert",
+      "source_id": "OA_Carlo_Barone",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_30385018",
+        "proj_37368499"
+      ],
+      "graded_relevance": {
+        "proj_30385018": 3,
+        "proj_37368499": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_17",
+      "source_type": "expert",
+      "source_id": "OA_Carlos_Caldas",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_27766944",
+        "proj_45176266",
+        "proj_53411386"
+      ],
+      "graded_relevance": {
+        "proj_27766944": 3,
+        "proj_45176266": 3,
+        "proj_53411386": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_18",
+      "source_type": "expert",
+      "source_id": "OA_Charles_M._Rudin",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_10310410",
+        "proj_29637754",
+        "proj_45437853"
+      ],
+      "graded_relevance": {
+        "proj_10310410": 3,
+        "proj_29637754": 3,
+        "proj_45437853": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_19",
+      "source_type": "expert",
+      "source_id": "OA_Cheryl_R._Greenberg",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_10718529",
+        "proj_16050244",
+        "proj_21574838"
+      ],
+      "graded_relevance": {
+        "proj_10718529": 3,
+        "proj_16050244": 3,
+        "proj_21574838": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_20",
+      "source_type": "expert",
+      "source_id": "OA_Christophe_Nicot",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_23088078",
+        "proj_37614109",
+        "proj_43024011"
+      ],
+      "graded_relevance": {
+        "proj_23088078": 3,
+        "proj_37614109": 3,
+        "proj_43024011": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_21",
+      "source_type": "expert",
+      "source_id": "OA_Claudio_Vernieri",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_14230103",
+        "proj_33864145",
+        "proj_40945293"
+      ],
+      "graded_relevance": {
+        "proj_14230103": 3,
+        "proj_33864145": 3,
+        "proj_40945293": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_22",
+      "source_type": "expert",
+      "source_id": "OA_Cord_Sunderkötter",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_84811572"
+      ],
+      "graded_relevance": {
+        "proj_84811572": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_23",
+      "source_type": "expert",
+      "source_id": "OA_Daniele_Regge",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_33859839",
+        "proj_33999302",
+        "proj_60709199"
+      ],
+      "graded_relevance": {
+        "proj_33859839": 3,
+        "proj_33999302": 3,
+        "proj_60709199": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_24",
+      "source_type": "expert",
+      "source_id": "OA_Daniele_Santini",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_19364666"
+      ],
+      "graded_relevance": {
+        "proj_19364666": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_25",
+      "source_type": "expert",
+      "source_id": "OA_David_A._Spain",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_34587811"
+      ],
+      "graded_relevance": {
+        "proj_34587811": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_26",
+      "source_type": "expert",
+      "source_id": "OA_Dhiraj_Yadav",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_15298728",
+        "proj_28589723",
+        "proj_46687948"
+      ],
+      "graded_relevance": {
+        "proj_15298728": 3,
+        "proj_28589723": 3,
+        "proj_46687948": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_27",
+      "source_type": "expert",
+      "source_id": "OA_Dieter_Häussinger",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_21580364"
+      ],
+      "graded_relevance": {
+        "proj_21580364": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_28",
+      "source_type": "expert",
+      "source_id": "OA_Dietrich_Henzler",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_49463311",
+        "proj_71450152"
+      ],
+      "graded_relevance": {
+        "proj_49463311": 3,
+        "proj_71450152": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_29",
+      "source_type": "expert",
+      "source_id": "OA_Elena_Élez",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_42378461"
+      ],
+      "graded_relevance": {
+        "proj_42378461": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_project_30",
+      "source_type": "expert",
+      "source_id": "OA_Emil_Lou",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "PARTICIPATES_IN",
+      "relevant_ids": [
+        "proj_65341689"
+      ],
+      "graded_relevance": {
+        "proj_65341689": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "PARTICIPATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_1",
+      "source_type": "project",
+      "source_id": "proj_10024763",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_55498063"
+      ],
+      "graded_relevance": {
+        "fund_55498063": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_2",
+      "source_type": "project",
+      "source_id": "proj_10310410",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_53238667"
+      ],
+      "graded_relevance": {
+        "fund_53238667": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_3",
+      "source_type": "project",
+      "source_id": "proj_10370888",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_84890623"
+      ],
+      "graded_relevance": {
+        "fund_84890623": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_4",
+      "source_type": "project",
+      "source_id": "proj_10422445",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_11193261"
+      ],
+      "graded_relevance": {
+        "fund_11193261": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_5",
+      "source_type": "project",
+      "source_id": "proj_10435701",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_62403244"
+      ],
+      "graded_relevance": {
+        "fund_62403244": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_6",
+      "source_type": "project",
+      "source_id": "proj_10642524",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_98833012"
+      ],
+      "graded_relevance": {
+        "fund_98833012": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_7",
+      "source_type": "project",
+      "source_id": "proj_10708916",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_27356524"
+      ],
+      "graded_relevance": {
+        "fund_27356524": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_8",
+      "source_type": "project",
+      "source_id": "proj_10718529",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_34822802"
+      ],
+      "graded_relevance": {
+        "fund_34822802": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_9",
+      "source_type": "project",
+      "source_id": "proj_10722468",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_84086451"
+      ],
+      "graded_relevance": {
+        "fund_84086451": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_10",
+      "source_type": "project",
+      "source_id": "proj_10761316",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_82945850"
+      ],
+      "graded_relevance": {
+        "fund_82945850": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_11",
+      "source_type": "project",
+      "source_id": "proj_10832110",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_53238667"
+      ],
+      "graded_relevance": {
+        "fund_53238667": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_12",
+      "source_type": "project",
+      "source_id": "proj_10932008",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_90896701"
+      ],
+      "graded_relevance": {
+        "fund_90896701": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_13",
+      "source_type": "project",
+      "source_id": "proj_11115673",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_11822729"
+      ],
+      "graded_relevance": {
+        "fund_11822729": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_14",
+      "source_type": "project",
+      "source_id": "proj_11129078",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_43917175"
+      ],
+      "graded_relevance": {
+        "fund_43917175": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_15",
+      "source_type": "project",
+      "source_id": "proj_11171793",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_11268798"
+      ],
+      "graded_relevance": {
+        "fund_11268798": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_16",
+      "source_type": "project",
+      "source_id": "proj_11345766",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_48855515"
+      ],
+      "graded_relevance": {
+        "fund_48855515": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_17",
+      "source_type": "project",
+      "source_id": "proj_11516925",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_37911777"
+      ],
+      "graded_relevance": {
+        "fund_37911777": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_18",
+      "source_type": "project",
+      "source_id": "proj_11671607",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_84086451"
+      ],
+      "graded_relevance": {
+        "fund_84086451": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_19",
+      "source_type": "project",
+      "source_id": "proj_11739816",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_72631106"
+      ],
+      "graded_relevance": {
+        "fund_72631106": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_20",
+      "source_type": "project",
+      "source_id": "proj_11980153",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_18084338"
+      ],
+      "graded_relevance": {
+        "fund_18084338": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_21",
+      "source_type": "project",
+      "source_id": "proj_12018478",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_66484348"
+      ],
+      "graded_relevance": {
+        "fund_66484348": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_22",
+      "source_type": "project",
+      "source_id": "proj_12139622",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_15950325"
+      ],
+      "graded_relevance": {
+        "fund_15950325": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_23",
+      "source_type": "project",
+      "source_id": "proj_12152256",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_41977538"
+      ],
+      "graded_relevance": {
+        "fund_41977538": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_24",
+      "source_type": "project",
+      "source_id": "proj_12253385",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_75994406"
+      ],
+      "graded_relevance": {
+        "fund_75994406": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_25",
+      "source_type": "project",
+      "source_id": "proj_12396772",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_42645004"
+      ],
+      "graded_relevance": {
+        "fund_42645004": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_26",
+      "source_type": "project",
+      "source_id": "proj_12465653",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_33060777"
+      ],
+      "graded_relevance": {
+        "fund_33060777": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_27",
+      "source_type": "project",
+      "source_id": "proj_12581762",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_27356524"
+      ],
+      "graded_relevance": {
+        "fund_27356524": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_28",
+      "source_type": "project",
+      "source_id": "proj_12593965",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_84086451"
+      ],
+      "graded_relevance": {
+        "fund_84086451": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_29",
+      "source_type": "project",
+      "source_id": "proj_12710775",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_41118457"
+      ],
+      "graded_relevance": {
+        "fund_41118457": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_funder_30",
+      "source_type": "project",
+      "source_id": "proj_12771347",
+      "target_type": "funder",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "fund_15308490"
+      ],
+      "graded_relevance": {
+        "fund_15308490": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_1",
+      "source_type": "funder",
+      "source_id": "fund_10074789",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_50253568"
+      ],
+      "graded_relevance": {
+        "proj_50253568": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_2",
+      "source_type": "funder",
+      "source_id": "fund_10180507",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_45805935"
+      ],
+      "graded_relevance": {
+        "proj_45805935": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_3",
+      "source_type": "funder",
+      "source_id": "fund_10528864",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_39847516"
+      ],
+      "graded_relevance": {
+        "proj_39847516": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_4",
+      "source_type": "funder",
+      "source_id": "fund_10710977",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_65390712"
+      ],
+      "graded_relevance": {
+        "proj_65390712": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_5",
+      "source_type": "funder",
+      "source_id": "fund_10720929",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_66237111"
+      ],
+      "graded_relevance": {
+        "proj_66237111": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_6",
+      "source_type": "funder",
+      "source_id": "fund_10858968",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_87179089"
+      ],
+      "graded_relevance": {
+        "proj_87179089": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_7",
+      "source_type": "funder",
+      "source_id": "fund_10980390",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_74057198"
+      ],
+      "graded_relevance": {
+        "proj_74057198": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_8",
+      "source_type": "funder",
+      "source_id": "fund_11076156",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_13183701"
+      ],
+      "graded_relevance": {
+        "proj_13183701": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_9",
+      "source_type": "funder",
+      "source_id": "fund_11193261",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_10422445",
+        "proj_35972049"
+      ],
+      "graded_relevance": {
+        "proj_10422445": 3,
+        "proj_35972049": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_10",
+      "source_type": "funder",
+      "source_id": "fund_11268798",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_88443030",
+        "proj_69231752",
+        "proj_57545195"
+      ],
+      "graded_relevance": {
+        "proj_88443030": 3,
+        "proj_69231752": 3,
+        "proj_57545195": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_11",
+      "source_type": "funder",
+      "source_id": "fund_11316095",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_77930386"
+      ],
+      "graded_relevance": {
+        "proj_77930386": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_12",
+      "source_type": "funder",
+      "source_id": "fund_11602463",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_41531450"
+      ],
+      "graded_relevance": {
+        "proj_41531450": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_13",
+      "source_type": "funder",
+      "source_id": "fund_11629834",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_43078741"
+      ],
+      "graded_relevance": {
+        "proj_43078741": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_14",
+      "source_type": "funder",
+      "source_id": "fund_11767684",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_44666857"
+      ],
+      "graded_relevance": {
+        "proj_44666857": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_15",
+      "source_type": "funder",
+      "source_id": "fund_11822729",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_11115673"
+      ],
+      "graded_relevance": {
+        "proj_11115673": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_16",
+      "source_type": "funder",
+      "source_id": "fund_11968057",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_31610960"
+      ],
+      "graded_relevance": {
+        "proj_31610960": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_17",
+      "source_type": "funder",
+      "source_id": "fund_12318496",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_51263011"
+      ],
+      "graded_relevance": {
+        "proj_51263011": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_18",
+      "source_type": "funder",
+      "source_id": "fund_12508791",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_39110392",
+        "proj_96001018",
+        "proj_45699368"
+      ],
+      "graded_relevance": {
+        "proj_39110392": 3,
+        "proj_96001018": 3,
+        "proj_45699368": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_19",
+      "source_type": "funder",
+      "source_id": "fund_13152399",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_69621701",
+        "proj_69383596",
+        "proj_57220618"
+      ],
+      "graded_relevance": {
+        "proj_69621701": 3,
+        "proj_69383596": 3,
+        "proj_57220618": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_20",
+      "source_type": "funder",
+      "source_id": "fund_13472788",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_80783197",
+        "proj_37630916"
+      ],
+      "graded_relevance": {
+        "proj_80783197": 3,
+        "proj_37630916": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_21",
+      "source_type": "funder",
+      "source_id": "fund_13614528",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_75769767",
+        "proj_80822897",
+        "proj_37614109"
+      ],
+      "graded_relevance": {
+        "proj_75769767": 3,
+        "proj_80822897": 3,
+        "proj_37614109": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_22",
+      "source_type": "funder",
+      "source_id": "fund_13971327",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_73130527"
+      ],
+      "graded_relevance": {
+        "proj_73130527": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_23",
+      "source_type": "funder",
+      "source_id": "fund_14162907",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_71838350",
+        "proj_21527924"
+      ],
+      "graded_relevance": {
+        "proj_71838350": 3,
+        "proj_21527924": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_24",
+      "source_type": "funder",
+      "source_id": "fund_14759398",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_53480158"
+      ],
+      "graded_relevance": {
+        "proj_53480158": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_25",
+      "source_type": "funder",
+      "source_id": "fund_14965670",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_71193252"
+      ],
+      "graded_relevance": {
+        "proj_71193252": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_26",
+      "source_type": "funder",
+      "source_id": "fund_15118409",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_21385139",
+        "proj_17107175",
+        "proj_35658400"
+      ],
+      "graded_relevance": {
+        "proj_21385139": 3,
+        "proj_17107175": 3,
+        "proj_35658400": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_27",
+      "source_type": "funder",
+      "source_id": "fund_15191193",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_57665018"
+      ],
+      "graded_relevance": {
+        "proj_57665018": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_28",
+      "source_type": "funder",
+      "source_id": "fund_15308490",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_27583012",
+        "proj_19747609",
+        "proj_12771347"
+      ],
+      "graded_relevance": {
+        "proj_27583012": 3,
+        "proj_19747609": 3,
+        "proj_12771347": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_29",
+      "source_type": "funder",
+      "source_id": "fund_15720446",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_31915155"
+      ],
+      "graded_relevance": {
+        "proj_31915155": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_funder_to_project_30",
+      "source_type": "funder",
+      "source_id": "fund_15950325",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "FUNDS",
+      "relevant_ids": [
+        "proj_12139622"
+      ],
+      "graded_relevance": {
+        "proj_12139622": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "FUNDS"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_1",
+      "source_type": "expert",
+      "source_id": "0n5S6uUAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "brz-dOkAAAAJ",
+        "foXpSlIAAAAJ",
+        "juCwRycAAAAJ"
+      ],
+      "graded_relevance": {
+        "brz-dOkAAAAJ": 3,
+        "foXpSlIAAAAJ": 3,
+        "juCwRycAAAAJ": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_2",
+      "source_type": "expert",
+      "source_id": "B60btb4AAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "juCwRycAAAAJ",
+        "OA_Hong-Linh_Truong",
+        "OA_Hong‐Linh_Truong"
+      ],
+      "graded_relevance": {
+        "juCwRycAAAAJ": 3,
+        "OA_Hong-Linh_Truong": 3,
+        "OA_Hong‐Linh_Truong": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_3",
+      "source_type": "expert",
+      "source_id": "KK2le2UAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Florian_Rosenberg",
+        "OA_Frank_Leymann",
+        "OA_Philipp_Leitner"
+      ],
+      "graded_relevance": {
+        "OA_Florian_Rosenberg": 3,
+        "OA_Frank_Leymann": 3,
+        "OA_Philipp_Leitner": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_4",
+      "source_type": "expert",
+      "source_id": "LTKlUkwAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "bVB8hGsAAAAJ",
+        "OA_Ana_Cavalli",
+        "OA_Edgardo_Montes_de"
+      ],
+      "graded_relevance": {
+        "bVB8hGsAAAAJ": 3,
+        "OA_Ana_Cavalli": 3,
+        "OA_Edgardo_Montes_de": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_5",
+      "source_type": "expert",
+      "source_id": "LaGRXwkAAAAJ",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Javier_Luis_Izquierdo",
+        "OA_Jordi_Cabot",
+        "OA_Manuel_Wimmer"
+      ],
+      "graded_relevance": {
+        "OA_Javier_Luis_Izquierdo": 3,
+        "OA_Jordi_Cabot": 3,
+        "OA_Manuel_Wimmer": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_6",
+      "source_type": "expert",
+      "source_id": "OA_A._L._Hoefnagel",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Ana_Cristina_Diogo",
+        "OA_Anna_M._Ledgerwood",
+        "OA_Anthony_J._Dean"
+      ],
+      "graded_relevance": {
+        "OA_Ana_Cristina_Diogo": 3,
+        "OA_Anna_M._Ledgerwood": 3,
+        "OA_Anthony_J._Dean": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_7",
+      "source_type": "expert",
+      "source_id": "OA_A._Rose_Brannon",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Adam_J._Schoenfeld",
+        "OA_Agnès_Viale",
+        "OA_Ahmet_Zehir"
+      ],
+      "graded_relevance": {
+        "OA_Adam_J._Schoenfeld": 3,
+        "OA_Agnès_Viale": 3,
+        "OA_Ahmet_Zehir": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_8",
+      "source_type": "expert",
+      "source_id": "OA_Aaron_R._Thorner",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Adam_J._Bass",
+        "OA_Andrea_Sartore-Bianchi",
+        "OA_Andrea_Sartore‐Bianchi"
+      ],
+      "graded_relevance": {
+        "OA_Adam_J._Bass": 3,
+        "OA_Andrea_Sartore-Bianchi": 3,
+        "OA_Andrea_Sartore‐Bianchi": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_9",
+      "source_type": "expert",
+      "source_id": "OA_Adam_J._Bass",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Andrea_Bertotti",
+        "OA_Andrea_Sartore-Bianchi",
+        "OA_Andrea_Sartore‐Bianchi"
+      ],
+      "graded_relevance": {
+        "OA_Andrea_Bertotti": 3,
+        "OA_Andrea_Sartore-Bianchi": 3,
+        "OA_Andrea_Sartore‐Bianchi": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_10",
+      "source_type": "expert",
+      "source_id": "OA_Adam_J._Schoenfeld",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Ahmet_Zehir",
+        "OA_Alessio_Cortellini",
+        "OA_Alexander_Drilon"
+      ],
+      "graded_relevance": {
+        "OA_Ahmet_Zehir": 3,
+        "OA_Alessio_Cortellini": 3,
+        "OA_Alexander_Drilon": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_11",
+      "source_type": "expert",
+      "source_id": "OA_Adele_Busico",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alberto_Bardelli",
+        "OA_Alberto_Zaniboni",
+        "OA_Alessandra_Boccaccino"
+      ],
+      "graded_relevance": {
+        "OA_Alberto_Bardelli": 3,
+        "OA_Alberto_Zaniboni": 3,
+        "OA_Alessandra_Boccaccino": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_12",
+      "source_type": "expert",
+      "source_id": "OA_Adrian_J._L._Clark",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alberto_Ferlin",
+        "OA_Albert_Schinzel",
+        "OA_Alessandra_Baumer"
+      ],
+      "graded_relevance": {
+        "OA_Alberto_Ferlin": 3,
+        "OA_Albert_Schinzel": 3,
+        "OA_Alessandra_Baumer": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_13",
+      "source_type": "expert",
+      "source_id": "OA_Adrienne_Johnson",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alexa_B._Schrock",
+        "OA_Brian_M._Alexander",
+        "OA_David_S._Hong"
+      ],
+      "graded_relevance": {
+        "OA_Alexa_B._Schrock": 3,
+        "OA_Brian_M._Alexander": 3,
+        "OA_David_S._Hong": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_14",
+      "source_type": "expert",
+      "source_id": "OA_Afsaneh_Barzi",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alberto_Bardelli",
+        "OA_Alessia_Mennitto",
+        "OA_Alfredo_Falcone"
+      ],
+      "graded_relevance": {
+        "OA_Alberto_Bardelli": 3,
+        "OA_Alessia_Mennitto": 3,
+        "OA_Alfredo_Falcone": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_15",
+      "source_type": "expert",
+      "source_id": "OA_Agnès_Viale",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Ahmet_Zehir",
+        "OA_Andrea_Cercek",
+        "OA_Anna_M._Varghese"
+      ],
+      "graded_relevance": {
+        "OA_Ahmet_Zehir": 3,
+        "OA_Andrea_Cercek": 3,
+        "OA_Anna_M._Varghese": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_16",
+      "source_type": "expert",
+      "source_id": "OA_Ahmet_Zehir",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Albrecht_Stenzinger",
+        "OA_Alexander_Drilon",
+        "OA_Alexa_B._Schrock"
+      ],
+      "graded_relevance": {
+        "OA_Albrecht_Stenzinger": 3,
+        "OA_Alexander_Drilon": 3,
+        "OA_Alexa_B._Schrock": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_17",
+      "source_type": "expert",
+      "source_id": "OA_Aimery_de_Gramont",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alan_P._Venook",
+        "OA_Alberto_Sobrero",
+        "OA_Alberto_Zaniboni"
+      ],
+      "graded_relevance": {
+        "OA_Alan_P._Venook": 3,
+        "OA_Alberto_Sobrero": 3,
+        "OA_Alberto_Zaniboni": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_18",
+      "source_type": "expert",
+      "source_id": "OA_Ainu_Prakash‐Cheng",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alexander_K._C._Leung",
+        "OA_Andrea_L._Utz",
+        "OA_Andrew_L._Wong"
+      ],
+      "graded_relevance": {
+        "OA_Alexander_K._C._Leung": 3,
+        "OA_Andrea_L._Utz": 3,
+        "OA_Andrew_L._Wong": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_19",
+      "source_type": "expert",
+      "source_id": "OA_Akira_Honda",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alexander_K._C._Leung",
+        "OA_Anca_Sindrilaru",
+        "OA_Andreas_Janecke"
+      ],
+      "graded_relevance": {
+        "OA_Alexander_K._C._Leung": 3,
+        "OA_Anca_Sindrilaru": 3,
+        "OA_Andreas_Janecke": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_20",
+      "source_type": "expert",
+      "source_id": "OA_Akmal_Hassan",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Albert_C._Ludolph",
+        "OA_Alexander_K._C._Leung",
+        "OA_Andreas_Hahn"
+      ],
+      "graded_relevance": {
+        "OA_Albert_C._Ludolph": 3,
+        "OA_Alexander_K._C._Leung": 3,
+        "OA_Andreas_Hahn": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_21",
+      "source_type": "expert",
+      "source_id": "OA_Alan_H._Beggs",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Albert_C._Ludolph",
+        "OA_Albert_H._Gennip",
+        "OA_Alessandra_Baumer"
+      ],
+      "graded_relevance": {
+        "OA_Albert_C._Ludolph": 3,
+        "OA_Albert_H._Gennip": 3,
+        "OA_Alessandra_Baumer": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_22",
+      "source_type": "expert",
+      "source_id": "OA_Alan_P._Venook",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alfredo_Falcone",
+        "OA_Andrew_Elliott",
+        "OA_Andrés_Cervantes"
+      ],
+      "graded_relevance": {
+        "OA_Alfredo_Falcone": 3,
+        "OA_Andrew_Elliott": 3,
+        "OA_Andrés_Cervantes": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_23",
+      "source_type": "expert",
+      "source_id": "OA_Alba_Llop‐Guevara",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alessandro_Ferrero",
+        "OA_Andrea_Herencia-Ropero",
+        "OA_Andrea_Sartore-Bianchi"
+      ],
+      "graded_relevance": {
+        "OA_Alessandro_Ferrero": 3,
+        "OA_Andrea_Herencia-Ropero": 3,
+        "OA_Andrea_Sartore-Bianchi": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_24",
+      "source_type": "expert",
+      "source_id": "OA_Albert_C._Ludolph",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Albert_H._Gennip",
+        "OA_Alessandra_Baumer",
+        "OA_Alessia_Diana"
+      ],
+      "graded_relevance": {
+        "OA_Albert_H._Gennip": 3,
+        "OA_Alessandra_Baumer": 3,
+        "OA_Alessia_Diana": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_25",
+      "source_type": "expert",
+      "source_id": "OA_Albert_H._Gennip",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Albert_Schinzel",
+        "OA_Alessandra_Baumer",
+        "OA_Alessia_Diana"
+      ],
+      "graded_relevance": {
+        "OA_Albert_Schinzel": 3,
+        "OA_Alessandra_Baumer": 3,
+        "OA_Alessia_Diana": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_26",
+      "source_type": "expert",
+      "source_id": "OA_Albert_Schinzel",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alberto_Ferlin",
+        "OA_Alessandra_Baumer",
+        "OA_Alexander_K._C._Leung"
+      ],
+      "graded_relevance": {
+        "OA_Alberto_Ferlin": 3,
+        "OA_Alessandra_Baumer": 3,
+        "OA_Alexander_K._C._Leung": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_27",
+      "source_type": "expert",
+      "source_id": "OA_Albert_Y._Zomaya",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Charith_Perera",
+        "OA_Dan_Chen",
+        "OA_Dimitrios_Georgakopoulos"
+      ],
+      "graded_relevance": {
+        "OA_Charith_Perera": 3,
+        "OA_Dan_Chen": 3,
+        "OA_Dimitrios_Georgakopoulos": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_28",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Bardelli",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alberto_Sobrero",
+        "OA_Alberto_Sogari",
+        "OA_Alberto_Zaniboni"
+      ],
+      "graded_relevance": {
+        "OA_Alberto_Sobrero": 3,
+        "OA_Alberto_Sogari": 3,
+        "OA_Alberto_Zaniboni": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_29",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Ferlin",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alessandra_Baumer",
+        "OA_Alexander_K._C._Leung",
+        "OA_Andrew_L._Wong"
+      ],
+      "graded_relevance": {
+        "OA_Alessandra_Baumer": 3,
+        "OA_Alexander_K._C._Leung": 3,
+        "OA_Andrew_L._Wong": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_expert_30",
+      "source_type": "expert",
+      "source_id": "OA_Alberto_Sobrero",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "CO_AUTHORED",
+      "relevant_ids": [
+        "OA_Alberto_Zaniboni",
+        "OA_Alessandro_Bittoni",
+        "OA_Alessandro_Passardi"
+      ],
+      "graded_relevance": {
+        "OA_Alberto_Zaniboni": 3,
+        "OA_Alessandro_Bittoni": 3,
+        "OA_Alessandro_Passardi": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "CO_AUTHORED"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_1",
+      "source_type": "project",
+      "source_id": "proj_10024763",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_42481393",
+        "proj_84362629",
+        "proj_83204791"
+      ],
+      "graded_relevance": {
+        "proj_42481393": 3,
+        "proj_84362629": 3,
+        "proj_83204791": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_2",
+      "source_type": "project",
+      "source_id": "proj_10310410",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_75670298",
+        "proj_29637754",
+        "proj_63047828"
+      ],
+      "graded_relevance": {
+        "proj_75670298": 3,
+        "proj_29637754": 3,
+        "proj_63047828": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_3",
+      "source_type": "project",
+      "source_id": "proj_10370888",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_49013453",
+        "proj_50253568",
+        "proj_80854136"
+      ],
+      "graded_relevance": {
+        "proj_49013453": 3,
+        "proj_50253568": 3,
+        "proj_80854136": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_4",
+      "source_type": "project",
+      "source_id": "proj_10422445",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_30407283",
+        "proj_74302998",
+        "proj_17364562"
+      ],
+      "graded_relevance": {
+        "proj_30407283": 3,
+        "proj_74302998": 3,
+        "proj_17364562": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_5",
+      "source_type": "project",
+      "source_id": "proj_10435701",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_82515133",
+        "proj_31610960",
+        "proj_76033497"
+      ],
+      "graded_relevance": {
+        "proj_82515133": 3,
+        "proj_31610960": 3,
+        "proj_76033497": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_6",
+      "source_type": "project",
+      "source_id": "proj_10642524",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_13026753",
+        "proj_68474320",
+        "proj_63211517"
+      ],
+      "graded_relevance": {
+        "proj_13026753": 3,
+        "proj_68474320": 3,
+        "proj_63211517": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_7",
+      "source_type": "project",
+      "source_id": "proj_10708916",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_51291015",
+        "proj_28288448",
+        "proj_73426408"
+      ],
+      "graded_relevance": {
+        "proj_51291015": 3,
+        "proj_28288448": 3,
+        "proj_73426408": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_8",
+      "source_type": "project",
+      "source_id": "proj_10718529",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_16050244",
+        "proj_21574838",
+        "proj_76159227"
+      ],
+      "graded_relevance": {
+        "proj_16050244": 3,
+        "proj_21574838": 3,
+        "proj_76159227": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_9",
+      "source_type": "project",
+      "source_id": "proj_10722468",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_69621701",
+        "proj_46245754",
+        "proj_69383596"
+      ],
+      "graded_relevance": {
+        "proj_69621701": 3,
+        "proj_46245754": 3,
+        "proj_69383596": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_10",
+      "source_type": "project",
+      "source_id": "proj_10761316",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_23038869",
+        "proj_13324704",
+        "proj_20545737"
+      ],
+      "graded_relevance": {
+        "proj_23038869": 3,
+        "proj_13324704": 3,
+        "proj_20545737": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_11",
+      "source_type": "project",
+      "source_id": "proj_10832110",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_31843800",
+        "proj_77863757",
+        "proj_59269395"
+      ],
+      "graded_relevance": {
+        "proj_31843800": 3,
+        "proj_77863757": 3,
+        "proj_59269395": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_12",
+      "source_type": "project",
+      "source_id": "proj_10932008",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_84072384",
+        "proj_70672663",
+        "proj_21135463"
+      ],
+      "graded_relevance": {
+        "proj_84072384": 3,
+        "proj_70672663": 3,
+        "proj_21135463": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_13",
+      "source_type": "project",
+      "source_id": "proj_11115673",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_11980153",
+        "proj_84162590",
+        "proj_35347216"
+      ],
+      "graded_relevance": {
+        "proj_11980153": 3,
+        "proj_84162590": 3,
+        "proj_35347216": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_14",
+      "source_type": "project",
+      "source_id": "proj_11129078",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_71838350",
+        "proj_21527924",
+        "proj_72209667"
+      ],
+      "graded_relevance": {
+        "proj_71838350": 3,
+        "proj_21527924": 3,
+        "proj_72209667": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_15",
+      "source_type": "project",
+      "source_id": "proj_11171793",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_10370888",
+        "proj_49013453",
+        "proj_50253568"
+      ],
+      "graded_relevance": {
+        "proj_10370888": 3,
+        "proj_49013453": 3,
+        "proj_50253568": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_16",
+      "source_type": "project",
+      "source_id": "proj_11345766",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_37265320",
+        "proj_47206974",
+        "proj_45923659"
+      ],
+      "graded_relevance": {
+        "proj_37265320": 3,
+        "proj_47206974": 3,
+        "proj_45923659": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_17",
+      "source_type": "project",
+      "source_id": "proj_11516925",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_76349315",
+        "proj_40346652",
+        "proj_22882137"
+      ],
+      "graded_relevance": {
+        "proj_76349315": 3,
+        "proj_40346652": 3,
+        "proj_22882137": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_18",
+      "source_type": "project",
+      "source_id": "proj_11671607",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_69621701",
+        "proj_46245754",
+        "proj_69383596"
+      ],
+      "graded_relevance": {
+        "proj_69621701": 3,
+        "proj_46245754": 3,
+        "proj_69383596": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_19",
+      "source_type": "project",
+      "source_id": "proj_11739816",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_56825099",
+        "proj_43914594",
+        "proj_15946066"
+      ],
+      "graded_relevance": {
+        "proj_56825099": 3,
+        "proj_43914594": 3,
+        "proj_15946066": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_20",
+      "source_type": "project",
+      "source_id": "proj_11980153",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_11115673",
+        "proj_84162590",
+        "proj_35347216"
+      ],
+      "graded_relevance": {
+        "proj_11115673": 3,
+        "proj_84162590": 3,
+        "proj_35347216": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_21",
+      "source_type": "project",
+      "source_id": "proj_12018478",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_79987899",
+        "proj_25915423",
+        "proj_85361429"
+      ],
+      "graded_relevance": {
+        "proj_79987899": 3,
+        "proj_25915423": 3,
+        "proj_85361429": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_22",
+      "source_type": "project",
+      "source_id": "proj_12139622",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_82931841",
+        "proj_18582112",
+        "proj_15425661"
+      ],
+      "graded_relevance": {
+        "proj_82931841": 3,
+        "proj_18582112": 3,
+        "proj_15425661": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_23",
+      "source_type": "project",
+      "source_id": "proj_12152256",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_20326741",
+        "proj_57159146",
+        "proj_62028297"
+      ],
+      "graded_relevance": {
+        "proj_20326741": 3,
+        "proj_57159146": 3,
+        "proj_62028297": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_24",
+      "source_type": "project",
+      "source_id": "proj_12253385",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_30182452",
+        "proj_17137553"
+      ],
+      "graded_relevance": {
+        "proj_30182452": 3,
+        "proj_17137553": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_25",
+      "source_type": "project",
+      "source_id": "proj_12396772",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_13026753",
+        "proj_68474320",
+        "proj_63211517"
+      ],
+      "graded_relevance": {
+        "proj_13026753": 3,
+        "proj_68474320": 3,
+        "proj_63211517": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_26",
+      "source_type": "project",
+      "source_id": "proj_12465653",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_79987899",
+        "proj_25915423",
+        "proj_85361429"
+      ],
+      "graded_relevance": {
+        "proj_79987899": 3,
+        "proj_25915423": 3,
+        "proj_85361429": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_27",
+      "source_type": "project",
+      "source_id": "proj_12581762",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_51291015",
+        "proj_28288448",
+        "proj_73426408"
+      ],
+      "graded_relevance": {
+        "proj_51291015": 3,
+        "proj_28288448": 3,
+        "proj_73426408": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_28",
+      "source_type": "project",
+      "source_id": "proj_12593965",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_69621701",
+        "proj_46245754",
+        "proj_69383596"
+      ],
+      "graded_relevance": {
+        "proj_69621701": 3,
+        "proj_46245754": 3,
+        "proj_69383596": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_29",
+      "source_type": "project",
+      "source_id": "proj_12710775",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_13026753",
+        "proj_68474320",
+        "proj_63211517"
+      ],
+      "graded_relevance": {
+        "proj_13026753": 3,
+        "proj_68474320": 3,
+        "proj_63211517": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_project_to_project_30",
+      "source_type": "project",
+      "source_id": "proj_12771347",
+      "target_type": "project",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "SHARED_EXPERT_OR_FUNDER",
+      "relevant_ids": [
+        "proj_76487867",
+        "proj_72782955",
+        "proj_27583012"
+      ],
+      "graded_relevance": {
+        "proj_76487867": 3,
+        "proj_72782955": 3,
+        "proj_27583012": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "SHARED_EXPERT_OR_FUNDER"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_1",
+      "source_type": "expert",
+      "source_id": "OA_Alan_P._Venook",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_2",
+      "source_type": "expert",
+      "source_id": "OA_Alessandro_Gronchi",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_3",
+      "source_type": "expert",
+      "source_id": "OA_Alessandro_Passardi",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_89924194"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3,
+        "ent_89924194": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_4",
+      "source_type": "expert",
+      "source_id": "OA_Alexander_Drilon",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_5",
+      "source_type": "expert",
+      "source_id": "OA_Andreas_Fritsche",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_55329998"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3,
+        "ent_55329998": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_6",
+      "source_type": "expert",
+      "source_id": "OA_Bernard_C._Rossier",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_7",
+      "source_type": "expert",
+      "source_id": "OA_Bharat_K._Kantharia",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_8",
+      "source_type": "expert",
+      "source_id": "OA_Caroline_A._Sewry",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_9",
+      "source_type": "expert",
+      "source_id": "OA_Cecilia_Camacho‐Hübner",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_10",
+      "source_type": "expert",
+      "source_id": "OA_Chaeyoung_Lee",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_89924194"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3,
+        "ent_89924194": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_11",
+      "source_type": "expert",
+      "source_id": "OA_Colin_L._Masters",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_12",
+      "source_type": "expert",
+      "source_id": "OA_Daniel_Link",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_13",
+      "source_type": "expert",
+      "source_id": "OA_Dhiraj_Yadav",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_14",
+      "source_type": "expert",
+      "source_id": "OA_Dianna_C._Martin",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_15",
+      "source_type": "expert",
+      "source_id": "OA_Elena_Élez",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_16",
+      "source_type": "expert",
+      "source_id": "OA_Fabienne_Picard",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_17",
+      "source_type": "expert",
+      "source_id": "OA_Francesca_Negri",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_73832763",
+        "ent_71840375",
+        "ent_40392413"
+      ],
+      "graded_relevance": {
+        "ent_73832763": 3,
+        "ent_71840375": 3,
+        "ent_40392413": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_18",
+      "source_type": "expert",
+      "source_id": "OA_Giacomo_Bellani",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_19",
+      "source_type": "expert",
+      "source_id": "OA_Hanna_Tukachinsky",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_20",
+      "source_type": "expert",
+      "source_id": "OA_Hazel_M._Holden",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_55329998",
+        "ent_42333835",
+        "ent_84477131"
+      ],
+      "graded_relevance": {
+        "ent_55329998": 3,
+        "ent_42333835": 3,
+        "ent_84477131": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_21",
+      "source_type": "expert",
+      "source_id": "OA_Javier_Rangel‐Moreno",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_22",
+      "source_type": "expert",
+      "source_id": "OA_Jerry_G._Blaivas",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_23",
+      "source_type": "expert",
+      "source_id": "OA_Jessica_Giordano",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_24",
+      "source_type": "expert",
+      "source_id": "OA_John_Newsom–Davis",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_25",
+      "source_type": "expert",
+      "source_id": "OA_Jonas_Denecke",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_26",
+      "source_type": "expert",
+      "source_id": "OA_Julia_Weihrauch",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_27",
+      "source_type": "expert",
+      "source_id": "OA_Karel_Pacák",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_33007034"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3,
+        "ent_33007034": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_28",
+      "source_type": "expert",
+      "source_id": "OA_Kenneth_R._Shroyer",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_29",
+      "source_type": "expert",
+      "source_id": "OA_Marina_Chiara_Garassino",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_expert_to_enterprise_30",
+      "source_type": "expert",
+      "source_id": "OA_Mark_Sausen",
+      "target_type": "enterprise",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN",
+      "relevant_ids": [
+        "ent_78600732",
+        "ent_80780682",
+        "ent_33007034"
+      ],
+      "graded_relevance": {
+        "ent_78600732": 3,
+        "ent_80780682": 3,
+        "ent_33007034": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "HAS_APPLICATION_EXPERIENCE_IN/OPERATES_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_1",
+      "source_type": "enterprise",
+      "source_id": "ent_14871334",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Alessandro_Passardi",
+        "OA_Chaeyoung_Lee",
+        "OA_Tam_Nguyen"
+      ],
+      "graded_relevance": {
+        "OA_Alessandro_Passardi": 3,
+        "OA_Chaeyoung_Lee": 3,
+        "OA_Tam_Nguyen": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_2",
+      "source_type": "enterprise",
+      "source_id": "ent_21800943",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_3",
+      "source_type": "enterprise",
+      "source_id": "ent_26348412",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_4",
+      "source_type": "enterprise",
+      "source_id": "ent_29550973",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_5",
+      "source_type": "enterprise",
+      "source_id": "ent_33007034",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Hazel_M._Holden",
+        "OA_Karel_Pacák",
+        "OA_Mark_Sausen"
+      ],
+      "graded_relevance": {
+        "OA_Hazel_M._Holden": 3,
+        "OA_Karel_Pacák": 3,
+        "OA_Mark_Sausen": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_6",
+      "source_type": "enterprise",
+      "source_id": "ent_35916077",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_7",
+      "source_type": "enterprise",
+      "source_id": "ent_36913106",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_8",
+      "source_type": "enterprise",
+      "source_id": "ent_38787308",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Zoran_V._Popović"
+      ],
+      "graded_relevance": {
+        "OA_Zoran_V._Popović": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_9",
+      "source_type": "enterprise",
+      "source_id": "ent_39735362",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_10",
+      "source_type": "enterprise",
+      "source_id": "ent_40392413",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_11",
+      "source_type": "enterprise",
+      "source_id": "ent_41745378",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_12",
+      "source_type": "enterprise",
+      "source_id": "ent_42333835",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_13",
+      "source_type": "enterprise",
+      "source_id": "ent_44511690",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_14",
+      "source_type": "enterprise",
+      "source_id": "ent_52941984",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Alessandro_Passardi",
+        "OA_Chaeyoung_Lee",
+        "OA_Tam_Nguyen"
+      ],
+      "graded_relevance": {
+        "OA_Alessandro_Passardi": 3,
+        "OA_Chaeyoung_Lee": 3,
+        "OA_Tam_Nguyen": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_15",
+      "source_type": "enterprise",
+      "source_id": "ent_53243387",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden",
+        "OA_Karel_Pacák"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3,
+        "OA_Karel_Pacák": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_16",
+      "source_type": "enterprise",
+      "source_id": "ent_55329998",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_17",
+      "source_type": "enterprise",
+      "source_id": "ent_56652440",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_18",
+      "source_type": "enterprise",
+      "source_id": "ent_65259306",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Zoran_V._Popović"
+      ],
+      "graded_relevance": {
+        "OA_Zoran_V._Popović": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_19",
+      "source_type": "enterprise",
+      "source_id": "ent_66127916",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_S._R._Wayne_Chen",
+        "OA_Sylvia_Stöckler‐Ipsiroglu"
+      ],
+      "graded_relevance": {
+        "OA_S._R._Wayne_Chen": 3,
+        "OA_Sylvia_Stöckler‐Ipsiroglu": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_20",
+      "source_type": "enterprise",
+      "source_id": "ent_71840375",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_21",
+      "source_type": "enterprise",
+      "source_id": "ent_72312432",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_22",
+      "source_type": "enterprise",
+      "source_id": "ent_72696896",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Hazel_M._Holden",
+        "OA_Karel_Pacák",
+        "OA_Mark_Sausen"
+      ],
+      "graded_relevance": {
+        "OA_Hazel_M._Holden": 3,
+        "OA_Karel_Pacák": 3,
+        "OA_Mark_Sausen": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_23",
+      "source_type": "enterprise",
+      "source_id": "ent_73832763",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_24",
+      "source_type": "enterprise",
+      "source_id": "ent_74106480",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_25",
+      "source_type": "enterprise",
+      "source_id": "ent_78084855",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Zoran_V._Popović"
+      ],
+      "graded_relevance": {
+        "OA_Zoran_V._Popović": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_26",
+      "source_type": "enterprise",
+      "source_id": "ent_78600732",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Alan_P._Venook",
+        "OA_Alessandro_Gronchi",
+        "OA_Alessandro_Passardi"
+      ],
+      "graded_relevance": {
+        "OA_Alan_P._Venook": 3,
+        "OA_Alessandro_Gronchi": 3,
+        "OA_Alessandro_Passardi": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_27",
+      "source_type": "enterprise",
+      "source_id": "ent_80780682",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Alan_P._Venook",
+        "OA_Alessandro_Gronchi",
+        "OA_Alessandro_Passardi"
+      ],
+      "graded_relevance": {
+        "OA_Alan_P._Venook": 3,
+        "OA_Alessandro_Gronchi": 3,
+        "OA_Alessandro_Passardi": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_28",
+      "source_type": "enterprise",
+      "source_id": "ent_81375448",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_29",
+      "source_type": "enterprise",
+      "source_id": "ent_84175129",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Francesca_Negri"
+      ],
+      "graded_relevance": {
+        "OA_Francesca_Negri": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    },
+    {
+      "case_id": "data1_loo_enterprise_to_expert_30",
+      "source_type": "enterprise",
+      "source_id": "ent_84477131",
+      "target_type": "expert",
+      "mode": "public",
+      "evaluation_protocol": "leave_one_edge_out",
+      "label_source": "graph_leave_one_edge_out_data1",
+      "heldout_relation": "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN",
+      "relevant_ids": [
+        "OA_Andreas_Fritsche",
+        "OA_Hazel_M._Holden"
+      ],
+      "graded_relevance": {
+        "OA_Andreas_Fritsche": 3,
+        "OA_Hazel_M._Holden": 3
+      },
+      "tags": [
+        "leave_one_edge_out",
+        "OPERATES_IN/HAS_APPLICATION_EXPERIENCE_IN"
+      ],
+      "notes": "Known graph target treated as held out; evaluation allows this target through existing-relationship filtering."
+    }
+  ]
+}

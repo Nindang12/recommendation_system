@@ -1,0 +1,7 @@
+{
+  "status": "insufficient_data_warning",
+  "training_mode": "lifecycle_scaffold_only",
+  "dimension": 128,
+  "normalized": true,
+  "note": "Runtime worker still uses GraphSAGE-lite until explicit promotion."
+}

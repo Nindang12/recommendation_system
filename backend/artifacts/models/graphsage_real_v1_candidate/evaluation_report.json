@@ -1,0 +1,39 @@
+{
+  "status": "pyg_unavailable_warning",
+  "created_at": "2026-06-01T16:03:38.516339+00:00",
+  "model_name": "graphsage_real_v1_candidate",
+  "model_status": "candidate",
+  "promote_allowed": false,
+  "training_data_version": "snapshot_20260601T160256_212664Z0000",
+  "evaluation_baseline": "v2_after_hybrid_anchor",
+  "snapshot_path": "D:\\Documents\\Đồ án\\backend\\artifacts\\graph_snapshots\\snapshot_20260601T160256_211731Z0000.json",
+  "dataset_stats": {
+    "node_count": 197,
+    "positive_edges": 499,
+    "negative_edges": 499,
+    "random_seed": 42,
+    "split_counts": {
+      "train": {
+        "positive": 349,
+        "negative": 349
+      },
+      "val": {
+        "positive": 75,
+        "negative": 75
+      },
+      "test": {
+        "positive": 75,
+        "negative": 75
+      }
+    }
+  },
+  "minimum_data_thresholds": {
+    "min_positive_edges": 50,
+    "min_nodes": 2
+  },
+  "pyg_available": false,
+  "warnings": [
+    "torch_geometric_unavailable; emitted fallback candidate artifact only"
+  ],
+  "runtime_unchanged": true
+}

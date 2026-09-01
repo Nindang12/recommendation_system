@@ -1,0 +1,111 @@
+# App-only — dùng file .env ở thư mục gốc (Mongo/Neo4j/Redis/RabbitMQ chạy sẵn ngoài Docker).
+#
+#   docker compose -f docker-compose.production.yml up -d --build
+#
+# Compose đọc .env cho biến; các URI bên dưới đổi localhost → host.docker.internal trong container.
+
+name: rd-recommendation-prod
+
+# Host reach external DB on machine (override on Linux if needed: INFRA_HOST=172.17.0.1)
+x-infra-host: &infra-host
+  INFRA_HOST: ${INFRA_HOST:-host.docker.internal}
+
+x-app-env: &app-env
+  APP_ENV: production
+  MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${INFRA_HOST:-host.docker.internal}:27017/${MONGO_DB_NAME:-rd_knowledge_graph}?authSource=admin
+  MONGO_DB_NAME: ${MONGO_DB_NAME:-rd_knowledge_graph}
+  NEO4J_URI: neo4j://${INFRA_HOST:-host.docker.internal}:7687
+  NEO4J_USER: ${NEO4J_USER:-neo4j}
+  NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+  REDIS_URL: redis://${INFRA_HOST:-host.docker.internal}:6379/0
+  RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+  RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@${INFRA_HOST:-host.docker.internal}:5672/
+  OLLAMA_URL: http://${INFRA_HOST:-host.docker.internal}:11434
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+
+x-app-volumes: &app-volumes
+  - ./backend/pgpr/pgpr_data:/app/pgpr/pgpr_data:ro
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: rd-backend:production
+    restart: unless-stopped
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      <<: *app-env
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes: *app-volumes
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  embedding_worker:
+    image: rd-backend:production
+    restart: unless-stopped
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      <<: *app-env
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes: *app-volumes
+    command: ["python", "workers/embedding_worker.py", "--poll-seconds", "2"]
+    healthcheck:
+      test: ["CMD", "python", "scripts/worker_healthcheck.py", "--worker-type", "embedding"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  outbox_publisher:
+    image: rd-backend:production
+    restart: unless-stopped
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      <<: *app-env
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes: *app-volumes
+    command: ["python", "scripts/run_outbox_publisher.py", "--poll-seconds", "5"]
+    healthcheck:
+      test: ["CMD", "python", "scripts/worker_healthcheck.py", "--worker-type", "outbox"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    image: rd-frontend:production
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"

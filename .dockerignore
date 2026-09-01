@@ -1,0 +1,14 @@
+**/.git
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.production.example
+**/node_modules
+**/.next
+**/deploy/backups
+**/*.md
+!deploy/README.md
+backend/scripts/*_report.json
+backend/scripts/evaluation_report.*

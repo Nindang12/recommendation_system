@@ -1,0 +1,14 @@
+{
+  "model": "GraphSAGE",
+  "layers": 2,
+  "hidden_dim": 128,
+  "output_dim": 128,
+  "neighbor_sampling": [
+    10,
+    5
+  ],
+  "random_seed": 42,
+  "training_data_version": "snapshot_20260605T150221_309532Z0000",
+  "evaluation_baseline": "v2_after_hybrid_anchor",
+  "active_runtime_unchanged": true
+}

@@ -1,0 +1,8 @@
+# Core
+neo4j>=5.0.0
+python-dotenv>=1.0.0
+pymongo>=4.0.0
+numpy>=1.20.0
+
+# PGPR (Policy-Guided Path Reasoning): policy network and training
+torch>=1.9.0

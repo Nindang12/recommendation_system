@@ -1,0 +1,307 @@
+from __future__ import annotations
+
+import logging
+from typing import Any, Dict, Optional
+
+from repositories.auth_repo import AuthRepository
+from repositories.pgpr_graph_repo import PGPRGraphRepository
+from services import provisional_status as st
+from utils.skill_identity_utils import resolve_skill_record
+
+logger = logging.getLogger(__name__)
+
+RESEARCH_TOPIC_TO_KG_TOPICS = {
+    "ai-healthcare": ["topic_medical_imaging", "topic_computer_vision"],
+    "computer-vision": ["topic_computer_vision"],
+    "machine-learning": ["topic_predictive_maintenance", "topic_graph_analytics"],
+    "deep-learning": ["topic_computer_vision"],
+    "natural-language-processing": ["topic_knowledge_tracing"],
+    "iot": ["topic_grid_stability_prediction"],
+    "data-science": ["topic_graph_analytics", "topic_time_series_analysis"],
+    "knowledge-graph": ["topic_graph_analytics"],
+    "robotics": ["topic_route_optimization"],
+    "renewable-energy": ["topic_solar_forecasting", "topic_grid_stability_prediction"],
+    "smart-manufacturing": ["topic_predictive_maintenance"],
+    "cybersecurity": ["topic_fraud_detection"],
+}
+
+
+class ProvisionalKGSyncService:
+    """Sync user-created entities into Neo4j with limited participation."""
+
+    def __init__(
+        self,
+        repo: Optional[AuthRepository] = None,
+        graph_repo: Optional[PGPRGraphRepository] = None,
+    ) -> None:
+        self.repo = repo or AuthRepository()
+        self.graph_repo = graph_repo or PGPRGraphRepository()
+
+    def sync_entity_as_unverified(self, entity_type: str, entity_id: str) -> Dict[str, Any]:
+        entity = self.repo.find_entity_by_id(entity_type, entity_id)
+        if not entity:
+            raise ValueError(f"Entity not found: {entity_type}/{entity_id}")
+
+        self.repo.update_entity_status(entity_type, entity_id, {"kg_sync_status": st.KG_SYNCING})
+        try:
+            self.graph_repo.ensure_constraints()
+            props = self._neo4j_properties(entity_type, entity, verified=False)
+            self.graph_repo.upsert_provisional_entity(entity_type, entity_id, props)
+            self.graph_repo.upsert_topic_relationships(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                topic_ids=self._kg_topic_ids(self._entity_topics(entity_type, entity)),
+            )
+            self.graph_repo.upsert_skill_relationships(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                skills=self._entity_skills(entity_type, entity),
+            )
+            self.graph_repo.upsert_location_relationship(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                location=self._entity_location(entity),
+            )
+            updated = self.repo.update_entity_status(
+                entity_type,
+                entity_id,
+                {
+                    "kg_sync_status": st.KG_SYNCED_UNVERIFIED,
+                    "sync_error": None,
+                },
+            )
+            return updated or entity
+        except Exception as exc:
+            logger.exception("Provisional KG sync failed for %s/%s", entity_type, entity_id)
+            self.repo.update_entity_status(
+                entity_type,
+                entity_id,
+                {
+                    "kg_sync_status": st.KG_SYNC_FAILED,
+                    "sync_error": str(exc),
+                },
+            )
+            raise
+
+    def retry_sync(self, entity_type: str, entity_id: str) -> Dict[str, Any]:
+        return self.sync_entity_as_unverified(entity_type, entity_id)
+
+    def _kg_topic_ids(self, research_topics: list[str]) -> list[str]:
+        topic_ids: list[str] = []
+        for topic in research_topics or []:
+            mapped = RESEARCH_TOPIC_TO_KG_TOPICS.get(str(topic), [str(topic)])
+            for topic_id in mapped:
+                if topic_id and topic_id not in topic_ids:
+                    topic_ids.append(topic_id)
+        return topic_ids
+
+    def _get_path(self, data: Dict[str, Any], path: str) -> Any:
+        current: Any = data or {}
+        for part in path.split("."):
+            if isinstance(current, dict):
+                current = current.get(part)
+            else:
+                return None
+        return current
+
+    def _first_value(self, *values: Any) -> Any:
+        for value in values:
+            if value not in (None, "", [], {}):
+                return value
+        return None
+
+    def _names_from_items(self, value: Any) -> list[str]:
+        names: list[str] = []
+        if not isinstance(value, list):
+            return names
+        for item in value:
+            if isinstance(item, dict):
+                name = item.get("id") or item.get("name") or item.get("topic") or item.get("skill")
+            else:
+                name = item
+            if name and str(name) not in names:
+                names.append(str(name))
+        return names
+
+    def _entity_topics(self, entity_type: str, entity: Dict[str, Any]) -> list[str]:
+        candidates = {
+            "expert": [
+                entity.get("research_topics"),
+                self._get_path(entity, "research_capacity.research_topics"),
+            ],
+            "enterprise": [
+                entity.get("research_topics"),
+                self._get_path(entity, "rd_profile.rd_focus_topics"),
+            ],
+            "funder": [
+                entity.get("research_topics"),
+                self._get_path(entity, "funding_strategy.funding_topics"),
+            ],
+            "project": [
+                entity.get("research_topics"),
+                self._get_path(entity, "basic_info.research_topics"),
+            ],
+        }.get(str(entity_type).lower(), [])
+        topics: list[str] = []
+        for value in candidates:
+            for name in self._names_from_items(value):
+                if name not in topics:
+                    topics.append(name)
+        return topics
+
+    def _skill_identifiers_from_items(self, value: Any) -> list[str]:
+        identifiers: list[str] = []
+        if not isinstance(value, list):
+            return identifiers
+        for item in value:
+            if isinstance(item, dict):
+                skill_id = str(item.get("skill_id") or "").strip()
+                raw_name = item.get("name") or item.get("skill") or item.get("technology")
+                if skill_id:
+                    key = skill_id
+                elif raw_name:
+                    resolved = resolve_skill_record(raw_name, category=item.get("category"))
+                    key = str(resolved.get("skill_id") or "").strip()
+                else:
+                    continue
+            else:
+                resolved = resolve_skill_record(str(item))
+                key = str(resolved.get("skill_id") or "").strip()
+            if key and key not in identifiers:
+                identifiers.append(key)
+        return identifiers
+
+    def _entity_skills(self, entity_type: str, entity: Dict[str, Any]) -> list[str]:
+        candidates = [
+            entity.get("skills"),
+            entity.get("custom_skills"),
+            self._get_path(entity, "research_capacity.technology"),
+            self._get_path(entity, "research_capacity.skills_methods"),
+            self._get_path(entity, "requirements_and_timeline.required_skills"),
+        ]
+        skills: list[str] = []
+        for value in candidates:
+            for skill_id in self._skill_identifiers_from_items(value):
+                if skill_id not in skills:
+                    skills.append(skill_id)
+        return skills
+
+    def _entity_location(self, entity: Dict[str, Any]) -> Dict[str, Any]:
+        location = self._first_value(entity.get("location"), self._get_path(entity, "basic_info.location"))
+        if isinstance(location, dict):
+            return dict(location)
+        return {}
+
+    def verify_entity(self, entity_type: str, entity_id: str) -> Dict[str, Any]:
+        state = st.verified_state()
+        updated = self.repo.update_entity_status(entity_type, entity_id, state)
+        self.graph_repo.update_entity_verification_status(entity_type, entity_id, state)
+        if not updated:
+            raise ValueError(f"Entity not found: {entity_type}/{entity_id}")
+        return updated
+
+    def reject_entity(self, entity_type: str, entity_id: str) -> Dict[str, Any]:
+        state = {
+            "entity_verification_status": st.ENTITY_REJECTED,
+            "kg_sync_status": st.KG_REJECTED,
+            "visibility": st.VISIBILITY_HIDDEN,
+            "participation_scope": st.SCOPE_DISABLED,
+            "active": False,
+            "trust_weight": 0,
+        }
+        updated = self.repo.update_entity_status(entity_type, entity_id, state)
+        self.graph_repo.update_entity_verification_status(entity_type, entity_id, state)
+        if not updated:
+            raise ValueError(f"Entity not found: {entity_type}/{entity_id}")
+        return updated
+
+    def disable_entity(self, entity_type: str, entity_id: str) -> Dict[str, Any]:
+        state = {
+            "kg_sync_status": st.KG_DISABLED,
+            "visibility": st.VISIBILITY_DISABLED,
+            "participation_scope": st.SCOPE_DISABLED,
+            "active": False,
+            "trust_weight": 0,
+        }
+        updated = self.repo.update_entity_status(entity_type, entity_id, state)
+        self.graph_repo.disable_entity(entity_type, entity_id)
+        if not updated:
+            raise ValueError(f"Entity not found: {entity_type}/{entity_id}")
+        return updated
+
+    def merge_entities(self, entity_type: str, source_entity_id: str, target_entity_id: str) -> Dict[str, Any]:
+        source = self.repo.find_entity_by_id(entity_type, source_entity_id)
+        target = self.repo.find_entity_by_id(entity_type, target_entity_id)
+        if not source:
+            raise ValueError(f"Source entity not found: {entity_type}/{source_entity_id}")
+        if not target:
+            raise ValueError(f"Target entity not found: {entity_type}/{target_entity_id}")
+
+        relinked_users = self.repo.relink_users_from_entity(entity_type, source_entity_id, target)
+        state = {
+            "kg_sync_status": st.KG_DISABLED,
+            "visibility": st.VISIBILITY_DISABLED,
+            "participation_scope": st.SCOPE_DISABLED,
+            "active": False,
+            "trust_weight": 0,
+            "matched_existing_entity_id": target_entity_id,
+            "merged_into": target_entity_id,
+        }
+        updated = self.repo.update_entity_status(entity_type, source_entity_id, state)
+        self.graph_repo.disable_entity(entity_type, source_entity_id, merged_into=target_entity_id)
+        if not updated:
+            raise ValueError(f"Entity not found: {entity_type}/{source_entity_id}")
+        updated["relinked_users"] = relinked_users
+        return updated
+
+    def _neo4j_properties(self, entity_type: str, entity: Dict[str, Any], verified: bool) -> Dict[str, Any]:
+        state = st.verified_state() if verified else st.default_unverified_state(
+            trust_weight=float(entity.get("trust_weight", 0.5) or 0.5)
+        )
+        return {
+            **state,
+            "name": self._first_value(
+                entity.get("name"),
+                entity.get("title"),
+                self._get_path(entity, "basic_info.name"),
+                self._get_path(entity, "basic_info.title"),
+            )
+            or "",
+            "title": self._first_value(
+                entity.get("title"),
+                self._get_path(entity, "basic_info.title"),
+                entity.get("name"),
+                self._get_path(entity, "basic_info.name"),
+            )
+            or "",
+            "email": self._first_value(
+                entity.get("email"),
+                self._get_path(entity, "contact_info.email"),
+                (self._get_path(entity, "contact_info.emails") or [None])[0]
+                if isinstance(self._get_path(entity, "contact_info.emails"), list)
+                else None,
+            )
+            or "",
+            "user_id": entity.get("user_id") or entity.get("owner_id") or entity.get("owner_user_id"),
+            "owner_user_id": entity.get("owner_user_id") or entity.get("owner_id"),
+            "owner_entity_id": entity.get("owner_entity_id"),
+            "source": entity.get("source", "user_registration"),
+            "summary": self._first_value(
+                entity.get("summary"),
+                entity.get("description"),
+                self._get_path(entity, "basic_info.description"),
+            )
+            or "",
+            "country": self._first_value(entity.get("country"), self._get_path(entity, "basic_info.location.country_code"), "VN"),
+            "province": self._first_value(entity.get("province"), self._get_path(entity, "basic_info.location.region"), ""),
+            "district": self._first_value(entity.get("district"), self._get_path(entity, "basic_info.location.city"), ""),
+            "skills": self._entity_skills(entity_type, entity),
+            "custom_skills": list(entity.get("custom_skills") or []),
+            "active": entity.get("active", True),
+            "kg_sync_status": entity.get("kg_sync_status")
+            if entity.get("kg_sync_status") == st.KG_MERGE_REQUIRED
+            else (st.KG_SYNCED_VERIFIED if verified else st.KG_SYNCED_UNVERIFIED),
+            "custom_research_topics": list(entity.get("custom_research_topics") or []),
+            "kg_schema_version": st.KG_SCHEMA_VERSION,
+            "provisional_sync_version": st.PROVISIONAL_SYNC_VERSION,
+        }

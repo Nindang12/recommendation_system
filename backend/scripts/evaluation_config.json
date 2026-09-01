@@ -1,0 +1,19 @@
+{
+  "reference_method": "hybrid",
+  "primary_metrics": ["ndcg_at_5", "mrr"],
+  "metrics": {
+    "ndcg_at_5": {
+      "min_absolute": 0.0,
+      "max_regression": 0.05
+    },
+    "mrr": {
+      "min_absolute": 0.0,
+      "max_regression": 0.05
+    },
+    "precision_at_5": {
+      "min_absolute": 0.0,
+      "max_regression": 0.05,
+      "informational_only": true
+    }
+  }
+}
